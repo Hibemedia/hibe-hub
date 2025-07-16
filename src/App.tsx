@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Dashboard";
+import Performance from "./pages/Performance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,8 +34,8 @@ const App = () => (
               </header>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/performance" element={<Dashboard />} />
-                <Route path="/insights" element={<Dashboard />} />
+                <Route path="/performance" element={<Performance />} />
+                <Route path="/insights" element={<Performance />} />
                 <Route path="/video-approval" element={<Dashboard />} />
                 <Route path="/medals" element={<Dashboard />} />
                 <Route path="/branding" element={<Dashboard />} />

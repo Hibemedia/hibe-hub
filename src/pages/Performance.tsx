@@ -1,5 +1,5 @@
 import { MetricCard } from "@/components/MetricCard";
-import { MedaillesWidget } from "@/components/MedaillesWidget";
+import { AIInsightsWidget } from "@/components/AIInsightsWidget";
 import { TopVideos } from "@/components/TopVideos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,30 +10,34 @@ import {
   MousePointer, 
   TrendingUp, 
   Download,
-  Award,
-  CheckCircle,
-  Clock
+  BarChart3,
+  Calendar,
+  Filter
 } from "lucide-react";
 
-export default function Dashboard() {
+export default function Performance() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-foreground">Performance</h1>
           <p className="text-muted-foreground mt-1">
-            Welkom terug, <span className="font-medium">Barbershop Amsterdam</span>
+            Gedetailleerde prestatie-analyse van je content
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="accent" className="shadow-lg">
-            <Award className="h-3 w-3 mr-1" />
-            3 nieuwe medailles
-          </Badge>
+          <Button variant="outline">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter
+          </Button>
+          <Button variant="outline">
+            <Calendar className="h-4 w-4 mr-2" />
+            Periode
+          </Button>
           <Button className="bg-gradient-primary hover:bg-gradient-to-r hover:from-primary-dark hover:to-primary shadow-primary">
             <Download className="h-4 w-4 mr-2" />
-            Download Rapport
+            Export Data
           </Button>
         </div>
       </div>
@@ -70,10 +74,13 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Platform Overview */}
+      {/* Platform Performance */}
       <Card>
         <CardHeader>
-          <CardTitle>Platform Overzicht</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Platform Performance
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -83,7 +90,17 @@ export default function Dashboard() {
                 <Badge className="bg-black text-white">Trending</Badge>
               </div>
               <div className="text-2xl font-bold text-foreground">456K</div>
-              <p className="text-sm text-muted-foreground">+24% deze maand</p>
+              <p className="text-sm text-success">+24% deze maand</p>
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span>Avg. CTR</span>
+                  <span>4.2%</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span>Engagement</span>
+                  <span>12.8%</span>
+                </div>
+              </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -91,7 +108,17 @@ export default function Dashboard() {
                 <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">Stabiel</Badge>
               </div>
               <div className="text-2xl font-bold text-foreground">234K</div>
-              <p className="text-sm text-muted-foreground">+8% deze maand</p>
+              <p className="text-sm text-success">+8% deze maand</p>
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span>Avg. CTR</span>
+                  <span>2.8%</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span>Engagement</span>
+                  <span>9.2%</span>
+                </div>
+              </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -99,58 +126,30 @@ export default function Dashboard() {
                 <Badge className="bg-red-500 text-white">Groeiend</Badge>
               </div>
               <div className="text-2xl font-bold text-foreground">123K</div>
-              <p className="text-sm text-muted-foreground">+31% deze maand</p>
+              <p className="text-sm text-success">+31% deze maand</p>
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span>Avg. CTR</span>
+                  <span>3.1%</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span>Engagement</span>
+                  <span>7.6%</span>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Medailles Widget */}
-        <MedaillesWidget />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* AI Insights - Now on Performance page */}
+        <AIInsightsWidget />
         
         {/* Top Videos */}
         <TopVideos />
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recente Activiteit</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-3 border rounded-lg">
-              <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 text-success" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Video "Fade tutorial voor beginners" goedgekeurd</p>
-                <p className="text-xs text-muted-foreground">2 uur geleden</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-3 border rounded-lg">
-              <div className="w-8 h-8 bg-warning/10 rounded-full flex items-center justify-center">
-                <Clock className="h-4 w-4 text-warning" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Nieuwe contentdag gepland voor 15 december</p>
-                <p className="text-xs text-muted-foreground">1 dag geleden</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-3 border rounded-lg">
-              <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-                <Award className="h-4 w-4 text-accent" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Medaille "100K Views" behaald!</p>
-                <p className="text-xs text-muted-foreground">3 dagen geleden</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
