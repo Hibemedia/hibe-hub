@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Play, Eye, Heart, MessageCircle, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ClientSelector } from "./ClientSelector";
+
 import videoThumb1 from "@/assets/video-thumb-1.jpg";
 import videoThumb2 from "@/assets/video-thumb-2.jpg";
 import videoThumb3 from "@/assets/video-thumb-3.jpg";
@@ -24,11 +24,13 @@ interface Video {
 
 const fallbackThumbnails = [videoThumb1, videoThumb2, videoThumb3, videoThumb4, videoThumb5];
 
-export function TopVideos() {
+interface TopVideosProps {
+  selectedBlogId: number | null;
+  selectedBrandName: string;
+}
+
+export function TopVideos({ selectedBlogId, selectedBrandName }: TopVideosProps) {
   const [selectedMonth, setSelectedMonth] = useState("december-2024");
-  const [selectedClient, setSelectedClient] = useState<string>("");
-  const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
-  const [selectedBrandName, setSelectedBrandName] = useState<string>("");
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,11 +108,6 @@ export function TopVideos() {
     }
   };
 
-  const handleClientSelect = (blogId: number, brandName: string) => {
-    setSelectedBlogId(blogId);
-    setSelectedBrandName(brandName);
-    setSelectedClient(blogId.toString());
-  };
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -162,13 +159,6 @@ export function TopVideos() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {/* Client Selection */}
-        <div className="mb-4">
-          <ClientSelector 
-            onClientSelect={handleClientSelect}
-            selectedClient={selectedClient}
-          />
-        </div>
 
         {/* Videos List */}
         <div className="space-y-2">

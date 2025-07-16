@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Award, Star, Target, TrendingUp, Users, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ClientSelector } from "./ClientSelector";
 
 interface Medal {
   id: number;
@@ -29,10 +28,12 @@ interface PerformanceData {
   contentFrequency: number;
 }
 
-export function MedaillesWidget() {
-  const [selectedClient, setSelectedClient] = useState<string>("");
-  const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
-  const [selectedBrandName, setSelectedBrandName] = useState<string>("");
+interface MedaillesWidgetProps {
+  selectedBlogId: number | null;
+  selectedBrandName: string;
+}
+
+export function MedaillesWidget({ selectedBlogId, selectedBrandName }: MedaillesWidgetProps) {
   const [medals, setMedals] = useState<Medal[]>([]);
   const [loading, setLoading] = useState(false);
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
@@ -158,12 +159,6 @@ export function MedaillesWidget() {
     }
   };
 
-  const handleClientSelect = (blogId: number, brandName: string) => {
-    setSelectedBlogId(blogId);
-    setSelectedBrandName(brandName);
-    setSelectedClient(blogId.toString());
-  };
-
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case 'platinum':
@@ -187,21 +182,13 @@ export function MedaillesWidget() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Award className="h-5 w-5 text-accent" />
-          Medailles
+          Medailles - {selectedBrandName}
           <Badge variant="default" className="ml-auto">
             {achievedMedals.length}/{medals.length}
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Client Selection */}
-        <div className="mb-4">
-          <ClientSelector 
-            onClientSelect={handleClientSelect}
-            selectedClient={selectedClient}
-          />
-        </div>
-
         {loading && (
           <div className="text-center py-4">
             <div className="text-sm text-muted-foreground">Laden...</div>
