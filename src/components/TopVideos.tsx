@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Eye, Heart, MessageCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Play, Eye, Heart, MessageCircle, Calendar } from "lucide-react";
+import { useState } from "react";
 
 const topVideos = [
   {
@@ -51,6 +53,17 @@ const topVideos = [
 ];
 
 export function TopVideos() {
+  const [selectedMonth, setSelectedMonth] = useState("december-2024");
+
+  const months = [
+    { value: "december-2024", label: "December 2024" },
+    { value: "november-2024", label: "November 2024" },
+    { value: "oktober-2024", label: "Oktober 2024" },
+    { value: "september-2024", label: "September 2024" },
+    { value: "augustus-2024", label: "Augustus 2024" },
+    { value: "juli-2024", label: "Juli 2024" }
+  ];
+
   const getPlatformColor = (platform: string) => {
     switch (platform) {
       case 'TikTok':
@@ -67,10 +80,25 @@ export function TopVideos() {
   return (
     <Card className="col-span-2">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Play className="h-5 w-5 text-primary" />
-          Top 5 Best Presterende Video's
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Play className="h-5 w-5 text-primary" />
+            Top 5 Video's deze maand
+          </CardTitle>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-48">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

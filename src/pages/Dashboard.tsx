@@ -12,10 +12,18 @@ import {
   Download,
   Award,
   CheckCircle,
-  Clock
+  Clock,
+  PlayCircle
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
+  const handleVideoApprovalClick = () => {
+    navigate("/video-approval");
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -107,6 +115,56 @@ export default function Dashboard() {
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Video Approval Widget */}
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-shadow border-primary/20"
+          onClick={handleVideoApprovalClick}
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <PlayCircle className="h-5 w-5 text-primary" />
+                Video's nog goed te keuren
+              </CardTitle>
+              <Badge className="bg-primary text-primary-foreground">
+                3 video's in afwachting
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg">
+                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-lg">
+                  🎬
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Fade tutorial voor beginners</p>
+                  <p className="text-xs text-muted-foreground">Geüpload 2 uur geleden</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg">
+                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-lg">
+                  🎬
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Trending kapsel deze week</p>
+                  <p className="text-xs text-muted-foreground">Geüpload 4 uur geleden</p>
+                </div>
+              </div>
+              <Button 
+                className="w-full bg-gradient-primary hover:bg-gradient-to-r hover:from-primary-dark hover:to-primary shadow-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleVideoApprovalClick();
+                }}
+              >
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Bekijk video's
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Medailles Widget */}
         <MedaillesWidget />
         

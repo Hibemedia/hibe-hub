@@ -195,42 +195,42 @@ export default function Performance() {
                 <Legend />
                 {activePlatforms.TikTok && (
                   <Line 
-                    type="monotone" 
+                    type="linear" 
                     dataKey="TikTok" 
                     stroke="#000000" 
-                    strokeWidth={3}
-                    dot={{ fill: '#000000', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ fill: '#000000', strokeWidth: 1, r: 2 }}
+                    activeDot={{ r: 4, strokeWidth: 1 }}
                   />
                 )}
                 {activePlatforms.Instagram && (
                   <Line 
-                    type="monotone" 
+                    type="linear" 
                     dataKey="Instagram" 
                     stroke="#E1306C" 
-                    strokeWidth={3}
-                    dot={{ fill: '#E1306C', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ fill: '#E1306C', strokeWidth: 1, r: 2 }}
+                    activeDot={{ r: 4, strokeWidth: 1 }}
                   />
                 )}
                 {activePlatforms.YouTube && (
                   <Line 
-                    type="monotone" 
+                    type="linear" 
                     dataKey="YouTube" 
                     stroke="#FF0000" 
-                    strokeWidth={3}
-                    dot={{ fill: '#FF0000', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ fill: '#FF0000', strokeWidth: 1, r: 2 }}
+                    activeDot={{ r: 4, strokeWidth: 1 }}
                   />
                 )}
                 {activePlatforms.Facebook && (
                   <Line 
-                    type="monotone" 
+                    type="linear" 
                     dataKey="Facebook" 
                     stroke="#1877F2" 
-                    strokeWidth={3}
-                    dot={{ fill: '#1877F2', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ fill: '#1877F2', strokeWidth: 1, r: 2 }}
+                    activeDot={{ r: 4, strokeWidth: 1 }}
                   />
                 )}
               </LineChart>
