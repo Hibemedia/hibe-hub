@@ -171,7 +171,11 @@ serve(async (req) => {
 
     // Only try to parse JSON if the response is successful
     try {
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log('Metricool API response text:', responseText.substring(0, 200));
+      
+      // Try to parse as JSON
+      const data = JSON.parse(responseText);
       console.log('Metricool API response:', data);
 
       return new Response(
@@ -189,8 +193,6 @@ serve(async (req) => {
       );
     } catch (jsonError) {
       console.error('Failed to parse JSON response:', jsonError);
-      const responseText = await response.text();
-      console.error('Response was not JSON:', responseText.substring(0, 200));
       
       // Return mock data if JSON parsing fails
       console.log('Returning mock data due to JSON parsing error');
