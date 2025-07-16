@@ -17,15 +17,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    const url = new URL(req.url);
-    const blogId = url.searchParams.get('blogId');
-    const metric = url.searchParams.get('metric') || 'igFollowers';
-    const start = url.searchParams.get('start');
-    const end = url.searchParams.get('end');
+    const { blogId, type, start, end } = await req.json();
 
-    if (!blogId) {
+    if (!blogId || !type) {
       return new Response(
-        JSON.stringify({ error: 'blogId is required' }),
+        JSON.stringify({ error: 'blogId and type are required' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -62,20 +58,67 @@ serve(async (req) => {
       );
     }
 
-    // Build Metricool API URL
+    // Build different endpoints based on type
     const baseUrl = 'https://app.metricool.com/api';
-    const endpoint = `/stats/timeline/${metric}`;
-    const metricoolUrl = new URL(`${baseUrl}${endpoint}`);
-    
-    // Add required parameters
-    metricoolUrl.searchParams.append('userId', settings.user_id.toString());
-    metricoolUrl.searchParams.append('blogId', blogId);
-    
-    if (start) {
-      metricoolUrl.searchParams.append('start', start);
-    }
-    if (end) {
-      metricoolUrl.searchParams.append('end', end);
+    let endpoint = '';
+    const metricoolUrl = new URL(`${baseUrl}`);
+
+    switch (type) {
+      case 'top-videos':
+        endpoint = '/posts/top';
+        metricoolUrl.pathname = endpoint;
+        metricoolUrl.searchParams.append('userId', settings.user_id.toString());
+        metricoolUrl.searchParams.append('blogId', blogId.toString());
+        metricoolUrl.searchParams.append('limit', '5');
+        metricoolUrl.searchParams.append('orderBy', 'views');
+        if (start) metricoolUrl.searchParams.append('start', start);
+        if (end) metricoolUrl.searchParams.append('end', end);
+        break;
+
+      case 'performance':
+        endpoint = '/stats/performance';
+        metricoolUrl.pathname = endpoint;
+        metricoolUrl.searchParams.append('userId', settings.user_id.toString());
+        metricoolUrl.searchParams.append('blogId', blogId.toString());
+        if (start) metricoolUrl.searchParams.append('start', start);
+        if (end) metricoolUrl.searchParams.append('end', end);
+        break;
+
+      case 'followers':
+        endpoint = '/stats/timeline/igFollowers';
+        metricoolUrl.pathname = endpoint;
+        metricoolUrl.searchParams.append('userId', settings.user_id.toString());
+        metricoolUrl.searchParams.append('blogId', blogId.toString());
+        if (start) metricoolUrl.searchParams.append('start', start);
+        if (end) metricoolUrl.searchParams.append('end', end);
+        break;
+
+      case 'engagement':
+        endpoint = '/stats/timeline/igEngagement';
+        metricoolUrl.pathname = endpoint;
+        metricoolUrl.searchParams.append('userId', settings.user_id.toString());
+        metricoolUrl.searchParams.append('blogId', blogId.toString());
+        if (start) metricoolUrl.searchParams.append('start', start);
+        if (end) metricoolUrl.searchParams.append('end', end);
+        break;
+
+      case 'overview':
+        endpoint = '/stats/overview';
+        metricoolUrl.pathname = endpoint;
+        metricoolUrl.searchParams.append('userId', settings.user_id.toString());
+        metricoolUrl.searchParams.append('blogId', blogId.toString());
+        if (start) metricoolUrl.searchParams.append('start', start);
+        if (end) metricoolUrl.searchParams.append('end', end);
+        break;
+
+      default:
+        return new Response(
+          JSON.stringify({ error: 'Invalid type. Supported: top-videos, performance, followers, engagement, overview' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
     }
 
     console.log('Making Metricool API call to:', metricoolUrl.toString());
@@ -113,7 +156,7 @@ serve(async (req) => {
         success: true, 
         data,
         blogId,
-        metric,
+        type,
         dateRange: { start, end }
       }),
       { 

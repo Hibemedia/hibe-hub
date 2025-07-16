@@ -17,7 +17,7 @@ interface MetricoolStatsProps {
 
 export function MetricoolStats({ className }: MetricoolStatsProps) {
   const [selectedClient, setSelectedClient] = useState<string>("");
-  const [selectedMetric, setSelectedMetric] = useState<string>("igFollowers");
+  const [selectedMetric, setSelectedMetric] = useState<string>("followers");
   const [statsData, setStatsData] = useState<StatData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,10 +25,10 @@ export function MetricoolStats({ className }: MetricoolStatsProps) {
   const [selectedBrandName, setSelectedBrandName] = useState<string>("");
 
   const metrics = [
-    { value: "igFollowers", label: "Instagram Volgers", icon: Users },
-    { value: "igLikes", label: "Instagram Likes", icon: TrendingUp },
-    { value: "igComments", label: "Instagram Comments", icon: BarChart3 },
-    { value: "igViews", label: "Instagram Views", icon: BarChart3 },
+    { value: "followers", label: "Volgers", icon: Users },
+    { value: "engagement", label: "Engagement", icon: TrendingUp },
+    { value: "performance", label: "Performance", icon: BarChart3 },
+    { value: "overview", label: "Overzicht", icon: BarChart3 },
   ];
 
   useEffect(() => {
@@ -54,8 +54,8 @@ export function MetricoolStats({ className }: MetricoolStatsProps) {
 
       const { data, error } = await supabase.functions.invoke('metricool-stats', {
         body: {
-          blogId: selectedBlogId.toString(),
-          metric: selectedMetric,
+          blogId: selectedBlogId,
+          type: selectedMetric,
           start: startDate,
           end: endDate
         }
