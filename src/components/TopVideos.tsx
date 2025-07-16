@@ -201,15 +201,24 @@ export function TopVideos({ selectedBlogId, selectedBrandName }: TopVideosProps)
           )}
 
           {error && (
-            <div className="text-center py-4">
-              <div className="text-sm text-destructive">{error}</div>
+            <div className="text-center py-8">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                <p className="text-destructive font-medium">Fout bij laden van video's</p>
+                <p className="text-destructive/80 text-sm mt-1">{error}</p>
+                <p className="text-muted-foreground text-xs mt-2">
+                  Probeer een andere maand of neem contact op met support als het probleem aanhoudt.
+                </p>
+              </div>
             </div>
           )}
 
           {!loading && !error && videos.length === 0 && selectedBlogId && (
-            <div className="text-center py-4">
-              <div className="text-sm text-muted-foreground">
-                Geen video's gevonden voor deze periode
+            <div className="text-center py-8">
+              <div className="bg-muted/30 border border-muted rounded-lg p-4">
+                <p className="text-muted-foreground">Geen video's gevonden voor deze periode</p>
+                <p className="text-muted-foreground/80 text-sm mt-1">
+                  Selecteer een andere maand of controleer of er content is geplaatst.
+                </p>
               </div>
             </div>
           )}

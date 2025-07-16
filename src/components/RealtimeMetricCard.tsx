@@ -89,7 +89,7 @@ export function RealtimeMetricCard({
         }
       } else {
         console.warn(`No data available for ${metricType}`);
-        setError('Geen data beschikbaar');
+        setError('Geen data beschikbaar voor deze periode');
       }
     } catch (err) {
       console.error(`Error loading ${metricType} data:`, err);
@@ -132,7 +132,7 @@ export function RealtimeMetricCard({
           {loading ? "..." : error ? "Error" : value}
         </div>
         <p className={cn("text-xs", error ? "text-destructive" : getChangeColor())}>
-          {loading ? "Laden..." : error ? error : change}
+          {loading ? "Laden..." : error ? `⚠️ ${error}` : change}
         </p>
       </CardContent>
     </Card>
