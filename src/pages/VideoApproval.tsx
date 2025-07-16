@@ -553,7 +553,7 @@ export default function VideoApproval() {
                       <Save className="h-4 w-4 mr-2" />
                       Opslaan
                     </Button>
-                    <Button variant="outline" onClick={() => setNewComment("")} className="border-neutral-600 text-neutral-300 hover:bg-neutral-700">
+                    <Button variant="outline" onClick={() => setNewComment("")} className="border-white text-white hover:bg-white/10">
                       Annuleren
                     </Button>
                   </div>
