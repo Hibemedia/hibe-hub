@@ -166,9 +166,9 @@ async function syncMetric(config: any, metric: string, startDate: string, endDat
     const platform = PLATFORM_MAPPING[metric] || 'unknown';
 
     if (Array.isArray(data) && data.length > 0) {
-      // Prepare data for upsert
+      // Prepare data for upsert - fix UUID issue
       const metricsToUpsert = data.map(([date, value]) => ({
-        client_id: config.client_id,
+        client_id: config.user_id_ref || crypto.randomUUID(), // Use UUID for client_id
         blog_id: config.blog_id,
         metric_name: metric,
         metric_date: date,
@@ -255,7 +255,7 @@ async function processPostsData(data: any, config: any, supabase: any, type: str
   for (const post of data) {
     try {
       const postData = {
-        client_id: config.client_id,
+        client_id: config.user_id_ref || crypto.randomUUID(), // Use UUID for client_id
         blog_id: config.blog_id,
         post_id: post.id || post.post_id || `${Date.now()}-${Math.random()}`,
         platform: post.platform || 'unknown',

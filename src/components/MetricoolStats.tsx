@@ -23,6 +23,8 @@ export function MetricoolStats({ className }: MetricoolStatsProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
   const [selectedBrandName, setSelectedBrandName] = useState<string>("");
+  const [dataSource, setDataSource] = useState<string>('');
+  const [note, setNote] = useState<string>('');
 
   const metrics = [
     { value: "followers", label: "Volgers", icon: Users },
@@ -75,6 +77,8 @@ export function MetricoolStats({ className }: MetricoolStatsProps) {
         }));
         
         setStatsData(transformedData);
+        setDataSource(data.source || 'unknown');
+        setNote(data.note || '');
       } else {
         setError(data.error || 'Geen data beschikbaar');
       }
@@ -160,6 +164,23 @@ export function MetricoolStats({ className }: MetricoolStatsProps) {
                 <p className="text-sm text-muted-foreground">
                   {selectedMetricData?.label} - Laatste 30 dagen
                 </p>
+                {/* Data source indicator */}
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge 
+                    variant={dataSource === 'api' ? 'default' : 
+                            dataSource === 'cached' ? 'secondary' : 'outline'}
+                    className="text-xs"
+                  >
+                    {dataSource === 'api' ? '🟢 Live Data' :
+                     dataSource === 'cached' ? '🔵 Cached Data' :
+                     '🟠 Mock Data'}
+                  </Badge>
+                  {note && (
+                    <span className="text-xs text-muted-foreground">
+                      {note}
+                    </span>
+                  )}
+                </div>
               </div>
               {statsData.length > 0 && (
                 <div className="text-right">

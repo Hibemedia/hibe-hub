@@ -58,67 +58,48 @@ serve(async (req) => {
       );
     }
 
-    // Try multiple API base URLs and endpoints
-    const apiBaseUrls = [
-      'https://app.metricool.com/api',
-      'https://app.metricool.com/admin/api',
-      'https://api.metricool.com'
-    ];
+    // Get specific client config for this blog
+    const { data: clientConfig, error: clientError } = await supabase
+      .from('metricool_config')
+      .select('*')
+      .eq('blog_id', blogId)
+      .eq('is_active', true)
+      .single();
+
+    if (clientError || !clientConfig) {
+      console.error('No client config found for blog:', blogId, clientError);
+      return new Response(
+        JSON.stringify({ error: 'No client configuration found' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Build the correct API URL based on type
+    let apiUrl = '';
+    const baseUrl = 'https://app.metricool.com/api';
     
-    let endpoint = '';
-    let metricoolUrl: URL;
-    
-    // Try different endpoint formats for different types
     switch (type) {
       case 'top-videos':
-        // Try various endpoint formats for posts/videos
-        const videoEndpoints = [
-          `/posts?userId=${settings.user_id}&blogId=${blogId}&limit=5&orderBy=views&start=${start}&end=${end}`,
-          `/admin/posts?userId=${settings.user_id}&blogId=${blogId}&limit=5&orderBy=views&start=${start}&end=${end}`,
-          `/v1/posts?userId=${settings.user_id}&blogId=${blogId}&limit=5&orderBy=views&start=${start}&end=${end}`,
-          `/content/posts?userId=${settings.user_id}&blogId=${blogId}&limit=5&orderBy=views&start=${start}&end=${end}`
-        ];
-        endpoint = videoEndpoints[0];
+        apiUrl = `${baseUrl}/stats/posts?userId=${settings.user_id}&blogId=${blogId}&limit=5&orderBy=views&start=${start}&end=${end}`;
         break;
 
       case 'performance':
-        const performanceEndpoints = [
-          `/stats?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/admin/stats?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/v1/stats?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/analytics/performance?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`
-        ];
-        endpoint = performanceEndpoints[0];
+        apiUrl = `${baseUrl}/stats/timeline/ttViews?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`;
         break;
 
       case 'followers':
-        const followersEndpoints = [
-          `/followers?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/admin/followers?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/v1/followers?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/analytics/followers?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`
-        ];
-        endpoint = followersEndpoints[0];
+        apiUrl = `${baseUrl}/stats/timeline/ttFollowers?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`;
         break;
 
       case 'engagement':
-        const engagementEndpoints = [
-          `/engagement?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/admin/engagement?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/v1/engagement?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/analytics/engagement?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`
-        ];
-        endpoint = engagementEndpoints[0];
+        apiUrl = `${baseUrl}/stats/timeline/ttEngagement?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`;
         break;
 
       case 'overview':
-        const overviewEndpoints = [
-          `/overview?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/admin/overview?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/v1/overview?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`,
-          `/analytics/overview?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`
-        ];
-        endpoint = overviewEndpoints[0];
+        apiUrl = `${baseUrl}/stats/overview?userId=${settings.user_id}&blogId=${blogId}&start=${start}&end=${end}`;
         break;
 
       default:
@@ -130,27 +111,57 @@ serve(async (req) => {
           }
         );
     }
-    
-    // Try the first base URL with the endpoint
-    metricoolUrl = new URL(apiBaseUrls[0] + endpoint);
 
-    console.log('Making Metricool API call to:', metricoolUrl.toString());
+    console.log('Making Metricool API call to:', apiUrl);
 
-    // Make API call to Metricool
-    const response = await fetch(metricoolUrl.toString(), {
+    // Make API call to Metricool with proper headers
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
         'X-Mc-Auth': apiToken,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'Supabase-Edge-Function/1.0'
       },
     });
 
+    const responseText = await response.text();
+    console.log('Metricool API response status:', response.status);
+    console.log('Metricool API response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('Metricool API response text (first 500 chars):', responseText.substring(0, 500));
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Metricool API error:', response.status, errorText);
+      console.error('Metricool API error:', response.status, responseText);
       
-      // Return mock data for now since we don't have access to the correct API endpoints
-      console.log('Returning mock data due to API error');
+      // Try to get real data from database first
+      const { data: cachedData, error: cacheError } = await supabase
+        .from('metricool_metrics')
+        .select('*')
+        .eq('blog_id', blogId)
+        .order('metric_date', { ascending: false })
+        .limit(30);
+
+      if (!cacheError && cachedData && cachedData.length > 0) {
+        console.log('Using cached data from database');
+        const processedData = processCachedData(cachedData, type);
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            data: processedData,
+            blogId,
+            type,
+            dateRange: { start, end },
+            source: 'cached'
+          }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      
+      // Return mock data as last resort
+      console.log('Returning mock data due to API error and no cached data');
       const mockData = generateMockData(type, blogId);
       
       return new Response(
@@ -160,7 +171,7 @@ serve(async (req) => {
           blogId,
           type,
           dateRange: { start, end },
-          note: 'Mock data - API endpoints need to be verified'
+          note: 'Mock data - API error and no cached data available'
         }),
         { 
           status: 200, 
@@ -169,14 +180,10 @@ serve(async (req) => {
       );
     }
 
-    // Only try to parse JSON if the response is successful
+    // Try to parse JSON response
     try {
-      const responseText = await response.text();
-      console.log('Metricool API response text:', responseText.substring(0, 200));
-      
-      // Try to parse as JSON
       const data = JSON.parse(responseText);
-      console.log('Metricool API response:', data);
+      console.log('Successfully parsed JSON response:', data);
 
       return new Response(
         JSON.stringify({ 
@@ -184,7 +191,8 @@ serve(async (req) => {
           data,
           blogId,
           type,
-          dateRange: { start, end }
+          dateRange: { start, end },
+          source: 'api'
         }),
         { 
           status: 200, 
@@ -194,7 +202,39 @@ serve(async (req) => {
     } catch (jsonError) {
       console.error('Failed to parse JSON response:', jsonError);
       
-      // Return mock data if JSON parsing fails
+      // Check if response is HTML (authentication failure)
+      if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html>')) {
+        console.error('API returned HTML - possible authentication failure');
+        
+        // Try to get cached data from database
+        const { data: cachedData, error: cacheError } = await supabase
+          .from('metricool_metrics')
+          .select('*')
+          .eq('blog_id', blogId)
+          .order('metric_date', { ascending: false })
+          .limit(30);
+
+        if (!cacheError && cachedData && cachedData.length > 0) {
+          console.log('Using cached data from database');
+          const processedData = processCachedData(cachedData, type);
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              data: processedData,
+              blogId,
+              type,
+              dateRange: { start, end },
+              source: 'cached'
+            }),
+            { 
+              status: 200, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        }
+      }
+      
+      // Return mock data as last resort
       console.log('Returning mock data due to JSON parsing error');
       const mockData = generateMockData(type, blogId);
       
@@ -205,7 +245,8 @@ serve(async (req) => {
           blogId,
           type,
           dateRange: { start, end },
-          note: 'Mock data - API returned non-JSON response'
+          note: 'Mock data - API returned non-JSON response',
+          source: 'mock'
         }),
         { 
           status: 200, 
@@ -225,6 +266,37 @@ serve(async (req) => {
     );
   }
 });
+
+function processCachedData(cachedData: any[], type: string) {
+  switch (type) {
+    case 'performance':
+      return cachedData
+        .filter(item => item.metric_name === 'ttViews')
+        .map(item => ({
+          date: item.metric_date,
+          value: item.metric_value
+        }));
+    
+    case 'followers':
+      return cachedData
+        .filter(item => item.metric_name === 'ttFollowers')
+        .map(item => ({
+          date: item.metric_date,
+          value: item.metric_value
+        }));
+    
+    case 'engagement':
+      return cachedData
+        .filter(item => item.metric_name === 'ttEngagement')
+        .map(item => ({
+          date: item.metric_date,
+          value: item.metric_value
+        }));
+    
+    default:
+      return cachedData;
+  }
+}
 
 function generateMockData(type: string, blogId: number) {
   // Create realistic data based on specific brands
