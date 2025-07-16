@@ -681,7 +681,7 @@ export default function LinkInBio() {
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Select value={newLink.icon} onValueChange={(value) => setNewLink({ ...newLink, icon: value })}>
+              <Select value={newLink.icon} onValueChange={(value) => handleNewLinkChange('icon', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Icoon" />
                 </SelectTrigger>
@@ -696,7 +696,7 @@ export default function LinkInBio() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={newLink.style} onValueChange={(value) => setNewLink({ ...newLink, style: value })}>
+              <Select value={newLink.style} onValueChange={(value) => handleNewLinkChange('style', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Stijl" />
                 </SelectTrigger>
@@ -819,7 +819,7 @@ export default function LinkInBio() {
             <Label>Knopvorm</Label>
             <Select 
               value={currentProfile.buttonStyle} 
-              onValueChange={(value) => setCurrentProfile({ ...currentProfile, buttonStyle: value })}
+              onValueChange={(value) => handleProfileChange('buttonStyle', value)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -836,7 +836,7 @@ export default function LinkInBio() {
             <Label>Lettertype</Label>
             <Select 
               value={currentProfile.font} 
-              onValueChange={(value) => setCurrentProfile({ ...currentProfile, font: value })}
+              onValueChange={(value) => handleProfileChange('font', value)}
             >
               <SelectTrigger>
                 <SelectValue />
