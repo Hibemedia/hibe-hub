@@ -13,9 +13,12 @@ import {
   Award,
   CheckCircle,
   Clock,
-  PlayCircle
+  PlayCircle,
+  Play
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import dashboardVideo1 from "@/assets/dashboard-video-1.jpg";
+import dashboardVideo2 from "@/assets/dashboard-video-2.jpg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -125,8 +128,15 @@ export default function Dashboard() {
         <CardContent>
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-lg">
-                🎬
+              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 relative">
+                <img 
+                  src={dashboardVideo1} 
+                  alt="Fade tutorial voor beginners"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <Play className="h-3 w-3 text-white" />
+                </div>
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">Fade tutorial voor beginners</p>
@@ -134,8 +144,15 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-lg">
-                🎬
+              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 relative">
+                <img 
+                  src={dashboardVideo2} 
+                  alt="Trending kapsel deze week"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <Play className="h-3 w-3 text-white" />
+                </div>
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">Trending kapsel deze week</p>

@@ -11,6 +11,9 @@ import {
   Clock,
   User
 } from "lucide-react";
+import videoApproval1 from "@/assets/video-approval-1.jpg";
+import videoApproval2 from "@/assets/video-approval-2.jpg";
+import videoApproval3 from "@/assets/video-approval-3.jpg";
 
 const videos = [
   {
@@ -20,7 +23,7 @@ const videos = [
     duration: "0:45",
     status: "pending",
     feedback: [],
-    thumbnail: "🎬"
+    thumbnail: videoApproval1
   },
   {
     id: 2,
@@ -31,7 +34,7 @@ const videos = [
     feedback: [
       { timestamp: "0:15", comment: "Perfecte opening!", author: "Hibe Team" }
     ],
-    thumbnail: "🎬"
+    thumbnail: videoApproval2
   },
   {
     id: 3,
@@ -43,7 +46,7 @@ const videos = [
       { timestamp: "0:45", comment: "Misschien iets langzamer uitleggen hier", author: "Hibe Team" },
       { timestamp: "1:30", comment: "Goede close-up shot!", author: "Hibe Team" }
     ],
-    thumbnail: "🎬"
+    thumbnail: videoApproval3
   }
 ];
 
@@ -104,8 +107,15 @@ export default function VideoApproval() {
               <div key={video.id} className="p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-4">
                   {/* Video Thumbnail */}
-                  <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center text-2xl shrink-0">
-                    {video.thumbnail}
+                  <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 relative">
+                    <img 
+                      src={video.thumbnail} 
+                      alt={video.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                      <Play className="h-4 w-4 text-white" />
+                    </div>
                   </div>
                   
                   {/* Video Info */}
