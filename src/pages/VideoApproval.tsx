@@ -550,11 +550,8 @@ export default function VideoApproval() {
                       disabled={!newComment.trim()}
                       className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
                     >
-                      <Save className="h-4 w-4 mr-2" />
-                      Opslaan
-                    </Button>
-                    <Button variant="outline" onClick={() => setNewComment("")} className="border-white text-white hover:bg-white/10">
-                      Annuleren
+                      <Send className="h-4 w-4 mr-2" />
+                      Verstuur opmerking
                     </Button>
                   </div>
                 </div>
