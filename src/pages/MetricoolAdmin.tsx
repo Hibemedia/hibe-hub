@@ -53,6 +53,13 @@ export default function MetricoolAdmin() {
     loadConfigs();
   }, []);
 
+  // Automatically load brands when settings change
+  useEffect(() => {
+    if (settings && userId) {
+      loadBrands();
+    }
+  }, [settings, userId]);
+
   const loadSettings = async () => {
     try {
       const { data, error } = await supabase
@@ -133,6 +140,8 @@ export default function MetricoolAdmin() {
       });
 
       loadSettings();
+      // Automatically load brands after saving settings
+      loadBrands();
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
