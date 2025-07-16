@@ -30,19 +30,51 @@ interface TopVideosProps {
 }
 
 export function TopVideos({ selectedBlogId, selectedBrandName }: TopVideosProps) {
-  const [selectedMonth, setSelectedMonth] = useState("december-2024");
+  const getCurrentMonth = () => {
+    const now = new Date();
+    const months = [
+      'januari', 'februari', 'maart', 'april', 'mei', 'juni',
+      'juli', 'augustus', 'september', 'oktober', 'november', 'december'
+    ];
+    return `${months[now.getMonth()]}-${now.getFullYear()}`;
+  };
+
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const months = [
-    { value: "december-2024", label: "December 2024" },
-    { value: "november-2024", label: "November 2024" },
-    { value: "oktober-2024", label: "Oktober 2024" },
-    { value: "september-2024", label: "September 2024" },
-    { value: "augustus-2024", label: "Augustus 2024" },
-    { value: "juli-2024", label: "Juli 2024" }
-  ];
+  const generateMonthOptions = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const months = [
+      'januari', 'februari', 'maart', 'april', 'mei', 'juni',
+      'juli', 'augustus', 'september', 'oktober', 'november', 'december'
+    ];
+    
+    const options = [];
+    
+    // Add current and previous months for current year
+    for (let i = currentMonth; i >= 0; i--) {
+      options.push({
+        value: `${months[i]}-${currentYear}`,
+        label: `${months[i].charAt(0).toUpperCase() + months[i].slice(1)} ${currentYear}`
+      });
+    }
+    
+    // Add last few months of previous year
+    for (let i = 11; i >= Math.max(0, 11 - (5 - options.length)); i--) {
+      options.push({
+        value: `${months[i]}-${currentYear - 1}`,
+        label: `${months[i].charAt(0).toUpperCase() + months[i].slice(1)} ${currentYear - 1}`
+      });
+    }
+    
+    return options;
+  };
+
+  const months = generateMonthOptions();
 
   useEffect(() => {
     if (selectedBlogId && selectedMonth) {
