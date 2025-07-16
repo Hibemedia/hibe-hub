@@ -36,11 +36,6 @@ const menuItems = [
     icon: BarChart3,
   },
   {
-    title: "AI Insights",
-    url: "/insights",
-    icon: Brain,
-  },
-  {
     title: "Video Goedkeuring",
     url: "/video-approval",
     icon: CheckCircle,
