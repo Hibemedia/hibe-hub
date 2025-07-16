@@ -29,10 +29,10 @@ const Index = () => {
           
           <div className="flex justify-center space-x-4">
             <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/login">Login</Link>
+              <Link to="/admin">Admin Dashboard</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
-              <Link to="/dashboard">Dashboard</Link>
+            <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+              <Link to="/client">Client Portal</Link>
             </Button>
           </div>
         </div>

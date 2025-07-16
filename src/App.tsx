@@ -52,7 +52,7 @@ const AppContent = () => {
   // Routes that don't need sidebar
   const noSidebarRoutes = ['/', '/login'];
   const currentPath = window.location.pathname;
-  const needsSidebar = !noSidebarRoutes.includes(currentPath) && user;
+  const needsSidebar = !noSidebarRoutes.includes(currentPath);
 
   if (!needsSidebar) {
     return (
@@ -64,16 +64,8 @@ const AppContent = () => {
             {user?.role === 'admin' ? <AdminDashboard /> : <ClientPortal />}
           </ProtectedRoute>
         } />
-        <Route path="/admin" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/client" element={
-          <ProtectedRoute requiredRole="client">
-            <ClientPortal />
-          </ProtectedRoute>
-        } />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/client" element={<ClientPortal />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );
@@ -101,16 +93,8 @@ const AppContent = () => {
                 {user?.role === 'admin' ? <AdminDashboard /> : <ClientPortal />}
               </ProtectedRoute>
             } />
-            <Route path="/admin" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/client" element={
-              <ProtectedRoute requiredRole="client">
-                <ClientPortal />
-              </ProtectedRoute>
-            } />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/client" element={<ClientPortal />} />
             {/* Legacy routes */}
             <Route path="/performance" element={<Performance />} />
             <Route path="/video-approval" element={<VideoApproval />} />
