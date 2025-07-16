@@ -110,8 +110,7 @@ const reviewer = {
 const statusFilters = [
   { value: "all", label: "Alles", count: 5 },
   { value: "approved", label: "Goedgekeurd", count: 2 },
-  { value: "rejected", label: "Afgekeurd", count: 1 },
-  { value: "pending", label: "In beoordeling", count: 2 }
+  { value: "rejected", label: "Afgekeurd", count: 1 }
 ];
 
 export default function VideoApproval() {
@@ -160,7 +159,7 @@ export default function VideoApproval() {
       case 'rejected':
         return { text: '❌ Afgekeurd', className: 'bg-destructive text-destructive-foreground' };
       default:
-        return { text: '⏳ In beoordeling', className: 'bg-warning text-warning-foreground' };
+        return { text: '⏳ Wachtend', className: 'bg-warning text-warning-foreground' };
     }
   };
 
@@ -373,7 +372,7 @@ export default function VideoApproval() {
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="text-xs">
                       {video.status === 'approved' ? 'Goedgekeurd' : 
-                       video.status === 'rejected' ? 'Afgekeurd' : 'In beoordeling'}
+                       video.status === 'rejected' ? 'Afgekeurd' : 'Wachtend'}
                     </Badge>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MessageCircle className="h-3 w-3" />
@@ -516,7 +515,7 @@ export default function VideoApproval() {
                     <SelectValue placeholder="Status wijzigen" />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-900 border-neutral-600 text-white shadow-lg z-50">
-                    <SelectItem value="pending">⏳ In beoordeling</SelectItem>
+                    <SelectItem value="pending">⏳ Wachtend</SelectItem>
                     <SelectItem value="approved">✅ Goedgekeurd</SelectItem>
                     <SelectItem value="rejected">❌ Afgekeurd</SelectItem>
                   </SelectContent>
