@@ -59,7 +59,7 @@ serve(async (req) => {
     }
 
     // Build different endpoints based on type
-    const baseUrl = 'https://app.metricool.com/api';
+    const baseUrl = 'https://app.metricool.com';
     let endpoint = '';
     const metricoolUrl = new URL(`${baseUrl}`);
 
