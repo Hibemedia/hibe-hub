@@ -270,7 +270,6 @@ export default function Performance() {
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">Instagram</h3>
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">Stabiel</Badge>
               </div>
               <div className="text-2xl font-bold text-foreground">234K</div>
               <p className="text-sm text-success">+8% deze maand</p>
