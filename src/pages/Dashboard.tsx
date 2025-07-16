@@ -1,6 +1,7 @@
 import { MetricCard } from "@/components/MetricCard";
 import { MedaillesWidget } from "@/components/MedaillesWidget";
 import { TopVideos } from "@/components/TopVideos";
+import { MetricoolStats } from "@/components/MetricoolStats";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,9 @@ export default function Dashboard() {
           {/* Removed the 3 nieuwe medailles badge and Download Rapport button */}
         </div>
       </div>
+
+      {/* Metricool Real-time Stats */}
+      <MetricoolStats />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

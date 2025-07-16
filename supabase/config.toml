@@ -52,6 +52,9 @@ enable_confirmations = false
 [functions.metricool-api]
 verify_jwt = true
 
+[functions.metricool-stats]
+verify_jwt = false
+
 [functions.metricool-sync]
 verify_jwt = false
 
