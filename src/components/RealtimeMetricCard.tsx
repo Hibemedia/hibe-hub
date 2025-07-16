@@ -25,6 +25,7 @@ export function RealtimeMetricCard({
   const [change, setChange] = useState<string>("+0%");
   const [changeType, setChangeType] = useState<'positive' | 'negative' | 'neutral'>('neutral');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedBlogId) {
@@ -36,6 +37,7 @@ export function RealtimeMetricCard({
     if (!selectedBlogId) return;
 
     setLoading(true);
+    setError(null);
     
     try {
       const end = new Date();
@@ -44,6 +46,8 @@ export function RealtimeMetricCard({
 
       const startDate = start.toISOString().split('T')[0];
       const endDate = end.toISOString().split('T')[0];
+
+      console.log(`Loading ${metricType} data for blog ${selectedBlogId} (${selectedBrandName})`);
 
       const { data, error } = await supabase.functions.invoke('metricool-stats', {
         body: {
@@ -55,11 +59,20 @@ export function RealtimeMetricCard({
       });
 
       if (error) {
-        console.error('Error loading metric data:', error);
+        console.error(`Error loading ${metricType} data:`, error);
+        setError(`API Error: ${error.message || 'Unknown error'}`);
         return;
       }
 
-      if (data.success && data.data) {
+      if (!data || !data.success) {
+        console.error(`Invalid response for ${metricType}:`, data);
+        setError(data?.error || 'Invalid response from API');
+        return;
+      }
+
+      console.log(`${metricType} data loaded successfully:`, data);
+
+      if (data.data && Array.isArray(data.data) && data.data.length > 0) {
         const latestData = data.data[data.data.length - 1];
         const previousData = data.data[data.data.length - 2];
 
@@ -74,9 +87,13 @@ export function RealtimeMetricCard({
             setChangeType(growth >= 0 ? 'positive' : 'negative');
           }
         }
+      } else {
+        console.warn(`No data available for ${metricType}`);
+        setError('Geen data beschikbaar');
       }
     } catch (err) {
-      console.error('Error loading metric data:', err);
+      console.error(`Error loading ${metricType} data:`, err);
+      setError(`Fout bij laden: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -112,10 +129,10 @@ export function RealtimeMetricCard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-foreground">
-          {loading ? "..." : value}
+          {loading ? "..." : error ? "Error" : value}
         </div>
-        <p className={cn("text-xs", getChangeColor())}>
-          {loading ? "Laden..." : change}
+        <p className={cn("text-xs", error ? "text-destructive" : getChangeColor())}>
+          {loading ? "Laden..." : error ? error : change}
         </p>
       </CardContent>
     </Card>
