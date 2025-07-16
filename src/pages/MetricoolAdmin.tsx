@@ -45,7 +45,6 @@ export default function MetricoolAdmin() {
   const [brands, setBrands] = useState<MetricoolBrand[]>([]);
   const [configs, setConfigs] = useState<MetricoolConfig[]>([]);
   const [selectedBrand, setSelectedBrand] = useState("");
-  const [clientId, setClientId] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingBrands, setLoadingBrands] = useState(false);
 
@@ -203,10 +202,10 @@ export default function MetricoolAdmin() {
   };
 
   const addConfig = async () => {
-    if (!selectedBrand || !clientId) {
+    if (!selectedBrand) {
       toast({
         title: "Fout",
-        description: "Selecteer een merk en voer een klant-ID in",
+        description: "Selecteer een merk",
         variant: "destructive",
       });
       return;
@@ -215,11 +214,14 @@ export default function MetricoolAdmin() {
     const selectedBrandData = brands.find(b => b.id.toString() === selectedBrand);
     if (!selectedBrandData) return;
 
+    // Use the brand ID as the client ID
+    const brandClientId = selectedBrandData.id.toString();
+
     try {
       const { error } = await supabase
         .from('metricool_config')
         .insert([{
-          client_id: clientId,
+          client_id: brandClientId,
           blog_id: selectedBrandData.id,
           user_id: parseInt(userId),
           brand_name: selectedBrandData.label,
@@ -234,7 +236,6 @@ export default function MetricoolAdmin() {
       });
 
       setSelectedBrand("");
-      setClientId("");
       loadConfigs();
     } catch (error) {
       console.error('Error adding config:', error);
@@ -376,17 +377,7 @@ export default function MetricoolAdmin() {
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="clientId">Klant ID</Label>
-            <Input
-              id="clientId"
-              placeholder="UUID van de klant"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-            />
-          </div>
-
-          <Button onClick={addConfig} disabled={!selectedBrand || !clientId}>
+          <Button onClick={addConfig} disabled={!selectedBrand}>
             <Plus className="h-4 w-4 mr-2" />
             Configuratie Toevoegen
           </Button>
