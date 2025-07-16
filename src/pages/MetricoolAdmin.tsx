@@ -227,12 +227,16 @@ export default function MetricoolAdmin() {
     const brandClientId = selectedBrandData.id.toString();
 
     try {
+      // Generate a temporary user ID for user_id_ref since no auth is implemented
+      const tempUserId = crypto.randomUUID();
+      
       const { error } = await supabase
         .from('metricool_config')
         .insert([{
           client_id: brandClientId,
           blog_id: selectedBrandData.id,
           user_id: parseInt(userId),
+          user_id_ref: tempUserId,
           brand_name: selectedBrandData.label,
           is_active: true
         }]);
