@@ -11,8 +11,14 @@ import { Settings, Plus, Trash2, RefreshCw } from "lucide-react";
 
 interface MetricoolBrand {
   id: number;
-  name: string;
-  platform: string;
+  label: string;
+  platform?: string;
+  tiktok?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  twitter?: string;
+  pinterest?: string;
 }
 
 interface MetricoolConfig {
@@ -186,6 +192,16 @@ export default function MetricoolAdmin() {
     }
   };
 
+  const getPrimaryPlatform = (brand: MetricoolBrand): string => {
+    if (brand.instagram) return 'Instagram';
+    if (brand.tiktok) return 'TikTok';
+    if (brand.facebook) return 'Facebook';
+    if (brand.youtube) return 'YouTube';
+    if (brand.twitter) return 'Twitter';
+    if (brand.pinterest) return 'Pinterest';
+    return 'Onbekend';
+  };
+
   const addConfig = async () => {
     if (!selectedBrand || !clientId) {
       toast({
@@ -206,7 +222,7 @@ export default function MetricoolAdmin() {
           client_id: clientId,
           blog_id: selectedBrandData.id,
           user_id: parseInt(userId),
-          brand_name: selectedBrandData.name,
+          brand_name: selectedBrandData.label,
           is_active: true
         }]);
 
@@ -353,7 +369,7 @@ export default function MetricoolAdmin() {
               <SelectContent>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id.toString()}>
-                    {brand.name || 'Geen naam'} ({brand.platform || 'Onbekend platform'})
+                    {brand.label || 'Geen naam'} ({getPrimaryPlatform(brand)})
                   </SelectItem>
                 ))}
               </SelectContent>
