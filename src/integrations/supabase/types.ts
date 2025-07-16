@@ -24,6 +24,7 @@ export type Database = {
           is_active: boolean | null
           updated_at: string | null
           user_id: number
+          user_id_ref: string | null
         }
         Insert: {
           blog_id: number
@@ -34,6 +35,7 @@ export type Database = {
           is_active?: boolean | null
           updated_at?: string | null
           user_id: number
+          user_id_ref?: string | null
         }
         Update: {
           blog_id?: number
@@ -44,8 +46,17 @@ export type Database = {
           is_active?: boolean | null
           updated_at?: string | null
           user_id?: number
+          user_id_ref?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "metricool_config_user_id_ref_fkey"
+            columns: ["user_id_ref"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       metricool_metrics: {
         Row: {
@@ -148,6 +159,157 @@ export type Database = {
           user_token?: string
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          password_hash: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          password_hash: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          password_hash?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      video_feedback: {
+        Row: {
+          comment: string
+          created_at: string
+          created_by: string
+          id: string
+          timestamp_seconds: number
+          updated_at: string
+          video_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          created_by: string
+          id?: string
+          timestamp_seconds?: number
+          updated_at?: string
+          video_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          timestamp_seconds?: number
+          updated_at?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_feedback_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_feedback_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          caption: string | null
+          client_id: string
+          created_at: string
+          id: string
+          platform: string
+          status: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          platform: string
+          status?: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          platform?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
