@@ -55,9 +55,10 @@ function PerformanceChart({ selectedBlogId }: PerformanceChartProps) {
 
     setLoading(true);
     try {
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 30);
+      // Get current month data
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
       const startDate = start.toISOString().split('T')[0];
       const endDate = end.toISOString().split('T')[0];
@@ -77,15 +78,25 @@ function PerformanceChart({ selectedBlogId }: PerformanceChartProps) {
       }
 
       if (data?.success && data.data) {
-        // Transform the data for the chart
-        const transformedData = data.data.map((item: any, index: number) => ({
-          day: (index + 1).toString(),
-          date: item.date || `${index + 1} jan`,
-          TikTok: item.tiktok || item.TikTok || Math.floor(Math.random() * 5000) + 1000,
-          Instagram: item.instagram || item.Instagram || Math.floor(Math.random() * 3000) + 800,
-          YouTube: item.youtube || item.YouTube || Math.floor(Math.random() * 2000) + 500,
-          Facebook: item.facebook || item.Facebook || Math.floor(Math.random() * 1000) + 300
-        }));
+        // Transform the data for the chart - show current month
+        const daysInMonth = end.getDate();
+        const transformedData = [];
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dataPoint = data.data.find((item: any) => {
+            const itemDate = new Date(item.date);
+            return itemDate.getDate() === day;
+          });
+          
+          transformedData.push({
+            day: day.toString(),
+            date: `${day} ${getCurrentMonthName()}`,
+            TikTok: dataPoint?.tiktok || dataPoint?.TikTok || Math.floor(Math.random() * 5000) + 1000,
+            Instagram: dataPoint?.instagram || dataPoint?.Instagram || Math.floor(Math.random() * 3000) + 800,
+            YouTube: dataPoint?.youtube || dataPoint?.YouTube || Math.floor(Math.random() * 2000) + 500,
+            Facebook: dataPoint?.facebook || dataPoint?.Facebook || Math.floor(Math.random() * 1000) + 300
+          });
+        }
         
         setChartData(transformedData);
       }
@@ -94,6 +105,14 @@ function PerformanceChart({ selectedBlogId }: PerformanceChartProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getCurrentMonthName = () => {
+    const months = [
+      'januari', 'februari', 'maart', 'april', 'mei', 'juni',
+      'juli', 'augustus', 'september', 'oktober', 'november', 'december'
+    ];
+    return months[new Date().getMonth()];
   };
 
   const platformColors = {
@@ -125,7 +144,11 @@ function PerformanceChart({ selectedBlogId }: PerformanceChartProps) {
                 variant={activePlatforms[platform] ? "default" : "outline"}
                 size="sm"
                 onClick={() => togglePlatform(platform)}
-                className={activePlatforms[platform] ? "" : "opacity-50"}
+                className={`rounded-full px-4 py-2 font-medium transition-all ${
+                  activePlatforms[platform] 
+                    ? 'text-white shadow-md' 
+                    : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
+                }`}
                 style={activePlatforms[platform] ? { 
                   backgroundColor: color,
                   borderColor: color,
@@ -173,7 +196,7 @@ function PerformanceChart({ selectedBlogId }: PerformanceChartProps) {
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                   }}
                   formatter={(value) => [`${value.toLocaleString()} views`, '']}
-                  labelFormatter={(label) => `${label} januari 2024`}
+                  labelFormatter={(label) => `${label} ${getCurrentMonthName()} ${new Date().getFullYear()}`}
                 />
                 <Legend />
                 {activePlatforms.TikTok && (
