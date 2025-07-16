@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MetricCard } from "@/components/MetricCard";
 import { AIInsightsWidget } from "@/components/AIInsightsWidget";
 import { TopVideos } from "@/components/TopVideos";
@@ -37,6 +38,27 @@ const monthlyData = [
 ];
 
 export default function Performance() {
+  const [activePlatforms, setActivePlatforms] = useState({
+    TikTok: true,
+    Instagram: true,
+    YouTube: true,
+    Facebook: true
+  });
+
+  const togglePlatform = (platform: string) => {
+    setActivePlatforms(prev => ({
+      ...prev,
+      [platform]: !prev[platform]
+    }));
+  };
+
+  const platformColors = {
+    TikTok: "#000000",
+    Instagram: "#E1306C", 
+    YouTube: "#FF0000",
+    Facebook: "#1877F2"
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -98,10 +120,30 @@ export default function Performance() {
       {/* Monthly Performance Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Maandelijkse Performance per Platform
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Maandelijkse Performance per Platform
+            </CardTitle>
+            <div className="flex gap-2">
+              {Object.entries(platformColors).map(([platform, color]) => (
+                <Button
+                  key={platform}
+                  variant={activePlatforms[platform] ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => togglePlatform(platform)}
+                  className={activePlatforms[platform] ? "" : "opacity-50"}
+                  style={activePlatforms[platform] ? { 
+                    backgroundColor: color,
+                    borderColor: color,
+                    color: platform === 'TikTok' ? 'white' : 'white'
+                  } : {}}
+                >
+                  {platform}
+                </Button>
+              ))}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-80">
@@ -131,38 +173,46 @@ export default function Performance() {
                   labelFormatter={(label) => `Dag ${label}`}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="TikTok" 
-                  stroke="#000000" 
-                  strokeWidth={3}
-                  dot={{ fill: '#000000', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Instagram" 
-                  stroke="#E1306C" 
-                  strokeWidth={3}
-                  dot={{ fill: '#E1306C', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="YouTube" 
-                  stroke="#FF0000" 
-                  strokeWidth={3}
-                  dot={{ fill: '#FF0000', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Facebook" 
-                  stroke="#1877F2" 
-                  strokeWidth={3}
-                  dot={{ fill: '#1877F2', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
+                {activePlatforms.TikTok && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="TikTok" 
+                    stroke="#000000" 
+                    strokeWidth={3}
+                    dot={{ fill: '#000000', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                )}
+                {activePlatforms.Instagram && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="Instagram" 
+                    stroke="#E1306C" 
+                    strokeWidth={3}
+                    dot={{ fill: '#E1306C', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                )}
+                {activePlatforms.YouTube && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="YouTube" 
+                    stroke="#FF0000" 
+                    strokeWidth={3}
+                    dot={{ fill: '#FF0000', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                )}
+                {activePlatforms.Facebook && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="Facebook" 
+                    stroke="#1877F2" 
+                    strokeWidth={3}
+                    dot={{ fill: '#1877F2', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                )}
               </LineChart>
             </ResponsiveContainer>
           </div>
