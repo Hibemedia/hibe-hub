@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { MetricCard } from "@/components/MetricCard";
 import { AIInsightsWidget } from "@/components/AIInsightsWidget";
-import { TopVideos } from "@/components/TopVideos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { 
   Eye, 
@@ -14,8 +14,16 @@ import {
   Download,
   BarChart3,
   Calendar,
-  Filter
+  Filter,
+  Play,
+  MessageCircle,
+  ExternalLink
 } from "lucide-react";
+import videoThumb1 from "@/assets/video-thumb-1.jpg";
+import videoThumb2 from "@/assets/video-thumb-2.jpg";
+import videoThumb3 from "@/assets/video-thumb-3.jpg";
+import videoThumb4 from "@/assets/video-thumb-4.jpg";
+import videoThumb5 from "@/assets/video-thumb-5.jpg";
 
 // Sample data for daily performance (not cumulative)
 const dailyData = [
@@ -52,7 +60,71 @@ const dailyData = [
   { day: '31', TikTok: 3400, Instagram: 2200, YouTube: 1500, Facebook: 750 }
 ];
 
+const performanceVideos = [
+  {
+    id: 1,
+    title: "Beste kniptechnieken voor krullend haar",
+    platform: "TikTok",
+    views: "125K",
+    likes: "8.2K",
+    comments: "342",
+    ctr: "4.2%",
+    engagement: "12.8%",
+    thumbnail: videoThumb1,
+    url: "https://tiktok.com/video/1"
+  },
+  {
+    id: 2,
+    title: "Barbershop morning routine",
+    platform: "Instagram",
+    views: "89K",
+    likes: "5.1K",
+    comments: "198",
+    ctr: "2.8%",
+    engagement: "9.2%",
+    thumbnail: videoThumb2,
+    url: "https://instagram.com/reel/2"
+  },
+  {
+    id: 3,
+    title: "Fade tutorial voor beginners",
+    platform: "YouTube",
+    views: "67K",
+    likes: "4.3K",
+    comments: "156",
+    ctr: "3.1%",
+    engagement: "7.6%",
+    thumbnail: videoThumb3,
+    url: "https://youtube.com/watch?v=3"
+  },
+  {
+    id: 4,
+    title: "Trending kapsel deze week",
+    platform: "TikTok",
+    views: "45K",
+    likes: "2.8K",
+    comments: "89",
+    ctr: "4.5%",
+    engagement: "13.1%",
+    thumbnail: videoThumb4,
+    url: "https://tiktok.com/video/4"
+  },
+  {
+    id: 5,
+    title: "Grooming tips voor mannen",
+    platform: "Instagram",
+    views: "32K",
+    likes: "1.9K",
+    comments: "67",
+    ctr: "3.0%",
+    engagement: "8.5%",
+    thumbnail: videoThumb5,
+    url: "https://instagram.com/reel/5"
+  }
+];
+
 export default function Performance() {
+  const [selectedMonth, setSelectedMonth] = useState("december-2024");
   const [activePlatforms, setActivePlatforms] = useState({
     TikTok: true,
     Instagram: true,
@@ -60,11 +132,30 @@ export default function Performance() {
     Facebook: true
   });
 
-  const togglePlatform = (platform: string) => {
-    setActivePlatforms(prev => ({
-      ...prev,
-      [platform]: !prev[platform]
-    }));
+  const months = [
+    { value: "december-2024", label: "December 2024" },
+    { value: "november-2024", label: "November 2024" },
+    { value: "oktober-2024", label: "Oktober 2024" },
+    { value: "september-2024", label: "September 2024" },
+    { value: "augustus-2024", label: "Augustus 2024" },
+    { value: "juli-2024", label: "Juli 2024" }
+  ];
+
+  const getPlatformColor = (platform: string) => {
+    switch (platform) {
+      case 'TikTok':
+        return 'bg-black text-white';
+      case 'Instagram':
+        return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white';
+      case 'YouTube':
+        return 'bg-red-500 text-white';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const handleVideoClick = (url: string) => {
+    window.open(url, '_blank');
   };
 
   const platformColors = {
@@ -72,6 +163,13 @@ export default function Performance() {
     Instagram: "#E1306C", 
     YouTube: "#FF0000",
     Facebook: "#1877F2"
+  };
+
+  const togglePlatform = (platform: string) => {
+    setActivePlatforms(prev => ({
+      ...prev,
+      [platform]: !prev[platform]
+    }));
   };
 
   return (
@@ -309,8 +407,99 @@ export default function Performance() {
         {/* AI Insights - Now on Performance page */}
         <AIInsightsWidget />
         
-        {/* Top Videos */}
-        <TopVideos />
+        {/* Top Videos - Larger on Performance page */}
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Play className="h-5 w-5 text-primary" />
+                  Top 5 Video's deze maand
+                </CardTitle>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-48">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border border-border shadow-lg z-50">
+                    {months.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {performanceVideos.map((video, index) => (
+                  <div 
+                    key={video.id} 
+                    className="group border rounded-lg p-4 hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-primary/50"
+                    onClick={() => handleVideoClick(video.url)}
+                  >
+                    <div className="relative mb-3">
+                      <div className="w-full h-32 rounded-lg overflow-hidden">
+                        <img 
+                          src={video.thumbnail} 
+                          alt={video.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                        <div className="bg-white/90 rounded-full p-2">
+                          <ExternalLink className="h-4 w-4 text-gray-800" />
+                        </div>
+                      </div>
+                      <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground px-2 py-1 rounded text-xs font-bold">
+                        #{index + 1}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                        {video.title}
+                      </h3>
+                      
+                      <div className="flex items-center gap-2">
+                        <Badge className={`${getPlatformColor(video.platform)} text-xs`}>
+                          {video.platform}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          <span>{video.views}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          <span>{video.likes}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="h-3 w-3" />
+                          <span>{video.comments}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t">
+                        <div>
+                          <span className="text-muted-foreground">CTR:</span>
+                          <span className="font-medium ml-1">{video.ctr}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Engagement:</span>
+                          <span className="font-medium ml-1">{video.engagement}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
