@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -261,16 +261,31 @@ export default function LinkInBio() {
 
   const [draggedItem, setDraggedItem] = useState(null);
 
-  const handleTemplateSelect = (template) => {
+  // Optimized handlers with useCallback to prevent re-renders
+  const handleProfileChange = useCallback((field, value) => {
+    setCurrentProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const handleNewLinkChange = useCallback((field, value) => {
+    setNewLink(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const handleTemplateSelect = useCallback((template) => {
     setSelectedTemplate(template.id);
-    setCurrentProfile({
-      ...currentProfile,
+    setCurrentProfile(prev => ({
+      ...prev,
       template: template.id,
       customColors: template.colors,
       font: template.font,
       buttonStyle: template.buttonStyle
-    });
-  };
+    }));
+  }, []);
 
   const handleAddLink = () => {
     if (!newLink.label || !newLink.url) return;
@@ -588,7 +603,7 @@ export default function LinkInBio() {
               id="name"
               placeholder="Jouw Naam"
               value={currentProfile.name}
-              onChange={(e) => setCurrentProfile({ ...currentProfile, name: e.target.value })}
+              onChange={(e) => handleProfileChange('name', e.target.value)}
             />
           </div>
           
@@ -602,7 +617,7 @@ export default function LinkInBio() {
                 id="username"
                 placeholder="jouw-naam"
                 value={currentProfile.username}
-                onChange={(e) => setCurrentProfile({ ...currentProfile, username: e.target.value })}
+                onChange={(e) => handleProfileChange('username', e.target.value)}
                 className="rounded-l-none"
               />
             </div>
@@ -614,7 +629,7 @@ export default function LinkInBio() {
               id="bio"
               placeholder="Vertel iets over jezelf..."
               value={currentProfile.bio}
-              onChange={(e) => setCurrentProfile({ ...currentProfile, bio: e.target.value })}
+              onChange={(e) => handleProfileChange('bio', e.target.value)}
             />
           </div>
           
@@ -625,7 +640,7 @@ export default function LinkInBio() {
                 id="profileImage"
                 placeholder="https://example.com/foto.jpg"
                 value={currentProfile.profileImage}
-                onChange={(e) => setCurrentProfile({ ...currentProfile, profileImage: e.target.value })}
+                onChange={(e) => handleProfileChange('profileImage', e.target.value)}
               />
               <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="h-4 w-4" />
@@ -657,12 +672,12 @@ export default function LinkInBio() {
               <Input
                 placeholder="Link naam"
                 value={newLink.label}
-                onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
+                onChange={(e) => handleNewLinkChange('label', e.target.value)}
               />
               <Input
                 placeholder="https://example.com"
                 value={newLink.url}
-                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                onChange={(e) => handleNewLinkChange('url', e.target.value)}
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
