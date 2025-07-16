@@ -84,102 +84,97 @@ export default function VideoApproval() {
             Bekijk en geef feedback op je video's
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-            1 wacht op feedback
-          </Badge>
-          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-            2 goedgekeurd
-          </Badge>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-warning rounded-full"></div>
+            <span className="text-sm text-muted-foreground">1 wacht op feedback</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-success rounded-full"></div>
+            <span className="text-sm text-muted-foreground">2 goedgekeurd</span>
+          </div>
         </div>
       </div>
 
-      {/* Videos Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {videos.map((video) => (
-          <Card key={video.id} className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{video.title}</CardTitle>
-                  <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(video.uploadDate).toLocaleDateString('nl-NL')}
-                    <Clock className="h-3 w-3 ml-2" />
-                    {video.duration}
+      {/* Videos List */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {videos.map((video) => (
+              <div key={video.id} className="p-4 hover:bg-muted/30 transition-colors">
+                <div className="flex items-center gap-4">
+                  {/* Video Thumbnail */}
+                  <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center text-2xl shrink-0">
+                    {video.thumbnail}
                   </div>
-                </div>
-                <Badge className={getStatusColor(video.status)}>
-                  {getStatusText(video.status)}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {/* Video Thumbnail */}
-              <div className="w-full h-32 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
-                <div className="text-4xl">{video.thumbnail}</div>
-                <Play className="absolute h-8 w-8 text-white opacity-80" />
-              </div>
-
-              {/* Feedback Section */}
-              {video.feedback.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3" />
-                    Feedback
-                  </h4>
-                  <div className="space-y-2">
-                    {video.feedback.map((feedback, index) => (
-                      <div key={index} className="p-2 bg-muted rounded-lg">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                          <User className="h-3 w-3" />
-                          {feedback.author}
-                          <span className="ml-auto">{feedback.timestamp}</span>
-                        </div>
-                        <p className="text-sm">{feedback.comment}</p>
+                  
+                  {/* Video Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="font-medium text-foreground truncate">{video.title}</h3>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className={`w-2 h-2 rounded-full ${
+                          video.status === 'approved' ? 'bg-success' :
+                          video.status === 'feedback' ? 'bg-warning' :
+                          video.status === 'rejected' ? 'bg-destructive' : 'bg-muted-foreground'
+                        }`}></div>
+                        <span className="text-sm text-muted-foreground">
+                          {getStatusText(video.status)}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(video.uploadDate).toLocaleDateString('nl-NL')}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {video.duration}
+                      </span>
+                    </div>
+                    
+                    {/* Inline Feedback */}
+                    {video.feedback.length > 0 && (
+                      <div className="mt-2 p-2 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Laatste feedback:</p>
+                        <p className="text-sm">{video.feedback[video.feedback.length - 1].comment}</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {video.status === 'pending' ? (
+                      <>
+                        <Button size="sm" className="bg-success hover:bg-success/90">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Goedkeuren
+                        </Button>
+                        <Button size="sm" variant="outline" className="border-destructive text-destructive hover:bg-destructive/10">
+                          <XCircle className="h-3 w-3 mr-1" />
+                          Afkeuren
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="outline">
+                          <Play className="h-3 w-3 mr-1" />
+                          Bekijk
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <MessageCircle className="h-3 w-3 mr-1" />
+                          Feedback
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
-              )}
-
-              {/* Add Feedback */}
-              {video.status === 'pending' && (
-                <div className="space-y-3">
-                  <Textarea 
-                    placeholder="Voeg je feedback toe..."
-                    className="min-h-[80px]"
-                  />
-                  <div className="flex gap-2">
-                    <Button className="flex-1 bg-success hover:bg-success/90">
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Goedkeuren
-                    </Button>
-                    <Button variant="outline" className="flex-1 border-destructive text-destructive hover:bg-destructive/10">
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Afkeuren
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions for approved/feedback videos */}
-              {video.status !== 'pending' && (
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
-                    <Play className="h-4 w-4 mr-2" />
-                    Bekijk Video
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Feedback
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
