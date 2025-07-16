@@ -506,11 +506,6 @@ export default function VideoApproval() {
             >
               {/* Status Badge - More space at top */}
               <div className="p-6 pt-24 border-b border-neutral-700">
-                <div className="flex items-center justify-center mb-4">
-                  <Badge className={`${getStatusBadge(videoStatus).className} text-sm px-4 py-2 text-center`}>
-                    {getStatusBadge(videoStatus).text}
-                  </Badge>
-                </div>
                 <Select value={videoStatus} onValueChange={updateVideoStatus}>
                   <SelectTrigger className="w-full bg-neutral-900 border-neutral-600 text-white">
                     <SelectValue placeholder="Status wijzigen" />
