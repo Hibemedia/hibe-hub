@@ -35,14 +35,7 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="accent" className="shadow-lg">
-            <Award className="h-3 w-3 mr-1" />
-            3 nieuwe medailles
-          </Badge>
-          <Button className="bg-gradient-primary hover:bg-gradient-to-r hover:from-primary-dark hover:to-primary shadow-primary">
-            <Download className="h-4 w-4 mr-2" />
-            Download Rapport
-          </Button>
+          {/* Removed the 3 nieuwe medailles badge and Download Rapport button */}
         </div>
       </div>
 

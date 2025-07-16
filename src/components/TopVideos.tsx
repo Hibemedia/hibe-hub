@@ -3,6 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Play, Eye, Heart, MessageCircle, Calendar } from "lucide-react";
 import { useState } from "react";
+import videoThumb1 from "@/assets/video-thumb-1.jpg";
+import videoThumb2 from "@/assets/video-thumb-2.jpg";
+import videoThumb3 from "@/assets/video-thumb-3.jpg";
+import videoThumb4 from "@/assets/video-thumb-4.jpg";
+import videoThumb5 from "@/assets/video-thumb-5.jpg";
 
 const topVideos = [
   {
@@ -12,7 +17,7 @@ const topVideos = [
     views: "125K",
     likes: "8.2K",
     comments: "342",
-    thumbnail: "🎬"
+    thumbnail: videoThumb1
   },
   {
     id: 2,
@@ -21,7 +26,7 @@ const topVideos = [
     views: "89K",
     likes: "5.1K",
     comments: "198",
-    thumbnail: "🎬"
+    thumbnail: videoThumb2
   },
   {
     id: 3,
@@ -30,7 +35,7 @@ const topVideos = [
     views: "67K",
     likes: "4.3K",
     comments: "156",
-    thumbnail: "🎬"
+    thumbnail: videoThumb3
   },
   {
     id: 4,
@@ -39,7 +44,7 @@ const topVideos = [
     views: "45K",
     likes: "2.8K",
     comments: "89",
-    thumbnail: "🎬"
+    thumbnail: videoThumb4
   },
   {
     id: 5,
@@ -48,7 +53,7 @@ const topVideos = [
     views: "32K",
     likes: "1.9K",
     comments: "67",
-    thumbnail: "🎬"
+    thumbnail: videoThumb5
   }
 ];
 
@@ -107,8 +112,12 @@ export function TopVideos() {
               <div className="flex items-center justify-center w-6 h-6 bg-muted rounded-full text-xs font-bold">
                 {index + 1}
               </div>
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center text-lg">
-                {video.thumbnail}
+              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                <img 
+                  src={video.thumbnail} 
+                  alt={video.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-sm text-foreground truncate">{video.title}</h4>
