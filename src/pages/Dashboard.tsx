@@ -3,6 +3,7 @@ import { RealtimeMetricCard } from "@/components/RealtimeMetricCard";
 import { MedaillesWidget } from "@/components/MedaillesWidget";
 import { TopVideos } from "@/components/TopVideos";
 import { ClientSelector } from "@/components/ClientSelector";
+import { PlatformOverview } from "@/components/PlatformOverview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -90,39 +91,7 @@ export default function Dashboard() {
       </div>
 
       {/* Platform Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Platform Overzicht</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">TikTok</h3>
-                <Badge className="bg-black text-white">Trending</Badge>
-              </div>
-              <div className="text-2xl font-bold text-foreground">456K</div>
-              <p className="text-sm text-muted-foreground">+24% deze maand</p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">Instagram</h3>
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">Stabiel</Badge>
-              </div>
-              <div className="text-2xl font-bold text-foreground">234K</div>
-              <p className="text-sm text-muted-foreground">+8% deze maand</p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">YouTube Shorts</h3>
-                <Badge className="bg-red-500 text-white">Groeiend</Badge>
-              </div>
-              <div className="text-2xl font-bold text-foreground">123K</div>
-              <p className="text-sm text-muted-foreground">+31% deze maand</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <PlatformOverview selectedBlogId={selectedBlogId} />
 
       {/* Video Approval Widget - Full Width */}
       <Card 
