@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, TrendingDown, Users, Eye, Heart, MessageCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface MetricoolConfig {
   id: string;
@@ -73,16 +73,38 @@ export const ClientMetricoolStats = () => {
 
     setStatsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('metricool-stats', {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('metricool-api', {
         body: { 
-          period: selectedPeriod,
-          blog_id: config.blog_id
+          metric: 'overview',
+          start: new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          end: new Date().toISOString().split('T')[0]
         }
       });
 
       if (error) throw error;
 
-      setStats(data);
+      // Transform the data to match our interface
+      const transformedStats: MetricoolStats = {
+        overview: {
+          total_followers: data.total_followers || 0,
+          total_engagement: data.total_engagement || 0,
+          total_views: data.total_views || 0,
+          total_likes: data.total_likes || 0
+        },
+        platforms: data.platforms || {
+          instagram: { followers: 0, engagement: 0, views: 0 },
+          tiktok: { followers: 0, engagement: 0, views: 0 },
+          youtube: { followers: 0, engagement: 0, views: 0 }
+        },
+        top_videos: data.posts || []
+      };
+
+      setStats(transformedStats);
     } catch (error) {
       console.error('Error fetching stats:', error);
       toast({
