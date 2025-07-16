@@ -7,6 +7,12 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Dashboard";
 import Performance from "./pages/Performance";
+import VideoApproval from "./pages/VideoApproval";
+import Medals from "./pages/Medals";
+import Branding from "./pages/Branding";
+import ContentMoments from "./pages/ContentMoments";
+import LinkInBio from "./pages/LinkInBio";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,12 +42,12 @@ const App = () => (
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/performance" element={<Performance />} />
                 <Route path="/insights" element={<Performance />} />
-                <Route path="/video-approval" element={<Dashboard />} />
-                <Route path="/medals" element={<Dashboard />} />
-                <Route path="/branding" element={<Dashboard />} />
-                <Route path="/content-moments" element={<Dashboard />} />
-                <Route path="/link-in-bio" element={<Dashboard />} />
-                <Route path="/settings" element={<Dashboard />} />
+                <Route path="/video-approval" element={<VideoApproval />} />
+                <Route path="/medals" element={<Medals />} />
+                <Route path="/branding" element={<Branding />} />
+                <Route path="/content-moments" element={<ContentMoments />} />
+                <Route path="/link-in-bio" element={<LinkInBio />} />
+                <Route path="/settings" element={<Settings />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
