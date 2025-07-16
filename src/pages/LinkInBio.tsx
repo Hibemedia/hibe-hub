@@ -81,7 +81,8 @@ export default function LinkInBio() {
     name: "",
     username: "",
     bio: "",
-    profileImage: ""
+    profileImage: "",
+    links: []
   });
   const [newLink, setNewLink] = useState({
     label: "",
@@ -120,7 +121,7 @@ export default function LinkInBio() {
     // In real app, save to database
     console.log("New profile created:", profile);
     setIsCreating(false);
-    setNewProfile({ name: "", username: "", bio: "", profileImage: "" });
+    setNewProfile({ name: "", username: "", bio: "", profileImage: "", links: [] });
   };
 
   const handleAddLink = (profileId: number) => {
@@ -150,8 +151,9 @@ export default function LinkInBio() {
         <p className="text-sm text-gray-600 mt-1">{profile.bio}</p>
       </div>
       
-      <div className="space-y-3">
-        {profile.links.map((link) => {
+    <div className="space-y-3">
+      {profile.links && profile.links.length > 0 ? (
+        profile.links.map((link) => {
           const IconComponent = getIconComponent(link.icon);
           return (
             <div 
@@ -162,8 +164,13 @@ export default function LinkInBio() {
               <span className="font-medium text-gray-800">{link.label}</span>
             </div>
           );
-        })}
-      </div>
+        })
+      ) : (
+        <div className="text-center py-4 text-gray-500">
+          <p className="text-sm">Nog geen links toegevoegd</p>
+        </div>
+      )}
+    </div>
       
       <div className="mt-6 text-center">
         <p className="text-xs text-gray-500">Powered by Hibe Media</p>
