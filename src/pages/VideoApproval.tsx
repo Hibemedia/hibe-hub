@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Play, 
@@ -19,7 +20,10 @@ import {
   Download,
   Pause,
   Send,
-  Save
+  Save,
+  Filter,
+  Edit2,
+  Trash2
 } from "lucide-react";
 import videoApproval1 from "@/assets/video-approval-1.jpg";
 import videoApproval2 from "@/assets/video-approval-2.jpg";
@@ -34,11 +38,12 @@ const videos = [
     filename: "barbershop_curly_hair_techniques.mp4",
     uploadDate: "2024-01-15",
     duration: "2:45",
+    durationSeconds: 165,
     status: "pending",
     thumbnail: videoApproval1,
     comments: [
-      { id: 1, timestamp: 15, comment: "Goede opening, duidelijke uitleg!", author: "Sarah M.", time: "14:30" },
-      { id: 2, timestamp: 45, comment: "Misschien iets langzamer hier?", author: "Mike J.", time: "14:32" }
+      { id: 1, timestamp: 15, comment: "Goede opening, duidelijke uitleg!", author: "Sarah M.", time: "14:30", editable: false },
+      { id: 2, timestamp: 45, comment: "Misschien iets langzamer hier?", author: "Mike J.", time: "14:32", editable: false }
     ]
   },
   {
@@ -47,11 +52,12 @@ const videos = [
     filename: "morning_routine_barbershop.mp4",
     uploadDate: "2024-01-14",
     duration: "1:23",
+    durationSeconds: 83,
     status: "approved",
     thumbnail: videoApproval2,
     comments: [
-      { id: 1, timestamp: 10, comment: "Perfecte opening!", author: "Hibe Team", time: "09:15" },
-      { id: 2, timestamp: 35, comment: "Mooie close-up shots", author: "Sarah M.", time: "09:18" }
+      { id: 1, timestamp: 10, comment: "Perfecte opening!", author: "Hibe Team", time: "09:15", editable: false },
+      { id: 2, timestamp: 35, comment: "Mooie close-up shots", author: "Sarah M.", time: "09:18", editable: false }
     ]
   },
   {
@@ -60,12 +66,13 @@ const videos = [
     filename: "fade_tutorial_beginners.mp4",
     uploadDate: "2024-01-13",
     duration: "3:10",
-    status: "feedback",
+    durationSeconds: 190,
+    status: "rejected",
     thumbnail: videoApproval3,
     comments: [
-      { id: 1, timestamp: 25, comment: "Heel goed uitgelegd!", author: "Mike J.", time: "11:20" },
-      { id: 2, timestamp: 90, comment: "Deze overgang is perfect", author: "Sarah M.", time: "11:22" },
-      { id: 3, timestamp: 150, comment: "Misschien wat meer licht?", author: "Hibe Team", time: "11:25" }
+      { id: 1, timestamp: 25, comment: "Heel goed uitgelegd!", author: "Mike J.", time: "11:20", editable: false },
+      { id: 2, timestamp: 90, comment: "Deze overgang is perfect", author: "Sarah M.", time: "11:22", editable: false },
+      { id: 3, timestamp: 150, comment: "Geluidskwaliteit is niet optimaal", author: "Hibe Team", time: "11:25", editable: false }
     ]
   },
   {
@@ -74,6 +81,7 @@ const videos = [
     filename: "trending_hairstyle_week.mp4",
     uploadDate: "2024-01-12",
     duration: "1:58",
+    durationSeconds: 118,
     status: "pending",
     thumbnail: videoApproval5,
     comments: []
@@ -84,10 +92,11 @@ const videos = [
     filename: "mens_grooming_tips.mp4",
     uploadDate: "2024-01-11",
     duration: "2:20",
+    durationSeconds: 140,
     status: "approved",
     thumbnail: videoApproval6,
     comments: [
-      { id: 1, timestamp: 30, comment: "Hele goede tips!", author: "Sarah M.", time: "16:45" }
+      { id: 1, timestamp: 30, comment: "Hele goede tips!", author: "Sarah M.", time: "16:45", editable: false }
     ]
   }
 ];
@@ -98,37 +107,60 @@ const reviewer = {
   avatar: "SM"
 };
 
+const statusFilters = [
+  { value: "all", label: "Alles", count: 5 },
+  { value: "approved", label: "Goedgekeurd", count: 2 },
+  { value: "rejected", label: "Afgekeurd", count: 1 },
+  { value: "pending", label: "In beoordeling", count: 2 }
+];
+
 export default function VideoApproval() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [newComment, setNewComment] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [videoStatus, setVideoStatus] = useState("");
+  const [editingComment, setEditingComment] = useState(null);
+  const [videoDuration, setVideoDuration] = useState(0);
   const videoRef = useRef(null);
+
+  const filteredVideos = videos.filter(video => {
+    if (statusFilter === "all") return true;
+    return video.status === statusFilter;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
         return 'bg-success';
-      case 'feedback':
-        return 'bg-warning';
       case 'rejected':
         return 'bg-destructive';
       default:
-        return 'bg-muted-foreground';
+        return 'bg-warning';
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusBorder = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'Goedgekeurd';
-      case 'feedback':
-        return 'Feedback gegeven';
+        return 'border-success';
       case 'rejected':
-        return 'Afgekeurd';
+        return 'border-destructive';
       default:
-        return 'Wacht op goedkeuring';
+        return 'border-warning';
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return { text: '✅ Goedgekeurd', className: 'bg-success text-success-foreground' };
+      case 'rejected':
+        return { text: '❌ Afgekeurd', className: 'bg-destructive text-destructive-foreground' };
+      default:
+        return { text: '⏳ In beoordeling', className: 'bg-warning text-warning-foreground' };
     }
   };
 
@@ -136,6 +168,8 @@ export default function VideoApproval() {
     setSelectedVideo(video);
     setIsFullscreen(true);
     setCurrentTime(0);
+    setVideoStatus(video.status);
+    setVideoDuration(video.durationSeconds);
   };
 
   const closeVideoReview = () => {
@@ -144,6 +178,8 @@ export default function VideoApproval() {
     setIsPlaying(false);
     setCurrentTime(0);
     setNewComment("");
+    setEditingComment(null);
+    setVideoStatus("");
   };
 
   const togglePlayPause = () => {
@@ -175,6 +211,19 @@ export default function VideoApproval() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const jumpToTimestamp = (timestamp) => {
+    setCurrentTime(timestamp);
+    if (videoRef.current) {
+      videoRef.current.currentTime = timestamp;
+    }
+  };
+
+  const updateVideoStatus = (newStatus) => {
+    setVideoStatus(newStatus);
+    // In real app, update in database
+    console.log('Updating video status:', selectedVideo.id, newStatus);
+  };
+
   const addComment = () => {
     if (newComment.trim() && selectedVideo) {
       const comment = {
@@ -182,13 +231,23 @@ export default function VideoApproval() {
         timestamp: Math.floor(currentTime),
         comment: newComment.trim(),
         author: reviewer.name,
-        time: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }),
+        editable: true
       };
       
       // In real app, this would update the database
       console.log('Adding comment:', comment);
       setNewComment("");
     }
+  };
+
+  const editComment = (commentId, newText) => {
+    console.log('Editing comment:', commentId, newText);
+    setEditingComment(null);
+  };
+
+  const deleteComment = (commentId) => {
+    console.log('Deleting comment:', commentId);
   };
 
   const navigateVideo = (direction) => {
@@ -242,14 +301,39 @@ export default function VideoApproval() {
                 {videos.filter(v => v.status === 'approved').length} goedgekeurd
               </span>
             </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-destructive rounded-full"></div>
+              <span className="text-sm text-muted-foreground">
+                {videos.filter(v => v.status === 'rejected').length} afgekeurd
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Filter Buttons */}
+      <div className="px-6 pb-4">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-muted-foreground mr-2">Filter:</span>
+          {statusFilters.map((filter) => (
+            <Button
+              key={filter.value}
+              variant={statusFilter === filter.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter(filter.value)}
+              className="h-8"
+            >
+              {filter.label} ({filter.count})
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Video Grid */}
-      <div className="p-6">
+      <div className="px-6 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {videos.map((video) => (
+          {filteredVideos.map((video) => (
             <motion.div
               key={video.id}
               whileHover={{ scale: 1.02 }}
@@ -257,7 +341,7 @@ export default function VideoApproval() {
               className="group cursor-pointer"
               onClick={() => openVideoReview(video)}
             >
-              <Card className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
+              <Card className={`overflow-hidden border-2 ${getStatusBorder(video.status)} hover:border-primary/50 transition-colors`}>
                 <div className="relative">
                   <div className="aspect-video bg-black">
                     <img 
@@ -271,8 +355,10 @@ export default function VideoApproval() {
                       <Play className="h-6 w-6 text-gray-800" />
                     </div>
                   </div>
-                  <div className="absolute top-2 right-2">
-                    <div className={`w-3 h-3 rounded-full ${getStatusColor(video.status)}`}></div>
+                  <div className="absolute top-2 left-2">
+                    <Badge className={getStatusBadge(video.status).className}>
+                      {getStatusBadge(video.status).text}
+                    </Badge>
                   </div>
                   <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
                     {video.duration}
@@ -285,9 +371,10 @@ export default function VideoApproval() {
                     <span>{new Date(video.uploadDate).toLocaleDateString('nl-NL')}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {getStatusText(video.status)}
-                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {video.status === 'approved' ? 'Goedgekeurd' : 
+                       video.status === 'rejected' ? 'Afgekeurd' : 'In beoordeling'}
+                    </Badge>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MessageCircle className="h-3 w-3" />
                       {video.comments.length}
@@ -310,7 +397,7 @@ export default function VideoApproval() {
             className="fixed inset-0 bg-black z-50 flex"
           >
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-4 flex items-center justify-between z-10">
+            <div className="absolute top-0 left-0 right-0 bg-black/90 backdrop-blur-sm p-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
@@ -381,9 +468,30 @@ export default function VideoApproval() {
                     {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
                   </Button>
                 </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-black/70 text-white px-3 py-1 rounded text-sm">
-                    {formatTime(currentTime)} / {selectedVideo.duration}
+                
+                {/* Timeline with markers */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-4">
+                  <div className="relative">
+                    <div className="w-full h-1 bg-white/30 rounded-full mb-2">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-100"
+                        style={{ width: `${(currentTime / videoDuration) * 100}%` }}
+                      />
+                      {/* Comment markers */}
+                      {selectedVideo.comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className="absolute top-0 w-2 h-2 bg-warning rounded-full transform -translate-y-1/2 cursor-pointer hover:scale-125 transition-transform"
+                          style={{ left: `${(comment.timestamp / videoDuration) * 100}%` }}
+                          onClick={() => jumpToTimestamp(comment.timestamp)}
+                          title={`${formatTime(comment.timestamp)}: ${comment.comment}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-white text-sm">
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{selectedVideo.duration}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -396,6 +504,25 @@ export default function VideoApproval() {
               exit={{ x: 400 }}
               className="w-80 bg-card border-l border-border flex flex-col h-full"
             >
+              {/* Status Badge */}
+              <div className="p-4 border-b bg-muted/30">
+                <div className="flex items-center justify-between mb-3">
+                  <Badge className={`${getStatusBadge(videoStatus).className} text-sm px-3 py-1`}>
+                    {getStatusBadge(videoStatus).text}
+                  </Badge>
+                </div>
+                <Select value={videoStatus} onValueChange={updateVideoStatus}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Status wijzigen" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border border-border shadow-lg z-50">
+                    <SelectItem value="pending">⏳ In beoordeling</SelectItem>
+                    <SelectItem value="approved">✅ Goedgekeurd</SelectItem>
+                    <SelectItem value="rejected">❌ Afgekeurd</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Reviewer Profile */}
               <div className="p-4 border-b">
                 <div className="flex items-center gap-3">
@@ -442,18 +569,77 @@ export default function VideoApproval() {
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
                   {selectedVideo.comments.map((comment) => (
-                    <div key={comment.id} className="space-y-2">
+                    <motion.div 
+                      key={comment.id} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-2"
+                    >
                       <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="font-medium">{formatTime(comment.timestamp)}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => jumpToTimestamp(comment.timestamp)}
+                          className="h-auto p-1 hover:bg-primary/10"
+                        >
+                          <Clock className="h-3 w-3 text-primary mr-1" />
+                          <span className="font-medium text-primary">{formatTime(comment.timestamp)}</span>
+                        </Button>
                         <span className="text-muted-foreground">•</span>
                         <span className="text-muted-foreground">{comment.author}</span>
                         <span className="text-muted-foreground ml-auto">{comment.time}</span>
                       </div>
-                      <div className="bg-muted/50 p-3 rounded-lg">
-                        <p className="text-sm">{comment.comment}</p>
+                      <div className="bg-muted/50 p-3 rounded-lg group">
+                        {editingComment === comment.id ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              defaultValue={comment.comment}
+                              className="min-h-[60px] resize-none"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.ctrlKey) {
+                                  editComment(comment.id, (e.target as HTMLTextAreaElement).value);
+                                } else if (e.key === 'Escape') {
+                                  setEditingComment(null);
+                                }
+                              }}
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => editComment(comment.id, "")}>
+                                <Save className="h-3 w-3 mr-1" />
+                                Opslaan
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => setEditingComment(null)}>
+                                Annuleren
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start justify-between">
+                            <p className="text-sm flex-1">{comment.comment}</p>
+                            {comment.editable && (
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEditingComment(comment.id)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteComment(comment.id)}
+                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                   {selectedVideo.comments.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
