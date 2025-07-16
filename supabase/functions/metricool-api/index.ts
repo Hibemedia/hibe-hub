@@ -54,7 +54,10 @@ serve(async (req) => {
     const url = new URL(`${baseUrl}${endpoint}`);
     
     // Add required parameters
-    url.searchParams.append('userId', settings.user_id.toString());
+    // Use userId from params if provided, otherwise use from settings
+    const userId = params.userId || settings.user_id;
+    url.searchParams.append('userId', userId.toString());
+    
     if (params.blogId) {
       url.searchParams.append('blogId', params.blogId.toString());
     }

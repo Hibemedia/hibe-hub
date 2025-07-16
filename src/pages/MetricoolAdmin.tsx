@@ -164,12 +164,14 @@ export default function MetricoolAdmin() {
       if (error) throw error;
 
       if (data.success && data.data) {
+        console.log('Brands loaded:', data.data);
         setBrands(data.data);
         toast({
           title: "Succes",
           description: `${data.data.length} merken geladen`,
         });
       } else {
+        console.error('API returned error:', data);
         throw new Error(data.error || 'Onbekende fout');
       }
     } catch (error) {
@@ -323,6 +325,16 @@ export default function MetricoolAdmin() {
               {loadingBrands ? "Laden..." : "Merken Laden"}
             </Button>
           </div>
+
+          {/* Debug section */}
+          {brands.length > 0 && (
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <h4 className="font-medium mb-2">Debug - Geladen merken:</h4>
+              <pre className="text-xs overflow-auto max-h-32">
+                {JSON.stringify(brands, null, 2)}
+              </pre>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -341,7 +353,7 @@ export default function MetricoolAdmin() {
               <SelectContent>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id.toString()}>
-                    {brand.name} ({brand.platform})
+                    {brand.name || 'Geen naam'} ({brand.platform || 'Onbekend platform'})
                   </SelectItem>
                 ))}
               </SelectContent>
