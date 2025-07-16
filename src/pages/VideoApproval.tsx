@@ -114,6 +114,11 @@ const statusFilters = [
   { value: "pending", label: "In beoordeling", count: 2 }
 ];
 
+const sortOptions = [
+  { value: "newest", label: "Nieuwste boven" },
+  { value: "oldest", label: "Oudste boven" }
+];
+
 export default function VideoApproval() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -124,6 +129,8 @@ export default function VideoApproval() {
   const [videoStatus, setVideoStatus] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [sortBy, setSortBy] = useState("newest");
+  const [showMyFeedbackOnly, setShowMyFeedbackOnly] = useState(false);
   const videoRef = useRef(null);
 
   const filteredVideos = videos.filter(video => {
@@ -278,32 +285,32 @@ export default function VideoApproval() {
   const currentVideoIndex = selectedVideo ? videos.findIndex(v => v.id === selectedVideo.id) : -1;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <div className="p-6 border-b border-border bg-card">
+      <div className="p-6 border-b border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Video Goedkeuring</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-3xl font-bold text-neutral-900">Video Goedkeuring</h1>
+            <p className="text-neutral-600 mt-1">
               Bekijk en geef feedback op je video's
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-warning rounded-full"></div>
-              <span className="text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <span className="text-sm text-neutral-600">
                 {videos.filter(v => v.status === 'pending').length} wacht op goedkeuring
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-success rounded-full"></div>
-              <span className="text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm text-neutral-600">
                 {videos.filter(v => v.status === 'approved').length} goedgekeurd
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-destructive rounded-full"></div>
-              <span className="text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span className="text-sm text-neutral-600">
                 {videos.filter(v => v.status === 'rejected').length} afgekeurd
               </span>
             </div>
@@ -311,77 +318,128 @@ export default function VideoApproval() {
         </div>
       </div>
 
-      {/* Filter Buttons */}
-      <div className="px-6 pb-4">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground mr-2">Filter:</span>
-          {statusFilters.map((filter) => (
-            <Button
-              key={filter.value}
-              variant={statusFilter === filter.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter(filter.value)}
-              className="h-8"
+      {/* Filters and Controls */}
+      <div className="px-6 py-4 bg-white border-b border-neutral-200">
+        <div className="flex flex-wrap items-center gap-4 justify-between">
+          {/* Status Filter Tags */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-neutral-600">Status:</span>
+            {statusFilters.map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setStatusFilter(filter.value)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  statusFilter === filter.value 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                {filter.label} ({filter.count})
+              </button>
+            ))}
+          </div>
+          
+          {/* Controls */}
+          <div className="flex items-center gap-4">
+            {/* My Feedback Toggle */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="myFeedback"
+                checked={showMyFeedbackOnly}
+                onChange={(e) => setShowMyFeedbackOnly(e.target.checked)}
+                className="w-4 h-4 text-orange-500 rounded border-neutral-300 focus:ring-orange-500"
+              />
+              <label htmlFor="myFeedback" className="text-sm text-neutral-700">
+                Alleen mijn feedback
+              </label>
+            </div>
+            
+            {/* Sort Dropdown */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-1 border border-neutral-300 rounded-lg text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
-              {filter.label} ({filter.count})
-            </Button>
-          ))}
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Video Grid */}
-      <div className="px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="p-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredVideos.map((video) => (
             <motion.div
               key={video.id}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               className="group cursor-pointer"
               onClick={() => openVideoReview(video)}
             >
-              <Card className={`overflow-hidden border-2 ${getStatusBorder(video.status)} hover:border-primary/50 transition-colors`}>
+              <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-neutral-200">
                 <div className="relative">
-                  <div className="aspect-video bg-black">
+                  {/* 9:16 Portrait aspect ratio */}
+                  <div className="aspect-[9/16] bg-neutral-100 relative overflow-hidden">
                     <img 
                       src={video.thumbnail} 
                       alt={video.title}
                       className="w-full h-full object-cover"
                     />
-                  </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="bg-white/90 rounded-full p-3">
-                      <Play className="h-6 w-6 text-neutral-800" />
+                    
+                    {/* Hover overlay with play button */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                        <Play className="h-5 w-5 text-neutral-800" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="absolute top-2 left-2">
-                    <Badge className={getStatusBadge(video.status).className}>
-                      {getStatusBadge(video.status).text}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                    {video.duration}
+                    
+                    {/* Status indicator - minimal dot */}
+                    <div className="absolute top-3 left-3">
+                      {video.status === 'approved' && (
+                        <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm" title="Goedgekeurd"></div>
+                      )}
+                      {video.status === 'rejected' && (
+                        <div className="w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" title="Afgekeurd"></div>
+                      )}
+                      {video.status === 'pending' && (
+                        <div className="w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow-sm" title="In beoordeling"></div>
+                      )}
+                    </div>
+                    
+                    {/* Duration badge */}
+                    <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-medium">
+                      {video.duration}
+                    </div>
+                    
+                    {/* Unread comments badge */}
+                    {video.comments.length > 0 && (
+                      <div className="absolute top-3 right-3 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                        {video.comments.length}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-medium text-sm mb-2 line-clamp-2">{video.title}</h3>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                    <span>{video.filename}</span>
+                
+                {/* Card content - minimal metadata */}
+                <div className="p-3">
+                  <h3 className="font-medium text-sm text-neutral-900 mb-1 line-clamp-2 leading-tight">
+                    {video.title}
+                  </h3>
+                  <div className="flex items-center justify-between text-xs text-neutral-500">
                     <span>{new Date(video.uploadDate).toLocaleDateString('nl-NL')}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-xs">
-                      {video.status === 'approved' ? 'Goedgekeurd' : 
-                       video.status === 'rejected' ? 'Afgekeurd' : 'In beoordeling'}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
                       <MessageCircle className="h-3 w-3" />
                       {video.comments.length}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>
