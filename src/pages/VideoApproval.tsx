@@ -394,22 +394,22 @@ export default function VideoApproval() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-gray-900 z-50 flex"
+            className="fixed inset-0 bg-gray-800 z-50 flex"
           >
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm p-6 flex items-center justify-between z-10 border-b border-gray-800">
+            <div className="absolute top-0 left-0 right-0 bg-gray-700/95 backdrop-blur-sm p-6 flex items-center justify-between z-10 border-b border-gray-600">
               <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={closeVideoReview}
-                  className="text-white hover:bg-gray-800"
+                  className="text-gray-300 hover:bg-gray-600 hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </Button>
                 <div className="text-white">
                   <h2 className="font-medium text-lg">{selectedVideo.filename}</h2>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-300">
                     {currentVideoIndex + 1} van {videos.length}
                   </p>
                 </div>
@@ -470,7 +470,7 @@ export default function VideoApproval() {
                 </div>
                 
                 {/* Timeline with markers */}
-                <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-4">
+                <div className="absolute bottom-0 left-0 right-0 bg-gray-900/90 p-4">
                   <div className="relative">
                     <div className="w-full h-1 bg-gray-600 rounded-full mb-2">
                       <div 
@@ -488,7 +488,7 @@ export default function VideoApproval() {
                         />
                       ))}
                     </div>
-                    <div className="flex justify-between text-white text-sm">
+                    <div className="flex justify-between text-gray-300 text-sm">
                       <span>{formatTime(currentTime)}</span>
                       <span>{selectedVideo.duration}</span>
                     </div>
@@ -502,20 +502,20 @@ export default function VideoApproval() {
               initial={{ x: 400 }}
               animate={{ x: 0 }}
               exit={{ x: 400 }}
-              className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col h-full"
+              className="w-80 bg-gray-700 border-l border-gray-600 flex flex-col h-full"
             >
               {/* Status Badge - More space at top */}
-              <div className="p-6 pt-24 border-b border-gray-700">
+              <div className="p-6 pt-24 border-b border-gray-600">
                 <div className="flex items-center justify-center mb-4">
                   <Badge className={`${getStatusBadge(videoStatus).className} text-sm px-4 py-2 text-center`}>
                     {getStatusBadge(videoStatus).text}
                   </Badge>
                 </div>
                 <Select value={videoStatus} onValueChange={updateVideoStatus}>
-                  <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+                  <SelectTrigger className="w-full bg-gray-600 border-gray-500 text-white">
                     <SelectValue placeholder="Status wijzigen" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-700 border-gray-600 text-white shadow-lg z-50">
+                  <SelectContent className="bg-gray-600 border-gray-500 text-white shadow-lg z-50">
                     <SelectItem value="pending">⏳ In beoordeling</SelectItem>
                     <SelectItem value="approved">✅ Goedgekeurd</SelectItem>
                     <SelectItem value="rejected">❌ Afgekeurd</SelectItem>
@@ -524,22 +524,22 @@ export default function VideoApproval() {
               </div>
 
               {/* Reviewer Profile */}
-              <div className="p-6 border-b border-gray-700">
+              <div className="p-6 border-b border-gray-600">
                 <div className="flex items-center gap-3">
                   <Avatar className="bg-gray-600">
                     <AvatarFallback className="bg-gray-600 text-white">{reviewer.avatar}</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-medium text-white">{reviewer.name}</div>
-                    <div className="text-sm text-gray-400">{reviewer.role}</div>
+                    <div className="text-sm text-gray-300">{reviewer.role}</div>
                   </div>
                 </div>
               </div>
 
               {/* Comment Input */}
-              <div className="p-6 border-b border-gray-700">
+              <div className="p-6 border-b border-gray-600">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-gray-300">
                     <Clock className="h-4 w-4" />
                     <span>Timestamp: {formatTime(currentTime)}</span>
                   </div>
@@ -547,18 +547,18 @@ export default function VideoApproval() {
                     placeholder="Voeg je commentaar toe..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[80px] resize-none bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    className="min-h-[80px] resize-none bg-gray-600 border-gray-500 text-white placeholder-gray-400"
                   />
                   <div className="flex gap-2">
                     <Button 
                       onClick={addComment}
                       disabled={!newComment.trim()}
-                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
                     >
                       <Save className="h-4 w-4 mr-2" />
                       Opslaan
                     </Button>
-                    <Button variant="outline" onClick={() => setNewComment("")} className="border-gray-600 text-gray-300 hover:bg-gray-700">
+                    <Button variant="outline" onClick={() => setNewComment("")} className="border-gray-500 text-gray-300 hover:bg-gray-600">
                       Annuleren
                     </Button>
                   </div>
@@ -580,21 +580,21 @@ export default function VideoApproval() {
                           variant="ghost"
                           size="sm"
                           onClick={() => jumpToTimestamp(comment.timestamp)}
-                          className="h-auto p-1 hover:bg-gray-700 text-orange-500"
+                          className="h-auto p-1 hover:bg-gray-600 text-orange-500"
                         >
                           <Clock className="h-3 w-3 text-orange-500 mr-1" />
                           <span className="font-medium text-orange-500">{formatTime(comment.timestamp)}</span>
                         </Button>
-                        <span className="text-gray-500">•</span>
-                        <span className="text-gray-400">{comment.author}</span>
-                        <span className="text-gray-500 ml-auto">{comment.time}</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-gray-300">{comment.author}</span>
+                        <span className="text-gray-400 ml-auto">{comment.time}</span>
                       </div>
-                      <div className="bg-gray-700 p-3 rounded-lg group">
+                      <div className="bg-gray-600 p-3 rounded-lg group">
                         {editingComment === comment.id ? (
                           <div className="space-y-2">
                             <Textarea
                               defaultValue={comment.comment}
-                              className="min-h-[60px] resize-none bg-gray-600 border-gray-500 text-white"
+                              className="min-h-[60px] resize-none bg-gray-500 border-gray-400 text-white"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && e.ctrlKey) {
                                   editComment(comment.id, (e.target as HTMLTextAreaElement).value);
@@ -604,25 +604,25 @@ export default function VideoApproval() {
                               }}
                             />
                             <div className="flex gap-2">
-                              <Button size="sm" onClick={() => editComment(comment.id, "")} className="bg-orange-600 hover:bg-orange-700">
+                              <Button size="sm" onClick={() => editComment(comment.id, "")} className="bg-orange-500 hover:bg-orange-600">
                                 <Save className="h-3 w-3 mr-1" />
                                 Opslaan
                               </Button>
-                              <Button size="sm" variant="outline" onClick={() => setEditingComment(null)} className="border-gray-600 text-gray-300 hover:bg-gray-600">
+                              <Button size="sm" variant="outline" onClick={() => setEditingComment(null)} className="border-gray-500 text-gray-300 hover:bg-gray-500">
                                 Annuleren
                               </Button>
                             </div>
                           </div>
                         ) : (
                           <div className="flex items-start justify-between">
-                            <p className="text-sm flex-1 text-gray-200">{comment.comment}</p>
+                            <p className="text-sm flex-1 text-gray-100">{comment.comment}</p>
                             {comment.editable && (
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => setEditingComment(comment.id)}
-                                  className="h-6 w-6 p-0 hover:bg-gray-600 text-gray-400"
+                                  className="h-6 w-6 p-0 hover:bg-gray-500 text-gray-300"
                                 >
                                   <Edit2 className="h-3 w-3" />
                                 </Button>
@@ -630,7 +630,7 @@ export default function VideoApproval() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => deleteComment(comment.id)}
-                                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-gray-600"
+                                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-gray-500"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -642,7 +642,7 @@ export default function VideoApproval() {
                     </motion.div>
                   ))}
                   {selectedVideo.comments.length === 0 && (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="text-center py-8 text-gray-300">
                       <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p className="text-sm">Nog geen commentaren</p>
                     </div>
