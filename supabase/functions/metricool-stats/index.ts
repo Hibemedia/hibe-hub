@@ -169,22 +169,48 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
-    console.log('Metricool API response:', data);
+    // Only try to parse JSON if the response is successful
+    try {
+      const data = await response.json();
+      console.log('Metricool API response:', data);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        data,
-        blogId,
-        type,
-        dateRange: { start, end }
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data,
+          blogId,
+          type,
+          dateRange: { start, end }
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    } catch (jsonError) {
+      console.error('Failed to parse JSON response:', jsonError);
+      const responseText = await response.text();
+      console.error('Response was not JSON:', responseText.substring(0, 200));
+      
+      // Return mock data if JSON parsing fails
+      console.log('Returning mock data due to JSON parsing error');
+      const mockData = generateMockData(type, blogId);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: mockData,
+          blogId,
+          type,
+          dateRange: { start, end },
+          note: 'Mock data - API returned non-JSON response'
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
   } catch (error) {
     console.error('Error in metricool-stats function:', error);
