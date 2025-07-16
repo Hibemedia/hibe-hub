@@ -252,7 +252,6 @@ export default function Performance() {
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">TikTok</h3>
-                <Badge className="bg-black text-white">Trending</Badge>
               </div>
               <div className="text-2xl font-bold text-foreground">456K</div>
               <p className="text-sm text-success">+24% deze maand</p>
@@ -287,7 +286,6 @@ export default function Performance() {
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">YouTube Shorts</h3>
-                <Badge className="bg-red-500 text-white">Groeiend</Badge>
               </div>
               <div className="text-2xl font-bold text-foreground">123K</div>
               <p className="text-sm text-success">+31% deze maand</p>
