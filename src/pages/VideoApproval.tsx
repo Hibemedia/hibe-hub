@@ -505,7 +505,7 @@ export default function VideoApproval() {
               className="w-80 bg-neutral-800 border-l border-neutral-700 flex flex-col h-full"
             >
               {/* Status Badge - More space at top */}
-              <div className="p-6 pt-24 border-b border-neutral-700">
+              <div className="p-6 pt-32 border-b border-neutral-700">
                 <Select value={videoStatus} onValueChange={updateVideoStatus}>
                   <SelectTrigger className="w-full bg-neutral-900 border-neutral-600 text-white">
                     <SelectValue placeholder="Status wijzigen" />
