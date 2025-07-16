@@ -14,7 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      metricool_config: {
+        Row: {
+          blog_id: number
+          brand_name: string
+          client_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: number
+        }
+        Insert: {
+          blog_id: number
+          brand_name: string
+          client_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: number
+        }
+        Update: {
+          blog_id?: number
+          brand_name?: string
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: number
+        }
+        Relationships: []
+      }
+      metricool_metrics: {
+        Row: {
+          blog_id: number
+          client_id: string
+          created_at: string | null
+          id: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          platform: string
+        }
+        Insert: {
+          blog_id: number
+          client_id: string
+          created_at?: string | null
+          id?: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          platform: string
+        }
+        Update: {
+          blog_id?: number
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          platform?: string
+        }
+        Relationships: []
+      }
+      metricool_posts: {
+        Row: {
+          blog_id: number
+          caption: string | null
+          client_id: string
+          created_at: string | null
+          id: string
+          metrics: Json | null
+          platform: string
+          post_id: string
+          post_type: string
+          published_at: string | null
+          scheduled_at: string | null
+        }
+        Insert: {
+          blog_id: number
+          caption?: string | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          metrics?: Json | null
+          platform: string
+          post_id: string
+          post_type: string
+          published_at?: string | null
+          scheduled_at?: string | null
+        }
+        Update: {
+          blog_id?: number
+          caption?: string | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          metrics?: Json | null
+          platform?: string
+          post_id?: string
+          post_type?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+        }
+        Relationships: []
+      }
+      metricool_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: number
+          user_token: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: number
+          user_token: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: number
+          user_token?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
