@@ -21,10 +21,10 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
+      <TooltipProvider>
         <SidebarProvider>
           <div className="min-h-screen flex w-full">
             <AppSidebar />
@@ -47,9 +47,9 @@ const App = () => (
                 <Route path="/medals" element={<Medals />} />
                 <Route path="/branding" element={<Branding />} />
                 <Route path="/content-moments" element={<ContentMoments />} />
-          <Route path="/metricool-admin" element={<MetricoolAdmin />} />
-          <Route path="/metricool-dashboard" element={<MetricoolDashboard />} />
-          <Route path="/link-in-bio" element={<LinkInBio />} />
+                <Route path="/metricool-admin" element={<MetricoolAdmin />} />
+                <Route path="/metricool-dashboard" element={<MetricoolDashboard />} />
+                <Route path="/link-in-bio" element={<LinkInBio />} />
                 <Route path="/settings" element={<Settings />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
@@ -57,8 +57,8 @@ const App = () => (
             </main>
           </div>
         </SidebarProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+      </TooltipProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
