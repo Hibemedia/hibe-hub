@@ -2,167 +2,81 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Play, Eye, Heart, MessageCircle, Calendar } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-
-import { getMockPosts, USE_MOCKS } from "@/lib/mocks";
+import { useState } from "react";
 import videoThumb1 from "@/assets/video-thumb-1.jpg";
 import videoThumb2 from "@/assets/video-thumb-2.jpg";
 import videoThumb3 from "@/assets/video-thumb-3.jpg";
 import videoThumb4 from "@/assets/video-thumb-4.jpg";
 import videoThumb5 from "@/assets/video-thumb-5.jpg";
 
-interface Video {
-  id: string;
-  title: string;
-  platform: string;
-  views: number;
-  likes: number;
-  comments: number;
-  thumbnail?: string;
-  created_at: string;
-}
+const topVideos = [
+  {
+    id: 1,
+    title: "Beste kniptechnieken voor krullend haar",
+    platform: "TikTok",
+    views: "125K",
+    likes: "8.2K",
+    comments: "342",
+    thumbnail: videoThumb1
+  },
+  {
+    id: 2,
+    title: "Barbershop morning routine",
+    platform: "Instagram",
+    views: "89K",
+    likes: "5.1K",
+    comments: "198",
+    thumbnail: videoThumb2
+  },
+  {
+    id: 3,
+    title: "Fade tutorial voor beginners",
+    platform: "YouTube",
+    views: "67K",
+    likes: "4.3K",
+    comments: "156",
+    thumbnail: videoThumb3
+  },
+  {
+    id: 4,
+    title: "Trending kapsel deze week",
+    platform: "TikTok",
+    views: "45K",
+    likes: "2.8K",
+    comments: "89",
+    thumbnail: videoThumb4
+  },
+  {
+    id: 5,
+    title: "Grooming tips voor mannen",
+    platform: "Instagram",
+    views: "32K",
+    likes: "1.9K",
+    comments: "67",
+    thumbnail: videoThumb5
+  }
+];
 
-const fallbackThumbnails = [videoThumb1, videoThumb2, videoThumb3, videoThumb4, videoThumb5];
+export function TopVideos() {
+  const [selectedMonth, setSelectedMonth] = useState("december-2024");
 
-interface TopVideosProps {
-  selectedBlogId: number | null;
-  selectedBrandName: string;
-}
-
-export function TopVideos({ selectedBlogId, selectedBrandName }: TopVideosProps) {
-  const getCurrentMonth = () => {
-    const now = new Date();
-    const months = [
-      'januari', 'februari', 'maart', 'april', 'mei', 'juni',
-      'juli', 'augustus', 'september', 'oktober', 'november', 'december'
-    ];
-    return `${months[now.getMonth()]}-${now.getFullYear()}`;
-  };
-
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const generateMonthOptions = () => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const months = [
-      'januari', 'februari', 'maart', 'april', 'mei', 'juni',
-      'juli', 'augustus', 'september', 'oktober', 'november', 'december'
-    ];
-    
-    const options = [];
-    
-    // Add current and previous months for current year
-    for (let i = currentMonth; i >= 0; i--) {
-      options.push({
-        value: `${months[i]}-${currentYear}`,
-        label: `${months[i].charAt(0).toUpperCase() + months[i].slice(1)} ${currentYear}`
-      });
-    }
-    
-    // Add last few months of previous year
-    for (let i = 11; i >= Math.max(0, 11 - (5 - options.length)); i--) {
-      options.push({
-        value: `${months[i]}-${currentYear - 1}`,
-        label: `${months[i].charAt(0).toUpperCase() + months[i].slice(1)} ${currentYear - 1}`
-      });
-    }
-    
-    return options;
-  };
-
-  const months = generateMonthOptions();
-
-  useEffect(() => {
-    if (selectedBlogId && selectedMonth) {
-      loadTopVideos();
-    }
-  }, [selectedBlogId, selectedMonth]);
-
-  const loadTopVideos = async () => {
-    if (!selectedBlogId) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Get date range for selected month
-      const [month, year] = selectedMonth.split('-');
-      const monthIndex = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 
-                         'juli', 'augustus', 'september', 'oktober', 'november', 'december'].indexOf(month);
-      
-      const start = new Date(parseInt(year), monthIndex, 1);
-      const end = new Date(parseInt(year), monthIndex + 1, 0);
-
-      const startDate = start.toISOString().split('T')[0];
-      const endDate = end.toISOString().split('T')[0];
-
-      const { data, error } = await supabase.functions.invoke('metricool-stats', {
-        body: {
-          blogId: selectedBlogId,
-          type: 'top-videos',
-          start: startDate,
-          end: endDate
-        }
-      });
-
-      if (error) {
-        console.error('Error loading top videos:', error);
-        setError('Fout bij het laden van video\'s');
-        return;
-      }
-
-      if (data.success && data.data) {
-        // Transform the data to match our interface
-        const transformedVideos: Video[] = data.data.slice(0, 5).map((video: any, index: number) => ({
-          id: video.id || `video-${index}`,
-          title: video.title || video.caption || 'Geen titel',
-          platform: video.platform || 'Onbekend',
-          views: video.views || video.impressions || 0,
-          likes: video.likes || video.reactions || 0,
-          comments: video.comments || 0,
-          thumbnail: video.thumbnail || fallbackThumbnails[index % fallbackThumbnails.length],
-          created_at: video.created_at || video.publish_date || new Date().toISOString()
-        }));
-        
-        setVideos(transformedVideos);
-      } else {
-        setError('Geen video\'s gevonden voor deze periode');
-      }
-    } catch (err) {
-      console.error('Error loading top videos:', err);
-      setError('Fout bij het laden van video\'s');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-  };
+  const months = [
+    { value: "december-2024", label: "December 2024" },
+    { value: "november-2024", label: "November 2024" },
+    { value: "oktober-2024", label: "Oktober 2024" },
+    { value: "september-2024", label: "September 2024" },
+    { value: "augustus-2024", label: "Augustus 2024" },
+    { value: "juli-2024", label: "Juli 2024" }
+  ];
 
   const getPlatformColor = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case 'tiktok':
+    switch (platform) {
+      case 'TikTok':
         return 'bg-black text-white';
-      case 'instagram':
+      case 'Instagram':
         return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white';
-      case 'youtube':
+      case 'YouTube':
         return 'bg-red-500 text-white';
-      case 'facebook':
-        return 'bg-blue-600 text-white';
-      case 'twitter':
-        return 'bg-sky-500 text-white';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -192,82 +106,39 @@ export function TopVideos({ selectedBlogId, selectedBrandName }: TopVideosProps)
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-
-        {/* Videos List */}
         <div className="space-y-2">
-          {loading && (
-            <div className="text-center py-4">
-              <div className="text-sm text-muted-foreground">Laden...</div>
-            </div>
-          )}
-
-          {error && (
-            <div className="text-center py-8">
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                <p className="text-destructive font-medium">Fout bij laden van video's</p>
-                <p className="text-destructive/80 text-sm mt-1">{error}</p>
-                <p className="text-muted-foreground text-xs mt-2">
-                  Probeer een andere maand of neem contact op met support als het probleem aanhoudt.
-                </p>
+          {topVideos.map((video, index) => (
+            <div key={video.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-center w-6 h-6 bg-muted rounded-full text-xs font-bold">
+                {index + 1}
               </div>
-            </div>
-          )}
-
-          {!loading && !error && videos.length === 0 && selectedBlogId && (
-            <div className="text-center py-8">
-              <div className="bg-muted/30 border border-muted rounded-lg p-4">
-                <p className="text-muted-foreground">Geen video's gevonden voor deze periode</p>
-                <p className="text-muted-foreground/80 text-sm mt-1">
-                  Selecteer een andere maand of controleer of er content is geplaatst.
-                </p>
+              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                <img 
+                  src={video.thumbnail} 
+                  alt={video.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            </div>
-          )}
-
-          {!loading && !error && videos.length > 0 && (
-            <>
-              {videos.map((video, index) => (
-                <div key={video.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-center w-6 h-6 bg-muted rounded-full text-xs font-bold">
-                    {index + 1}
-                  </div>
-                  <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
-                    <img 
-                      src={video.thumbnail} 
-                      alt={video.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-foreground truncate">{video.title}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={`${getPlatformColor(video.platform)} text-xs px-1 py-0`}>
-                        {video.platform}
-                      </Badge>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-2 w-2" />
-                          {formatNumber(video.views)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Heart className="h-2 w-2" />
-                          {formatNumber(video.likes)}
-                        </span>
-                      </div>
-                    </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm text-foreground truncate">{video.title}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={`${getPlatformColor(video.platform)} text-xs px-1 py-0`}>
+                    {video.platform}
+                  </Badge>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-2 w-2" />
+                      {video.views}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Heart className="h-2 w-2" />
+                      {video.likes}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </>
-          )}
-
-          {!selectedBlogId && (
-            <div className="text-center py-4">
-              <div className="text-sm text-muted-foreground">
-                Selecteer een klant om de top video's te zien
               </div>
             </div>
-          )}
+          ))}
         </div>
       </CardContent>
     </Card>

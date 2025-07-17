@@ -5,15 +5,9 @@ import {
   CheckCircle, 
   Award, 
   Archive, 
-  TrendingUp,
   Link,
   Settings,
-  Home,
-  LogOut,
-  Play,
-  Palette,
-  Database,
-  Bug
+  Home
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -29,64 +23,41 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/auth/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 
-// Menu items for clients
-const clientMenuItems = [
+const menuItems = [
   {
     title: "Dashboard",
-    url: "/dashboard",
+    url: "/",
     icon: Home,
   },
   {
     title: "Performance",
-    url: "/dashboard/performance",
+    url: "/performance",
     icon: BarChart3,
   },
   {
-    title: "Medailles",
-    url: "/dashboard/medals",
-    icon: Award,
-  },
-];
-
-// Menu items for admin/manager
-const adminMenuItems = [
-  {
-    title: "Dashboard",
-    url: "/admin",
-    icon: Home,
-  },
-  {
     title: "Video Goedkeuring",
-    url: "/admin/video-approval",
-    icon: Play,
+    url: "/video-approval",
+    icon: CheckCircle,
+  },
+  {
+    title: "Medailles",
+    url: "/medals",
+    icon: Award,
   },
   {
     title: "Branding & Archief",
-    url: "/admin/branding",
-    icon: Palette,
+    url: "/branding",
+    icon: Archive,
   },
   {
     title: "Contentmomenten",
-    url: "/admin/content-moments",
+    url: "/content-moments",
     icon: Calendar,
   },
   {
-    title: "Metricool Admin",
-    url: "/admin/metricool-admin",
-    icon: Database,
-  },
-  {
-    title: "Social Analytics",
-    url: "/admin/metricool-dashboard",
-    icon: TrendingUp,
-  },
-  {
     title: "Link in Bio",
-    url: "/admin/link-in-bio",
+    url: "/link-in-bio",
     icon: Link,
   },
 ];
@@ -95,7 +66,6 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { user } = useAuth();
 
   const getNavClasses = (url: string) => {
     const isActive = location.pathname === url;
@@ -107,38 +77,6 @@ export function AppSidebar() {
       }
     );
   };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const handleDebugUser = async () => {
-    console.log('=== DEBUG USER INFO ===');
-    try {
-      const { data: user, error } = await supabase.auth.getUser();
-      console.log('Current user:', user, error);
-      
-      const { data: session } = await supabase.auth.getSession();
-      console.log('Current session:', session);
-      
-      if (user.user) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.user.id)
-          .single();
-        console.log('User data from public.users:', userData);
-      }
-    } catch (error) {
-      console.error('Debug error:', error);
-    }
-    console.log('=== END DEBUG ===');
-  };
-
-  // Get menu items based on user role
-  const menuItems = user?.role === 'klant' ? clientMenuItems : adminMenuItems;
-  const settingsUrl = user?.role === 'klant' ? '/dashboard/settings' : '/admin/settings';
-  const portalTitle = user?.role === 'klant' ? 'Klantportaal' : 'Admin Panel';
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -153,7 +91,7 @@ export function AppSidebar() {
                 Hibe Media
               </h2>
               <p className="text-xs text-muted-foreground">
-                {portalTitle}
+                Klantportaal
               </p>
             </div>
           )}
@@ -186,40 +124,16 @@ export function AppSidebar() {
 
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="h-10">
                   <NavLink 
-                    to={settingsUrl} 
-                    className={getNavClasses(settingsUrl)}
+                    to="/settings" 
+                    className={getNavClasses("/settings")}
                   >
                     <Settings className="h-4 w-4" />
                     {!collapsed && <span className="ml-3">Instellingen</span>}
                   </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="h-10">
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleDebugUser}
-                    className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3"
-                  >
-                    <Bug className="h-4 w-4" />
-                    {!collapsed && <span className="ml-3">Debug User</span>}
-                  </Button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="h-10">
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleLogout}
-                    className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    {!collapsed && <span className="ml-3">Uitloggen</span>}
-                  </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
