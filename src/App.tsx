@@ -10,7 +10,6 @@ import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 
 // Auth pages
 import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
 import AdminLogin from "./pages/auth/AdminLogin";
 
 // Dashboard pages (for clients)
@@ -40,7 +39,6 @@ const App = () => (
           <Routes>
             {/* Public auth routes */}
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             
             {/* Protected dashboard routes for clients */}
@@ -92,7 +90,7 @@ const App = () => (
                         </div>
                       </header>
                       <Routes>
-                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/video-approval" element={<VideoApproval />} />
                         <Route path="/branding" element={<Branding />} />
                         <Route path="/content-moments" element={<ContentMoments />} />

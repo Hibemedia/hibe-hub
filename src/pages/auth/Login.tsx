@@ -23,7 +23,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      const redirectPath = user.role === 'klant' ? '/dashboard' : '/admin';
+      const redirectPath = user.role === 'klant' ? '/dashboard' : '/admin/dashboard';
       navigate(redirectPath, { replace: true });
     }
   }, [user, navigate]);
@@ -49,7 +49,7 @@ export default function Login() {
           .eq('id', data.user.id)
           .single();
         
-        const redirectPath = userData?.role === 'klant' ? '/dashboard' : '/admin';
+        const redirectPath = userData?.role === 'klant' ? '/dashboard' : '/admin/dashboard';
         navigate(redirectPath, { replace: true });
       }
     } catch (error: any) {
@@ -109,12 +109,6 @@ export default function Login() {
               {loading ? 'Bezig met inloggen...' : 'Inloggen'}
             </Button>
             
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">Nog geen account? </span>
-              <Link to="/register" className="text-primary hover:underline">
-                Registreren
-              </Link>
-            </div>
           </form>
         </CardContent>
       </Card>
