@@ -12,7 +12,8 @@ import {
   LogOut,
   Play,
   Palette,
-  Database
+  Database,
+  Bug
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -111,6 +112,29 @@ export function AppSidebar() {
     await supabase.auth.signOut();
   };
 
+  const handleDebugUser = async () => {
+    console.log('=== DEBUG USER INFO ===');
+    try {
+      const { data: user, error } = await supabase.auth.getUser();
+      console.log('Current user:', user, error);
+      
+      const { data: session } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
+      if (user.user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.user.id)
+          .single();
+        console.log('User data from public.users:', userData);
+      }
+    } catch (error) {
+      console.error('Debug error:', error);
+    }
+    console.log('=== END DEBUG ===');
+  };
+
   // Get menu items based on user role
   const menuItems = user?.role === 'klant' ? clientMenuItems : adminMenuItems;
   const settingsUrl = user?.role === 'klant' ? '/dashboard/settings' : '/admin/settings';
@@ -172,6 +196,18 @@ export function AppSidebar() {
                     <Settings className="h-4 w-4" />
                     {!collapsed && <span className="ml-3">Instellingen</span>}
                   </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="h-10">
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleDebugUser}
+                    className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3"
+                  >
+                    <Bug className="h-4 w-4" />
+                    {!collapsed && <span className="ml-3">Debug User</span>}
+                  </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

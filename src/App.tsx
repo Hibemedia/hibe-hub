@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 // Auth pages
 import Login from "./pages/auth/Login";
 import AdminLogin from "./pages/auth/AdminLogin";
+import Register from "./pages/auth/Register";
 
 // Dashboard pages (for clients)
 import Dashboard from "./pages/Dashboard";
@@ -40,6 +41,7 @@ const App = () => (
             {/* Public auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/register" element={<Register />} />
             
             {/* Protected dashboard routes for clients */}
             <Route path="/dashboard/*" element={

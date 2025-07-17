@@ -33,20 +33,32 @@ export default function AdminLogin() {
     setError('');
 
     try {
+      // Debug logging: log email before login attempt
+      console.log('Login attempt for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      // Debug logging: log login result
+      console.log('Login result:', data, error);
+
       if (error) throw error;
 
       if (data.user) {
+        // Debug logging: log session after login
+        const { data: session } = await supabase.auth.getSession();
+        console.log('Session data:', session);
+
         // Check if user has admin/manager role
         const { data: userData } = await supabase
           .from('users')
           .select('role')
           .eq('id', data.user.id)
           .single();
+        
+        console.log('User role data:', userData);
         
         if (userData?.role === 'admin' || userData?.role === 'manager') {
           navigate('/admin', { replace: true });
@@ -56,6 +68,7 @@ export default function AdminLogin() {
         }
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       setError(error.message || 'Er is een fout opgetreden bij het inloggen');
     } finally {
       setLoading(false);
@@ -112,9 +125,12 @@ export default function AdminLogin() {
               {loading ? 'Bezig met inloggen...' : 'Inloggen'}
             </Button>
             
-            <div className="text-center text-sm">
-              <Link to="/login" className="text-primary hover:underline">
+            <div className="text-center text-sm space-y-2">
+              <Link to="/login" className="text-primary hover:underline block">
                 Klant login →
+              </Link>
+              <Link to="/register" className="text-muted-foreground hover:underline block">
+                Test registratie (DEBUG)
               </Link>
             </div>
           </form>
