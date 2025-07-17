@@ -5,6 +5,7 @@ import { Play, Eye, Heart, MessageCircle, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+import { getMockPosts, USE_MOCKS } from "@/lib/mocks";
 import videoThumb1 from "@/assets/video-thumb-1.jpg";
 import videoThumb2 from "@/assets/video-thumb-2.jpg";
 import videoThumb3 from "@/assets/video-thumb-3.jpg";

@@ -8,7 +8,11 @@ import {
   TrendingUp,
   Link,
   Settings,
-  Home
+  Home,
+  LogOut,
+  Play,
+  Palette,
+  Database
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -24,51 +28,64 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
-const menuItems = [
+// Menu items for clients
+const clientMenuItems = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   {
     title: "Performance",
-    url: "/performance",
+    url: "/dashboard/performance",
     icon: BarChart3,
   },
   {
-    title: "Video Goedkeuring",
-    url: "/video-approval",
-    icon: CheckCircle,
+    title: "Medailles",
+    url: "/dashboard/medals",
+    icon: Award,
+  },
+];
+
+// Menu items for admin/manager
+const adminMenuItems = [
+  {
+    title: "Dashboard",
+    url: "/admin",
+    icon: Home,
   },
   {
-    title: "Medailles",
-    url: "/medals",
-    icon: Award,
+    title: "Video Goedkeuring",
+    url: "/admin/video-approval",
+    icon: Play,
   },
   {
     title: "Branding & Archief",
-    url: "/branding",
-    icon: Archive,
+    url: "/admin/branding",
+    icon: Palette,
   },
   {
     title: "Contentmomenten",
-    url: "/content-moments",
+    url: "/admin/content-moments",
     icon: Calendar,
   },
   {
     title: "Metricool Admin",
-    url: "/metricool-admin",
-    icon: Settings,
+    url: "/admin/metricool-admin",
+    icon: Database,
   },
   {
     title: "Social Analytics",
-    url: "/metricool-dashboard",
+    url: "/admin/metricool-dashboard",
     icon: TrendingUp,
   },
   {
     title: "Link in Bio",
-    url: "/link-in-bio",
+    url: "/admin/link-in-bio",
     icon: Link,
   },
 ];
@@ -77,6 +94,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const { user } = useAuth();
 
   const getNavClasses = (url: string) => {
     const isActive = location.pathname === url;
@@ -88,6 +106,15 @@ export function AppSidebar() {
       }
     );
   };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  // Get menu items based on user role
+  const menuItems = user?.role === 'klant' ? clientMenuItems : adminMenuItems;
+  const settingsUrl = user?.role === 'klant' ? '/dashboard/settings' : '/admin/settings';
+  const portalTitle = user?.role === 'klant' ? 'Klantportaal' : 'Admin Panel';
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -102,7 +129,7 @@ export function AppSidebar() {
                 Hibe Media
               </h2>
               <p className="text-xs text-muted-foreground">
-                Klantportaal
+                {portalTitle}
               </p>
             </div>
           )}
@@ -135,16 +162,28 @@ export function AppSidebar() {
 
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="h-10">
                   <NavLink 
-                    to="/settings" 
-                    className={getNavClasses("/settings")}
+                    to={settingsUrl} 
+                    className={getNavClasses(settingsUrl)}
                   >
                     <Settings className="h-4 w-4" />
                     {!collapsed && <span className="ml-3">Instellingen</span>}
                   </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="h-10">
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleLogout}
+                    className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {!collapsed && <span className="ml-3">Uitloggen</span>}
+                  </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
