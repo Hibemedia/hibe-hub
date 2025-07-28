@@ -12,6 +12,10 @@ import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import Login from "./pages/auth/Login";
 import AdminLogin from "./pages/auth/AdminLogin";
 
+// Debug pages (TEMPORARY - Remove in production)
+import AdminRegister from "./pages/debug/AdminRegister";
+import UserManagement from "./pages/debug/UserManagement";
+
 // Client dashboard pages
 import ClientDashboard from "./pages/dashboard";
 
@@ -66,6 +70,10 @@ const App = () => (
             {/* Public auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            
+            {/* Debug routes (TEMPORARY - Remove in production) */}
+            <Route path="/debug/admin-register" element={<AdminRegister />} />
+            <Route path="/debug/user-management" element={<UserManagement />} />
             
             {/* Protected client routes */}
             <Route 
