@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/lib/auth/useAuth';
+import { Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface User {
   id: string;
@@ -19,6 +20,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -150,7 +152,14 @@ export default function UserManagement() {
             </Button>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {!isAdmin ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Geen toegang:</strong> Je bent niet ingelogd als admin. Alleen ingelogde admins kunnen gebruikers bekijken of beheren op deze debugpagina.
+                </AlertDescription>
+              </Alert>
+            ) : loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-muted-foreground">Gebruikers laden...</p>
