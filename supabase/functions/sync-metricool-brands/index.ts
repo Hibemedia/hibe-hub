@@ -5,8 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface MetricoolBrand {
-  id: number
+interface MetricoolProfile {
+  blogId: number
   name: string
   networks: string[]
 }
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
       .select('access_token, user_id')
       .single()
 
-    if (credentialsError) {
+    if (credentialsError || !credentials) {
       console.error('Failed to get Metricool credentials:', credentialsError)
       return new Response(
         JSON.stringify({ 
@@ -45,14 +45,28 @@ Deno.serve(async (req) => {
       )
     }
 
+    if (!credentials.access_token || !credentials.user_id) {
+      console.error('Missing access_token or user_id in credentials')
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Incomplete Metricool credentials. Please ensure both access_token and user_id are configured.' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     console.log('Retrieved credentials, fetching brands from Metricool API...')
 
     // Fetch brands from Metricool API
-    const metricoolUrl = `https://app.metricool.com/api/v1/brands?userId=${credentials.user_id}`
+    const metricoolUrl = `https://app.metricool.com/api/admin/simpleProfiles?userId=${credentials.user_id}`
     const metricoolResponse = await fetch(metricoolUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${credentials.access_token}`,
+        'X-Mc-Auth': credentials.access_token,
         'Content-Type': 'application/json'
       }
     })
@@ -72,8 +86,22 @@ Deno.serve(async (req) => {
       )
     }
 
-    const brandsData = await metricoolResponse.json() as MetricoolBrand[]
-    console.log(`Fetched ${brandsData.length} brands from Metricool`)
+    const profilesData = await metricoolResponse.json() as MetricoolProfile[]
+    console.log(`Fetched ${profilesData.length} profiles from Metricool`)
+
+    if (!Array.isArray(profilesData)) {
+      console.error('Invalid response format from Metricool API:', profilesData)
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid response format from Metricool API' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
 
     // Clear existing brands and insert new ones
     const { error: deleteError } = await supabase
@@ -86,10 +114,10 @@ Deno.serve(async (req) => {
     }
 
     // Insert new brands
-    const brandsToInsert = brandsData.map(brand => ({
-      brand_id: brand.id,
-      name: brand.name,
-      platforms: brand.networks || [],
+    const brandsToInsert = profilesData.map(profile => ({
+      brand_id: profile.blogId,
+      name: profile.name,
+      platforms: profile.networks || [],
       synced_at: new Date().toISOString()
     }))
 
