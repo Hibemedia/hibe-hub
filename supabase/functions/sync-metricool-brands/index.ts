@@ -38,8 +38,7 @@ Deno.serve(async (req) => {
     const { data: credentials, error: credentialsError } = await supabaseClient
       .from('metricool_credentials')
       .select('access_token, user_id')
-      .limit(1)
-      .maybeSingle()
+      .single()
 
     if (credentialsError || !credentials) {
       return new Response(

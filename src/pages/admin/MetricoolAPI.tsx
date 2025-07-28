@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { Loader2, Save, RefreshCw, Clock } from "lucide-react";
 
 interface MetricoolCredentials {
-  id: string;
   access_token: string;
   user_id: string;
 }
@@ -63,12 +62,17 @@ export default function MetricoolAPI() {
     try {
       const { data, error } = await supabase
         .from('metricool_credentials')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
+        .select('access_token, user_id')
+        .single();
 
       if (error) {
-        console.error('Error loading credentials:', error);
+        if (error.code === 'PGRST116') {
+          // No credentials found, this is normal for first time setup
+          console.log('No credentials found yet');
+        } else {
+          console.error('Error loading credentials:', error);
+          toast.error('Failed to load credentials');
+        }
         return;
       }
 
@@ -116,37 +120,23 @@ export default function MetricoolAPI() {
 
     setSaving(true);
     try {
-      let result;
-      if (credentials) {
-        // Update existing singleton row
-        result = await supabase
-          .from('metricool_credentials')
-          .update({
-            access_token: accessToken,
-            user_id: userId,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', credentials.id)
-          .select()
-          .single();
-      } else {
-        // Insert new singleton row (only one allowed due to unique constraint)
-        result = await supabase
-          .from('metricool_credentials')
-          .insert({
-            access_token: accessToken,
-            user_id: userId,
-            singleton_check: true // Required for singleton constraint
-          })
-          .select()
-          .single();
+      // Use upsert for singleton pattern
+      const { data, error } = await supabase
+        .from('metricool_credentials')
+        .upsert({
+          singleton_check: true,
+          access_token: accessToken,
+          user_id: userId,
+          updated_at: new Date().toISOString()
+        })
+        .select('access_token, user_id')
+        .single();
+
+      if (error) {
+        throw error;
       }
 
-      if (result.error) {
-        throw result.error;
-      }
-
-      setCredentials(result.data);
+      setCredentials(data);
       toast.success("Credentials succesvol opgeslagen");
     } catch (error) {
       console.error('Error saving credentials:', error);
