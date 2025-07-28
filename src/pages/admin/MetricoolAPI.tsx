@@ -145,6 +145,7 @@ export default function MetricoolAPI() {
     
     try {
       const response = await fetch(fetchUrl, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -156,11 +157,19 @@ export default function MetricoolAPI() {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: Object.fromEntries(response.headers.entries()),
+        requestHeaders: {
+          'Authorization': `Bearer ${token.slice(0, 10)}...`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        if (response.status === 403) {
+          errorMessage += ' - Toegang geweigerd. Controleer je toegangstoken.';
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -175,12 +184,26 @@ export default function MetricoolAPI() {
       }
     } catch (error) {
       console.error('Error fetching brands:', error);
+      
+      let userFriendlyError = error.message;
+      let isCorsError = false;
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        userFriendlyError = 'CORS Error: De Metricool API blokkeert verzoeken vanuit de browser. Dit is een beveiligingsmaatregel van Metricool.';
+        isCorsError = true;
+      } else if (error.message.includes('403')) {
+        userFriendlyError = 'De Metricool API reageerde met een fout (403 Forbidden). Controleer je toegangstoken of probeer het later opnieuw.';
+      }
+      
       setDebugInfo(prev => ({ 
         ...prev, 
         error: error.message,
-        errorType: error.name 
+        errorType: error.name,
+        isCorsError,
+        userFriendlyError
       }));
-      toast.error(`Fout bij ophalen merken: ${error.message}`);
+      
+      toast.error(userFriendlyError);
     } finally {
       setFetchingBrands(false);
     }
