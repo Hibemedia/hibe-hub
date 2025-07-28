@@ -20,6 +20,11 @@ const menuItems = [
     url: "/admin/users",
     icon: Users,
   },
+  {
+    title: "Metricool API",
+    url: "/admin/metricool",
+    icon: Settings,
+  },
 ];
 
 export function AdminSidebar() {
