@@ -5,10 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface MetricoolProfile {
-  blogId: number
-  name: string
-  networks: string[]
+interface MetricoolAccount {
+  id: number
+  label: string
+  picture: string
+  facebook?: string
+  instagram?: string
+  youtube?: string
+  tiktok?: string
+  twitter?: string
+  linkedin?: string
+  pinterest?: string
 }
 
 Deno.serve(async (req) => {
@@ -61,12 +68,12 @@ Deno.serve(async (req) => {
 
     console.log('Retrieved credentials, fetching brands from Metricool API...')
 
-    // Fetch brands from Metricool API
-    const metricoolUrl = `https://app.metricool.com/api/admin/simpleProfiles?userId=${credentials.user_id}`
+    // Fetch accounts from Metricool API
+    const metricoolUrl = `https://app.metricool.com/api/accounts?userId=${credentials.user_id}`
     const metricoolResponse = await fetch(metricoolUrl, {
       method: 'GET',
       headers: {
-        'X-Mc-Auth': credentials.access_token,
+        'Authorization': `Bearer ${credentials.access_token}`,
         'Content-Type': 'application/json'
       }
     })
@@ -86,11 +93,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    const profilesData = await metricoolResponse.json() as MetricoolProfile[]
-    console.log(`Fetched ${profilesData.length} profiles from Metricool`)
+    const accountsData = await metricoolResponse.json() as MetricoolAccount[]
+    console.log(`Fetched ${accountsData.length} accounts from Metricool`)
 
-    if (!Array.isArray(profilesData)) {
-      console.error('Invalid response format from Metricool API:', profilesData)
+    if (!Array.isArray(accountsData)) {
+      console.error('Invalid response format from Metricool API:', accountsData)
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -113,13 +120,28 @@ Deno.serve(async (req) => {
       console.error('Failed to clear existing brands:', deleteError)
     }
 
-    // Insert new brands
-    const brandsToInsert = profilesData.map(profile => ({
-      brand_id: profile.blogId,
-      name: profile.name,
-      platforms: profile.networks || [],
-      synced_at: new Date().toISOString()
-    }))
+    // Process accounts and extract platforms
+    const brandsToInsert = accountsData.map(account => {
+      // Extract non-null social media platforms
+      const platforms: string[] = []
+      const socialFields = ['facebook', 'instagram', 'youtube', 'tiktok', 'twitter', 'linkedin', 'pinterest']
+      
+      socialFields.forEach(field => {
+        if (account[field as keyof MetricoolAccount] && account[field as keyof MetricoolAccount] !== null) {
+          platforms.push(field)
+        }
+      })
+
+      console.log(`Processing account ${account.id} (${account.label}) with platforms:`, platforms)
+
+      return {
+        brand_id: account.id,
+        name: account.label,
+        picture: account.picture || null,
+        platforms: platforms,
+        synced_at: new Date().toISOString()
+      }
+    })
 
     const { data: insertedBrands, error: insertError } = await supabase
       .from('metricool_brands')

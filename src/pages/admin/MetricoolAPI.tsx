@@ -19,6 +19,7 @@ interface MetricoolBrand {
   id: string;
   brand_id: number;
   name: string;
+  picture?: string;
   platforms: any; // JSON field from database
   synced_at: string;
 }
@@ -151,6 +152,7 @@ export default function MetricoolAPI() {
       linkedin: "bg-blue-100 text-blue-800",
       youtube: "bg-red-100 text-red-800",
       twitter: "bg-sky-100 text-sky-800",
+      pinterest: "bg-red-100 text-red-800",
     };
     return colors[platform.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
@@ -263,11 +265,23 @@ export default function MetricoolAPI() {
             <div className="space-y-4">
               {brands.map((brand) => (
                 <div key={brand.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <h3 className="font-medium">{brand.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Brand ID: {brand.brand_id} • Gesynchroniseerd: {formatDate(brand.synced_at)}
-                    </p>
+                  <div className="flex items-center space-x-3">
+                    {brand.picture && (
+                      <img 
+                        src={brand.picture} 
+                        alt={`${brand.name} logo`}
+                        className="w-12 h-12 rounded-lg object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div className="space-y-1">
+                      <h3 className="font-medium">{brand.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Brand ID: {brand.brand_id} • Gesynchroniseerd: {formatDate(brand.synced_at)}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {brand.platforms?.map((platform) => (
