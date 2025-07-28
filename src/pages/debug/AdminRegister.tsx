@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminRegister() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<string>('admin');
   const [loading, setLoading] = useState(false);
   const [debugOutput, setDebugOutput] = useState<string>('');
   const { toast } = useToast();
@@ -20,14 +22,14 @@ export default function AdminRegister() {
     setDebugOutput('');
 
     try {
-      console.log('🚀 Starting admin registration...', { email });
+      console.log('🚀 Starting user registration...', { email, role });
       
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            role: 'admin'
+            role: role
           }
         }
       });
@@ -35,6 +37,7 @@ export default function AdminRegister() {
       const output = {
         timestamp: new Date().toISOString(),
         email,
+        role,
         data,
         error,
         success: !error
@@ -51,8 +54,8 @@ export default function AdminRegister() {
         });
       } else {
         toast({
-          title: "Admin geregistreerd",
-          description: `Admin ${email} succesvol aangemaakt`,
+          title: "Gebruiker geregistreerd",
+          description: `${role.charAt(0).toUpperCase() + role.slice(1)} ${email} succesvol aangemaakt`,
         });
         setEmail('');
         setPassword('');
@@ -86,10 +89,24 @@ export default function AdminRegister() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Admin Registratie Debug</CardTitle>
+            <CardTitle>Gebruiker Registratie Debug</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
+              <div>
+                <Label htmlFor="role">Rol</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecteer een rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="klant">Klant</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div>
                 <Label htmlFor="email">E-mail</Label>
                 <Input
@@ -98,7 +115,7 @@ export default function AdminRegister() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="admin@hibemedia.com"
+                  placeholder="gebruiker@hibemedia.com"
                 />
               </div>
               
@@ -116,7 +133,7 @@ export default function AdminRegister() {
               </div>
 
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Registreren...' : 'Registreer Admin'}
+                {loading ? 'Registreren...' : `Registreer ${role.charAt(0).toUpperCase() + role.slice(1)}`}
               </Button>
             </form>
           </CardContent>
