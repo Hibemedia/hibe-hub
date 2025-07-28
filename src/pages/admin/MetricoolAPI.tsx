@@ -34,6 +34,7 @@ export default function MetricoolAPI() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [fetchingBrands, setFetchingBrands] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   // Check if user is admin
   if (!hasRole('admin')) {
@@ -136,13 +137,24 @@ export default function MetricoolAPI() {
   const fetchBrands = async (token: string, uid: string) => {
     setFetchingBrands(true);
     setBrands([]);
+    setDebugInfo(null);
+    
+    const fetchUrl = `https://app.metricool.com/api/v1/brands?userId=${uid}`;
     
     try {
-      const response = await fetch(`https://api.metricool.com/v1/brands?userId=${uid}`, {
+      const response = await fetch(fetchUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
+      });
+
+      setDebugInfo({
+        url: fetchUrl,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
       if (!response.ok) {
@@ -150,6 +162,8 @@ export default function MetricoolAPI() {
       }
 
       const data = await response.json();
+      
+      setDebugInfo(prev => ({ ...prev, responseData: data }));
       
       if (data.success && data.data) {
         setBrands(data.data);
@@ -159,6 +173,11 @@ export default function MetricoolAPI() {
       }
     } catch (error) {
       console.error('Error fetching brands:', error);
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        error: error.message,
+        errorType: error.name 
+      }));
       toast.error(`Fout bij ophalen merken: ${error.message}`);
     } finally {
       setFetchingBrands(false);
@@ -293,6 +312,52 @@ export default function MetricoolAPI() {
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Debug Information */}
+      {debugInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Debug Informatie</CardTitle>
+            <CardDescription>
+              Technische details van de laatste API-call
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 text-sm font-mono">
+              <div>
+                <strong>URL:</strong> {debugInfo.url}
+              </div>
+              <div>
+                <strong>Status:</strong> {debugInfo.status} ({debugInfo.statusText})
+              </div>
+              <div>
+                <strong>Success:</strong> {debugInfo.ok ? 'Ja' : 'Nee'}
+              </div>
+              {debugInfo.error && (
+                <div className="text-red-600">
+                  <strong>Error:</strong> {debugInfo.error} ({debugInfo.errorType})
+                </div>
+              )}
+              {debugInfo.responseData && (
+                <div>
+                  <strong>Response Data:</strong>
+                  <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">
+                    {JSON.stringify(debugInfo.responseData, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {debugInfo.headers && (
+                <div>
+                  <strong>Response Headers:</strong>
+                  <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">
+                    {JSON.stringify(debugInfo.headers, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
