@@ -49,6 +49,7 @@ export type Database = {
           access_token: string
           created_at: string
           id: string
+          singleton_check: boolean
           updated_at: string
           user_id: string
         }
@@ -56,6 +57,7 @@ export type Database = {
           access_token: string
           created_at?: string
           id?: string
+          singleton_check?: boolean
           updated_at?: string
           user_id: string
         }
@@ -63,6 +65,7 @@ export type Database = {
           access_token?: string
           created_at?: string
           id?: string
+          singleton_check?: boolean
           updated_at?: string
           user_id?: string
         }

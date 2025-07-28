@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Get Metricool credentials
+    // Get global Metricool credentials (singleton row)
     const { data: credentials, error: credentialsError } = await supabaseClient
       .from('metricool_credentials')
       .select('access_token, user_id')

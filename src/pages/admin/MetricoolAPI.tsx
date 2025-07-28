@@ -118,7 +118,7 @@ export default function MetricoolAPI() {
     try {
       let result;
       if (credentials) {
-        // Update existing
+        // Update existing singleton row
         result = await supabase
           .from('metricool_credentials')
           .update({
@@ -130,12 +130,13 @@ export default function MetricoolAPI() {
           .select()
           .single();
       } else {
-        // Insert new
+        // Insert new singleton row (only one allowed due to unique constraint)
         result = await supabase
           .from('metricool_credentials')
           .insert({
             access_token: accessToken,
-            user_id: userId
+            user_id: userId,
+            singleton_check: true // Required for singleton constraint
           })
           .select()
           .single();
