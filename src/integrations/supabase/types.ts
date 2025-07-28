@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      metricool_brands: {
+        Row: {
+          brand_id: number
+          created_at: string
+          id: string
+          name: string
+          platforms: Json | null
+          synced_at: string
+          updated_at: string
+        }
+        Insert: {
+          brand_id: number
+          created_at?: string
+          id?: string
+          name: string
+          platforms?: Json | null
+          synced_at?: string
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: number
+          created_at?: string
+          id?: string
+          name?: string
+          platforms?: Json | null
+          synced_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metricool_credentials: {
         Row: {
           access_token: string
