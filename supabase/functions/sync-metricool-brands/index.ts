@@ -31,30 +31,8 @@ Deno.serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('users')
-      .select('role')
-      .eq('id', (await supabaseClient.auth.getUser()).data.user?.id)
-      .single()
-
-    if (profileError || profile?.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Admin access required' }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
 
     // Get global Metricool credentials (singleton row)
     const { data: credentials, error: credentialsError } = await supabaseClient
