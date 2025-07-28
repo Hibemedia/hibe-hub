@@ -4,7 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AdminSidebar } from "@/components/AdminSidebar";
+import { ClientSidebar } from "@/components/ClientSidebar";
 import { AuthProvider, useAuth } from "@/lib/auth/useAuth";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 
@@ -31,6 +32,7 @@ import Branding from "./pages/Branding";
 import ContentMoments from "./pages/ContentMoments";
 import LinkInBio from "./pages/LinkInBio";
 import Settings from "./pages/Settings";
+import AdminSettings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,7 +82,9 @@ const App = () => (
               path="/dashboard" 
               element={
                 <ProtectedRoute allowedRoles={['klant']}>
-                  <ClientDashboard />
+                  <ClientLayout>
+                    <ClientDashboard />
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
@@ -106,75 +110,75 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            
-            {/* Legacy protected routes with sidebar */}
             <Route 
-              path="/performance" 
+              path="/admin/settings" 
               element={
                 <ProtectedRoute allowedRoles={['admin', 'manager']}>
                   <AdminLayout>
-                    <Performance />
+                    <AdminSettings />
                   </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Legacy protected routes with client sidebar */}
+            <Route 
+              path="/performance" 
+              element={
+                <ProtectedRoute allowedRoles={['klant']}>
+                  <ClientLayout>
+                    <Performance />
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
             <Route 
               path="/video-approval" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                  <AdminLayout>
+                <ProtectedRoute allowedRoles={['klant']}>
+                  <ClientLayout>
                     <VideoApproval />
-                  </AdminLayout>
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
             <Route 
               path="/medals" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                  <AdminLayout>
+                <ProtectedRoute allowedRoles={['klant']}>
+                  <ClientLayout>
                     <Medals />
-                  </AdminLayout>
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
             <Route 
               path="/branding" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                  <AdminLayout>
+                <ProtectedRoute allowedRoles={['klant']}>
+                  <ClientLayout>
                     <Branding />
-                  </AdminLayout>
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
             <Route 
               path="/content-moments" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                  <AdminLayout>
+                <ProtectedRoute allowedRoles={['klant']}>
+                  <ClientLayout>
                     <ContentMoments />
-                  </AdminLayout>
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
             <Route 
               path="/link-in-bio" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                  <AdminLayout>
+                <ProtectedRoute allowedRoles={['klant']}>
+                  <ClientLayout>
                     <LinkInBio />
-                  </AdminLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                  <AdminLayout>
-                    <Settings />
-                  </AdminLayout>
+                  </ClientLayout>
                 </ProtectedRoute>
               } 
             />
@@ -203,7 +207,32 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <AppSidebar />
+        <AdminSidebar />
+        <main className="flex-1 overflow-auto">
+          <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+            <div className="flex items-center h-full px-6">
+              <SidebarTrigger className="mr-4" />
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-primary rounded-md flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">H</span>
+                </div>
+                <span className="font-semibold text-foreground">Hibe Media Admin</span>
+              </div>
+            </div>
+          </header>
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}
+
+// Layout component for client pages
+function ClientLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <ClientSidebar />
         <main className="flex-1 overflow-auto">
           <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
             <div className="flex items-center h-full px-6">
