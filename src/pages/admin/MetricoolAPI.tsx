@@ -36,7 +36,14 @@ export default function MetricoolAPI() {
   const [fetchingBrands, setFetchingBrands] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
 
-  // Check if user is admin
+  // Load existing credentials - always call this hook
+  useEffect(() => {
+    if (hasRole('admin')) {
+      loadCredentials();
+    }
+  }, [hasRole]);
+
+  // Check if user is admin - moved after hooks
   if (!hasRole('admin')) {
     return (
       <div className="container mx-auto p-6">
@@ -50,11 +57,6 @@ export default function MetricoolAPI() {
       </div>
     );
   }
-
-  // Load existing credentials
-  useEffect(() => {
-    loadCredentials();
-  }, []);
 
   const loadCredentials = async () => {
     setLoading(true);
