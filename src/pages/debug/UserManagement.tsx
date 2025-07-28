@@ -58,7 +58,7 @@ export default function UserManagement() {
   };
 
   const deleteUser = async (userId: string, email: string) => {
-    if (!confirm(`Weet je zeker dat je gebruiker ${email} wilt verwijderen?`)) {
+    if (!confirm(`Weet je zeker dat je gebruiker ${email} volledig wilt verwijderen?\n\nDit verwijdert de gebruiker uit zowel public.users als auth.users.`)) {
       return;
     }
 
@@ -66,33 +66,46 @@ export default function UserManagement() {
     try {
       console.log('🗑️ Deleting user:', { userId, email });
 
-      // First delete from public.users table
+      let authDeleted = false;
+      let publicDeleted = false;
+
+      // Try to delete from auth.users first (requires service role key)
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (!authError) {
+          authDeleted = true;
+          console.log('✅ Auth user deleted successfully');
+        } else {
+          console.warn('⚠️ Auth delete failed:', authError.message);
+        }
+      } catch (authErr) {
+        console.warn('⚠️ Auth delete failed with exception:', authErr);
+      }
+
+      // Delete from public.users table
       const { error: publicError } = await supabase
         .from('users')
         .delete()
         .eq('id', userId);
 
-      if (publicError) {
+      if (!publicError) {
+        publicDeleted = true;
+        console.log('✅ Public user deleted successfully');
+      } else {
         throw new Error(`Public users delete error: ${publicError.message}`);
       }
 
-      // Then delete from auth.users (this requires admin privileges)
-      // Note: This might not work with RLS, but we'll try
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      console.log('📊 Delete result:', { publicError, authError });
-
-      if (authError) {
-        console.warn('⚠️ Auth delete failed (expected with current setup):', authError);
+      // Show appropriate success message
+      if (authDeleted && publicDeleted) {
         toast({
-          title: "Gedeeltelijk verwijderd",
-          description: `Gebruiker ${email} verwijderd uit public.users, maar auth.users vereist admin privileges`,
-          variant: "destructive"
+          title: "✅ Gebruiker volledig verwijderd",
+          description: `${email} succesvol verwijderd uit zowel auth.users als public.users`,
         });
-      } else {
+      } else if (publicDeleted && !authDeleted) {
         toast({
-          title: "Gebruiker verwijderd",
-          description: `${email} succesvol verwijderd`,
+          title: "⚠️ Gedeeltelijk verwijderd",
+          description: `${email} verwijderd uit public.users. Auth verwijdering vereist service role key.`,
+          variant: "destructive"
         });
       }
 
@@ -101,8 +114,8 @@ export default function UserManagement() {
     } catch (err) {
       console.error('❌ Delete error:', err);
       toast({
-        title: "Verwijderen mislukt",
-        description: err instanceof Error ? err.message : "Onbekende fout",
+        title: "❌ Verwijderen mislukt",
+        description: err instanceof Error ? err.message : "Onbekende fout bij verwijderen",
         variant: "destructive"
       });
     } finally {
