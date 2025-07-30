@@ -334,13 +334,15 @@ export default function MetricoolAPI() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div>
+    <div className="container mx-auto px-6 py-8">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold">Metricool API</h1>
         <p className="text-muted-foreground">
           Beheer de verbinding met Metricool en synchroniseer brands
         </p>
       </div>
+
+      <div className="space-y-8">{/* Added space-y-8 for consistent spacing */}
 
       {/* Configuration */}
       <Card>
@@ -566,6 +568,7 @@ export default function MetricoolAPI() {
           </Table>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
