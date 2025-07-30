@@ -167,6 +167,7 @@ export default function MetricoolAPI() {
   const [isSyncing, setIsSyncing] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
+  const [isSavingCredentials, setIsSavingCredentials] = useState(false)
   const { toast } = useToast()
 
   // Load existing credentials and data
@@ -202,7 +203,8 @@ export default function MetricoolAPI() {
         .order('last_synced_at', { ascending: false })
 
       if (data) {
-        setBrands(data as any)
+        const sortedBrands = (data as any[]).sort((a, b) => (a.label || '').localeCompare(b.label || ''))
+        setBrands(sortedBrands)
       }
     } catch (error) {
       console.error('Error loading brands:', error)
@@ -225,7 +227,7 @@ export default function MetricoolAPI() {
     }
   }
 
-  const testConnection = async () => {
+  const saveCredentials = async () => {
     if (!credentials.access_token || !credentials.user_id) {
       toast({
         title: "Fout",
@@ -235,65 +237,87 @@ export default function MetricoolAPI() {
       return
     }
 
-    setIsTestingConnection(true)
+    setIsSavingCredentials(true)
+
+    try {
+      const { error } = await supabase
+        .from('metricool_credentials')
+        .upsert({
+          access_token: credentials.access_token,
+          user_id: credentials.user_id,
+          updated_at: new Date().toISOString()
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "Opgeslagen",
+        description: "Metricool credentials zijn succesvol opgeslagen"
+      })
+    } catch (error: any) {
+      toast({
+        title: "Fout bij opslaan",
+        description: error.message,
+        variant: "destructive"
+      })
+    } finally {
+      setIsSavingCredentials(false)
+    }
+  }
+
+  const testConnectionAndSync = async () => {
+    if (!credentials.access_token || !credentials.user_id) {
+      toast({
+        title: "Fout",
+        description: "Vul zowel Access Token als User ID in",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsSyncing(true)
     setConnectionStatus('idle')
 
     try {
-      const { data, error } = await supabase.functions.invoke('metricool-test-connection', {
+      // First test connection
+      const { data: testData, error: testError } = await supabase.functions.invoke('metricool-test-connection', {
         body: {
           accessToken: credentials.access_token,
           userId: credentials.user_id
         }
       })
 
-      if (error) throw error
+      if (testError) throw testError
 
-      if (data.success) {
-        setConnectionStatus('success')
-        setConnectionMessage(`Verbinding succesvol! ${data.brandCount} brands gevonden.`)
-        toast({
-          title: "Verbinding succesvol",
-          description: `${data.brandCount} brands gevonden`
-        })
-      } else {
-        throw new Error(data.error)
+      if (!testData.success) {
+        throw new Error(testData.error)
       }
-    } catch (error: any) {
-      setConnectionStatus('error')
-      setConnectionMessage(error.message || 'Verbinding mislukt')
-      toast({
-        title: "Verbinding mislukt",
-        description: error.message,
-        variant: "destructive"
-      })
-    } finally {
-      setIsTestingConnection(false)
-    }
-  }
 
-  const syncBrands = async () => {
-    setIsSyncing(true)
+      setConnectionStatus('success')
+      setConnectionMessage(`Verbinding succesvol! ${testData.brandCount} brands gevonden.`)
 
-    try {
-      const { data, error } = await supabase.functions.invoke('metricool-sync-brands', {
+      // Then sync brands
+      const { data: syncData, error: syncError } = await supabase.functions.invoke('metricool-sync-brands', {
         body: { source: 'manual' }
       })
 
-      if (error) throw error
+      if (syncError) throw syncError
 
-      if (data.success) {
+      if (syncData.success) {
         toast({
-          title: "Synchronisatie succesvol",
-          description: `${data.created} aangemaakt, ${data.updated} bijgewerkt, ${data.marked_deleted} verwijderd`
+          title: "Synchronisatie voltooid",
+          description: `${syncData.created} aangemaakt, ${syncData.updated} bijgewerkt, ${syncData.marked_deleted} verwijderd`
         })
         
         // Reload data
         loadBrands()
         loadSyncLogs()
       } else {
-        throw new Error(data.error)
+        throw new Error(syncData.error)
       }
     } catch (error: any) {
+      setConnectionStatus('error')
+      setConnectionMessage(error.message || 'Synchronisatie mislukt')
       toast({
         title: "Synchronisatie mislukt",
         description: error.message,
@@ -304,12 +328,13 @@ export default function MetricoolAPI() {
     }
   }
 
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('nl-NL')
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Metricool API</h1>
         <p className="text-muted-foreground">
@@ -318,15 +343,15 @@ export default function MetricoolAPI() {
       </div>
 
       {/* Configuration */}
-      <Card className="max-w-4xl">
+      <Card>
         <CardHeader>
           <CardTitle>Configuratie</CardTitle>
           <CardDescription>
             Stel de Metricool API credentials in voor synchronisatie
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="accessToken">Access Token</Label>
               <Input
@@ -348,24 +373,23 @@ export default function MetricoolAPI() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button 
-              onClick={testConnection} 
-              disabled={isTestingConnection}
+              onClick={saveCredentials} 
+              disabled={isSavingCredentials}
               variant="outline"
             >
-              {isTestingConnection && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Verbinding testen
+              {isSavingCredentials && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Opslaan
             </Button>
 
             <Button 
-              onClick={syncBrands} 
-              disabled={isSyncing || connectionStatus !== 'success'}
-              className="ml-2"
+              onClick={testConnectionAndSync} 
+              disabled={isSyncing || !credentials.access_token || !credentials.user_id}
             >
               {isSyncing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <RefreshCw className="mr-2 h-4 w-4" />
-              Handmatige synchronisatie
+              Handmatig synchroniseren
             </Button>
           </div>
 
@@ -432,7 +456,7 @@ export default function MetricoolAPI() {
                           <Badge 
                             key={platform} 
                             variant="secondary"
-                            className={`text-white ${PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS] || 'bg-gray-500'}`}
+                            className={`text-white hover:bg-transparent hover:text-inherit cursor-default ${PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS] || 'bg-gray-500'}`}
                           >
                             {platform}
                           </Badge>
@@ -459,7 +483,7 @@ export default function MetricoolAPI() {
               {brands.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                    Geen brands gevonden. Test eerst de verbinding en voer een synchronisatie uit.
+                    Geen brands gevonden. Voer eerst een synchronisatie uit.
                   </TableCell>
                 </TableRow>
               )}
