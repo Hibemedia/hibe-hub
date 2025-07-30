@@ -17,33 +17,96 @@ interface MetricoolCredentials {
 
 interface MetricoolBrand {
   id: number
-  label: string
+  userid: number | null
+  owneruserid: number | null
+  label: string | null
+  url: string | null
+  title: string | null
+  description: string | null
+  picture: string | null
+  twitter: string | null
+  facebook: string | null
+  facebookpageid: string | null
+  facebookgroup: string | null
+  facebookgroupid: string | null
+  instagram: string | null
+  fbbusinessid: string | null
+  googleplus: string | null
+  linkedincompany: string | null
+  facebookads: string | null
+  adwords: string | null
+  gmb: string | null
+  youtube: string | null
+  twitch: string | null
+  tiktokads: string | null
+  pinterest: string | null
+  tiktok: string | null
+  threads: string | null
+  bluesky: string | null
+  feedrss: string | null
+  tiktokaccounttype: string | null
+  instagramconnectiontype: string | null
+  twitterpicture: string | null
+  twittersubscriptiontype: string | null
+  facebookpicture: string | null
+  facebookgrouppicture: string | null
+  instagrampicture: string | null
+  linkedinpicture: string | null
+  facebookadspicture: string | null
+  facebookadsname: string | null
+  pinterestpicture: string | null
+  pinterestbusiness: string | null
+  tiktokpicture: string | null
+  tiktokbusinesstokenexpiration: string | null
+  threadspicture: string | null
+  threadsaccountname: string | null
+  blueskypicture: string | null
+  blueskyhandle: string | null
+  fbuserid: string | null
+  inuserid: string | null
+  adwordsuserid: string | null
+  adwordsaccountname: string | null
+  gmbuserid: string | null
+  gmbaccountname: string | null
+  gmbaddress: string | null
+  gmburl: string | null
+  tiktokadsuserid: string | null
+  linkedincompanypicture: string | null
+  linkedincompanyname: string | null
+  linkedintokenexpiration: string | null
+  linkedinuserprofileurl: string | null
+  youtubechannelname: string | null
+  youtubechannelpicture: string | null
+  twitchname: string | null
+  twitchpicture: string | null
+  twitchchannelid: string | null
+  tiktokadsdisplayname: string | null
+  tiktokadspicture: string | null
+  tiktokuserprofileurl: string | null
+  isshared: boolean | null
+  ownerusername: string | null
+  whitelabellink: string | null
+  analyticmodewhitelabellink: string | null
+  whitelabelalias: string | null
+  hash: string | null
+  version: string | null
+  frontendversion: string | null
+  role: string | null
+  deletedate: string | null
+  deleted: boolean | null
+  joindate: string | null
+  firstconnectiondate: string | null
+  lastresolvedinboxmessagetimestamp: string | null
+  lastreadinboxmessagetimestamp: string | null
+  timezone: string | null
+  availableconnectors: string | null
+  brandrole: string | null
+  iswhitelabel: boolean | null
+  iswhitelabelonlyread: boolean | null
+  engagementratio: number | null
+  raw_data: any
   last_synced_at: string
   deleted_at: string | null
-  picture: string | null
-  // Platform detection fields
-  facebookPageId: string | null
-  facebook: string | null
-  facebookGroupId: string | null
-  facebookAds: string | null
-  instagram: string | null
-  instagramPicture: string | null
-  instagramConnectionType: string | null
-  tiktok: string | null
-  tiktokads: string | null
-  tiktokadsDisplayName: string | null
-  tiktokadsUserId: string | null
-  tiktokPicture: string | null
-  linkedinCompany: string | null
-  linkedInCompanyName: string | null
-  linkedInUserProfileURL: string | null
-  linkedInPicture: string | null
-  youtube: string | null
-  youtubeChannelName: string | null
-  youtubeChannelPicture: string | null
-  pinterest: string | null
-  pinterestBusiness: string | null
-  pinterestPicture: string | null
 }
 
 interface SyncLog {
@@ -71,22 +134,22 @@ const PLATFORM_COLORS = {
 function detectConnectedPlatforms(brand: MetricoolBrand): string[] {
   const platforms: string[] = []
 
-  if (brand.facebookPageId || brand.facebook || brand.facebookGroupId || brand.facebookAds) {
+  if (brand.facebookpageid || brand.facebook || brand.facebookgroupid || brand.facebookads) {
     platforms.push('Facebook')
   }
-  if (brand.instagram || brand.instagramPicture || brand.instagramConnectionType) {
+  if (brand.instagram || brand.instagrampicture || brand.instagramconnectiontype) {
     platforms.push('Instagram')
   }
-  if (brand.tiktok || brand.tiktokads || brand.tiktokadsDisplayName || brand.tiktokadsUserId || brand.tiktokPicture) {
+  if (brand.tiktok || brand.tiktokads || brand.tiktokadsdisplayname || brand.tiktokadsuserid || brand.tiktokpicture) {
     platforms.push('TikTok')
   }
-  if (brand.linkedinCompany || brand.linkedInCompanyName || brand.linkedInUserProfileURL || brand.linkedInPicture) {
+  if (brand.linkedincompany || brand.linkedincompanyname || brand.linkedinuserprofileurl || brand.linkedinpicture) {
     platforms.push('LinkedIn')
   }
-  if (brand.youtube || brand.youtubeChannelName || brand.youtubeChannelPicture) {
+  if (brand.youtube || brand.youtubechannelname || brand.youtubechannelpicture) {
     platforms.push('YouTube')
   }
-  if (brand.pinterest || brand.pinterestBusiness || brand.pinterestPicture) {
+  if (brand.pinterest || brand.pinterestbusiness || brand.pinterestpicture) {
     platforms.push('Pinterest')
   }
 
@@ -255,7 +318,7 @@ export default function MetricoolAPI() {
       </div>
 
       {/* Configuration */}
-      <Card>
+      <Card className="max-w-4xl">
         <CardHeader>
           <CardTitle>Configuratie</CardTitle>
           <CardDescription>
@@ -263,7 +326,7 @@ export default function MetricoolAPI() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
             <div className="space-y-2">
               <Label htmlFor="accessToken">Access Token</Label>
               <Input
