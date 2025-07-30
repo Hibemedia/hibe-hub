@@ -252,6 +252,9 @@ export default function MetricoolAPI() {
 
       if (error) throw error
 
+      // Reload credentials to ensure state is up to date
+      await loadCredentials()
+
       toast({
         title: "Opgeslagen",
         description: "Metricool credentials zijn succesvol opgeslagen"
@@ -329,7 +332,6 @@ export default function MetricoolAPI() {
       setIsSyncing(false)
     }
   }
-
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('nl-NL')
