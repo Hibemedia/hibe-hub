@@ -280,14 +280,14 @@ export default function AdminUsers() {
                   <div className="space-y-2">
                     <Label htmlFor="brand">Metricool Brand</Label>
                     <Select 
-                      value={newUser.metricool_brand_id?.toString() || ''} 
-                      onValueChange={(value) => setNewUser({ ...newUser, metricool_brand_id: value ? parseInt(value) : null })}
+                      value={newUser.metricool_brand_id?.toString() || 'none'} 
+                      onValueChange={(value) => setNewUser({ ...newUser, metricool_brand_id: value === 'none' ? null : parseInt(value) })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecteer een brand" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Geen brand</SelectItem>
+                        <SelectItem value="none">Geen brand</SelectItem>
                         {brands.map((brand) => (
                           <SelectItem key={brand.id} value={brand.id.toString()}>
                             {brand.label || brand.title || `Brand ${brand.id}`}
@@ -359,15 +359,15 @@ export default function AdminUsers() {
                           </SelectContent>
                         </Select>
                         {user.role === 'klant' && (
-                          <Select
-                            value={user.metricool_brand_id?.toString() || ''}
-                            onValueChange={(value) => updateUserBrand(user.id, value ? parseInt(value) : null)}
-                          >
+                            <Select
+                              value={user.metricool_brand_id?.toString() || 'none'}
+                              onValueChange={(value) => updateUserBrand(user.id, value === 'none' ? null : parseInt(value))}
+                            >
                             <SelectTrigger className="w-48">
                               <SelectValue placeholder="Selecteer brand" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Geen brand</SelectItem>
+                              <SelectItem value="none">Geen brand</SelectItem>
                               {brands.map((brand) => (
                                 <SelectItem key={brand.id} value={brand.id.toString()}>
                                   {brand.label || brand.title || `Brand ${brand.id}`}
