@@ -246,6 +246,8 @@ export default function MetricoolAPI() {
           access_token: credentials.access_token,
           user_id: credentials.user_id,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'singleton_check'
         })
 
       if (error) throw error
