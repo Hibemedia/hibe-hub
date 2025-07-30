@@ -193,6 +193,16 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute allowedRoles={['klant']} isSettingsPage={true}>
+                  <ClientLayout>
+                    <Settings />
+                  </ClientLayout>
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Root redirect */}
             <Route 

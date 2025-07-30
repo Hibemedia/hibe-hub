@@ -1,17 +1,20 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from './useAuth';
+import { ClientAccessGuard } from '@/components/ClientAccessGuard';
 
 interface ProtectedRouteProps {
   children: ReactNode;
   allowedRoles?: UserRole[];
   requireAuth?: boolean;
+  isSettingsPage?: boolean;
 }
 
 export function ProtectedRoute({ 
   children, 
   allowedRoles, 
-  requireAuth = true 
+  requireAuth = true,
+  isSettingsPage = false
 }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
@@ -42,5 +45,9 @@ export function ProtectedRoute({
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <ClientAccessGuard allowSettingsPage={isSettingsPage}>
+      {children}
+    </ClientAccessGuard>
+  );
 }

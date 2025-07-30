@@ -10,6 +10,7 @@ export interface UserProfile {
   role: UserRole;
   created_at: string;
   updated_at: string;
+  metricool_brand_id?: number | null;
 }
 
 interface AuthContextType {

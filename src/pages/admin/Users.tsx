@@ -13,28 +13,49 @@ import { useToast } from '@/hooks/use-toast';
 import { UserPlus, Edit } from 'lucide-react';
 import type { UserProfile, UserRole } from '@/lib/auth/useAuth';
 
+interface MetricoolBrand {
+  id: number;
+  label: string;
+  title: string;
+}
+
 export default function AdminUsers() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [brands, setBrands] = useState<MetricoolBrand[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
-  const [newUser, setNewUser] = useState({
+  const [newUser, setNewUser] = useState<{
+    email: string;
+    password: string;
+    role: UserRole;
+    metricool_brand_id: number | null;
+  }>({
     email: '',
     password: '',
-    role: 'klant' as UserRole,
+    role: 'klant',
+    metricool_brand_id: null,
   });
 
   useEffect(() => {
     fetchUsers();
+    fetchBrands();
   }, []);
 
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          metricool_brands:metricool_brand_id (
+            id,
+            label,
+            title
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -48,6 +69,25 @@ export default function AdminUsers() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('metricool_brands')
+        .select('id, label, title')
+        .order('label', { ascending: true });
+
+      if (error) throw error;
+      setBrands(data || []);
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+      toast({
+        title: "Fout",
+        description: "Kon brands niet laden.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -68,6 +108,7 @@ export default function AdminUsers() {
         options: {
           data: {
             role: newUser.role,
+            metricool_brand_id: newUser.metricool_brand_id,
           },
         },
       });
@@ -79,7 +120,7 @@ export default function AdminUsers() {
         description: `${newUser.email} is succesvol aangemaakt.`,
       });
 
-      setNewUser({ email: '', password: '', role: 'klant' });
+      setNewUser({ email: '', password: '', role: 'klant', metricool_brand_id: null });
       setDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
@@ -121,6 +162,40 @@ export default function AdminUsers() {
       toast({
         title: "Fout",
         description: "Kon gebruikersrol niet wijzigen.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateUserBrand = async (userId: string, brandId: number | null) => {
+    if (!profile || profile.role !== 'admin') {
+      toast({
+        title: "Geen toegang",
+        description: "Alleen admins kunnen brands wijzigen.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ metricool_brand_id: brandId } as any)
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Brand bijgewerkt",
+        description: "De brand-koppeling is succesvol gewijzigd.",
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating user brand:', error);
+      toast({
+        title: "Fout",
+        description: "Kon brand-koppeling niet wijzigen.",
         variant: "destructive",
       });
     }
@@ -201,6 +276,27 @@ export default function AdminUsers() {
                     </SelectContent>
                   </Select>
                 </div>
+                {newUser.role === 'klant' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="brand">Metricool Brand</Label>
+                    <Select 
+                      value={newUser.metricool_brand_id?.toString() || ''} 
+                      onValueChange={(value) => setNewUser({ ...newUser, metricool_brand_id: value ? parseInt(value) : null })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer een brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Geen brand</SelectItem>
+                        {brands.map((brand) => (
+                          <SelectItem key={brand.id} value={brand.id.toString()}>
+                            {brand.label || brand.title || `Brand ${brand.id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <Button onClick={createUser} className="w-full">
                   Gebruiker Aanmaken
                 </Button>
@@ -220,6 +316,7 @@ export default function AdminUsers() {
               <TableRow>
                 <TableHead>E-mailadres</TableHead>
                 <TableHead>Rol</TableHead>
+                <TableHead>Brand</TableHead>
                 <TableHead>Aangemaakt</TableHead>
                 <TableHead>Acties</TableHead>
               </TableRow>
@@ -234,23 +331,52 @@ export default function AdminUsers() {
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    {user.role === 'klant' && (
+                      <div className="text-sm">
+                        {(user as any).metricool_brands?.label || 
+                         (user as any).metricool_brands?.title || 
+                         (user.metricool_brand_id ? `Brand ${user.metricool_brand_id}` : 'Geen brand')}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {new Date(user.created_at).toLocaleDateString('nl-NL')}
                   </TableCell>
                   <TableCell>
                     {profile?.role === 'admin' && (
-                      <Select
-                        value={user.role}
-                        onValueChange={(newRole: UserRole) => updateUserRole(user.id, newRole)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="klant">Klant</SelectItem>
-                          <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <Select
+                          value={user.role}
+                          onValueChange={(newRole: UserRole) => updateUserRole(user.id, newRole)}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="klant">Klant</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {user.role === 'klant' && (
+                          <Select
+                            value={user.metricool_brand_id?.toString() || ''}
+                            onValueChange={(value) => updateUserBrand(user.id, value ? parseInt(value) : null)}
+                          >
+                            <SelectTrigger className="w-48">
+                              <SelectValue placeholder="Selecteer brand" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">Geen brand</SelectItem>
+                              {brands.map((brand) => (
+                                <SelectItem key={brand.id} value={brand.id.toString()}>
+                                  {brand.label || brand.title || `Brand ${brand.id}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
