@@ -23,7 +23,6 @@ import ClientDashboard from "./pages/dashboard";
 // Admin pages  
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
-import MetricoolAPI from "./pages/admin/MetricoolAPI";
 
 // Existing pages
 import Performance from "./pages/Performance";
@@ -107,16 +106,6 @@ const App = () => (
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLayout>
                     <AdminUsers />
-                  </AdminLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/metricool" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminLayout>
-                    <MetricoolAPI />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

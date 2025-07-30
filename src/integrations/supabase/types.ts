@@ -14,63 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      metricool_brands: {
-        Row: {
-          brand_id: number
-          created_at: string
-          id: string
-          name: string
-          picture: string | null
-          platforms: Json | null
-          synced_at: string
-          updated_at: string
-        }
-        Insert: {
-          brand_id: number
-          created_at?: string
-          id?: string
-          name: string
-          picture?: string | null
-          platforms?: Json | null
-          synced_at?: string
-          updated_at?: string
-        }
-        Update: {
-          brand_id?: number
-          created_at?: string
-          id?: string
-          name?: string
-          picture?: string | null
-          platforms?: Json | null
-          synced_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      metricool_credentials: {
-        Row: {
-          access_token: string
-          created_at: string
-          singleton_check: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          created_at?: string
-          singleton_check?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          created_at?: string
-          singleton_check?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       users: {
         Row: {
           created_at: string | null
