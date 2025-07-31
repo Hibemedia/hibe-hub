@@ -368,6 +368,39 @@ export type Database = {
         }
         Relationships: []
       }
+      metricool_sync_schedule: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: number
+          interval_hours: number
+          last_run_at: string | null
+          next_run_at: string | null
+          singleton_check: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          interval_hours?: number
+          last_run_at?: string | null
+          next_run_at?: string | null
+          singleton_check?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          interval_hours?: number
+          last_run_at?: string | null
+          next_run_at?: string | null
+          singleton_check?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
