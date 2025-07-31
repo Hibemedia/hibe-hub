@@ -136,7 +136,7 @@ serve(async (req) => {
           id: brand.id,
           userid: brand.userId,
           owneruserid: brand.ownerUserId,
-          label: brand.label,
+          label: brand.label || "Empty brand",
           url: brand.url,
           title: brand.title,
           description: brand.description,
