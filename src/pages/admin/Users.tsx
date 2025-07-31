@@ -290,7 +290,7 @@ export default function AdminUsers() {
                         <SelectItem value="none">Geen brand</SelectItem>
                         {brands.map((brand) => (
                           <SelectItem key={brand.id} value={brand.id.toString()}>
-                            {brand.label || brand.title || `Brand ${brand.id}`}
+                            {brand.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -370,7 +370,7 @@ export default function AdminUsers() {
                               <SelectItem value="none">Geen brand</SelectItem>
                               {brands.map((brand) => (
                                 <SelectItem key={brand.id} value={brand.id.toString()}>
-                                  {brand.label || brand.title || `Brand ${brand.id}`}
+                                  {brand.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>

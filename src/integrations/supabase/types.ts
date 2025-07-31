@@ -373,6 +373,7 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          metricool_brand_id: number | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
@@ -380,6 +381,7 @@ export type Database = {
           created_at?: string | null
           email: string
           id: string
+          metricool_brand_id?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -387,10 +389,19 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          metricool_brand_id?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_metricool_brand_id_fkey"
+            columns: ["metricool_brand_id"]
+            isOneToOne: false
+            referencedRelation: "metricool_brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
