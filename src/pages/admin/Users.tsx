@@ -225,14 +225,33 @@ export default function AdminUsers() {
     }
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userToDelete.id);
-      
-      if (error) throw error;
-
-      toast({
-        title: "Gebruiker verwijderd",
-        description: `${userToDelete.email} is succesvol verwijderd.`,
+      // Use the new edge function for secure deletion
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: userToDelete.id }
       });
+
+      if (error) {
+        console.error('Error calling delete-user function:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('Error from delete-user function:', data.error);
+        if (data.partial_success) {
+          toast({
+            title: "Gedeeltelijk verwijderd",
+            description: `${userToDelete.email}: ${data.error}`,
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(data.error);
+        }
+      } else {
+        toast({
+          title: "Gebruiker verwijderd",
+          description: `${userToDelete.email} is succesvol verwijderd uit alle systemen.`,
+        });
+      }
 
       setDeleteDialogOpen(false);
       setUserToDelete(null);
@@ -242,7 +261,7 @@ export default function AdminUsers() {
       console.error('Error deleting user:', error);
       toast({
         title: "Fout",
-        description: "Kon gebruiker niet verwijderen.",
+        description: error.message || "Kon gebruiker niet verwijderen.",
         variant: "destructive",
       });
     }

@@ -68,46 +68,31 @@ export default function UserManagement() {
     try {
       console.log('🗑️ Deleting user:', { userId, email });
 
-      let authDeleted = false;
-      let publicDeleted = false;
+      // Use the new edge function for secure deletion
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
 
-      // Try to delete from auth.users first (requires service role key)
-      try {
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-        if (!authError) {
-          authDeleted = true;
-          console.log('✅ Auth user deleted successfully');
+      if (error) {
+        console.error('Error calling delete-user function:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('Error from delete-user function:', data.error);
+        if (data.partial_success) {
+          toast({
+            title: "⚠️ Gedeeltelijk verwijderd",
+            description: `${email}: ${data.error}`,
+            variant: "destructive",
+          });
         } else {
-          console.warn('⚠️ Auth delete failed:', authError.message);
+          throw new Error(data.error);
         }
-      } catch (authErr) {
-        console.warn('⚠️ Auth delete failed with exception:', authErr);
-      }
-
-      // Delete from public.users table
-      const { error: publicError } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', userId);
-
-      if (!publicError) {
-        publicDeleted = true;
-        console.log('✅ Public user deleted successfully');
       } else {
-        throw new Error(`Public users delete error: ${publicError.message}`);
-      }
-
-      // Show appropriate success message
-      if (authDeleted && publicDeleted) {
         toast({
           title: "✅ Gebruiker volledig verwijderd",
-          description: `${email} succesvol verwijderd uit zowel auth.users als public.users`,
-        });
-      } else if (publicDeleted && !authDeleted) {
-        toast({
-          title: "⚠️ Gedeeltelijk verwijderd",
-          description: `${email} verwijderd uit public.users. Auth verwijdering vereist service role key.`,
-          variant: "destructive"
+          description: `${email} succesvol verwijderd uit alle systemen`,
         });
       }
 
