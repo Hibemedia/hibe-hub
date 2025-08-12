@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw, Search } from "lucide-react";
@@ -30,6 +32,8 @@ export default function SyncLogs() {
   const [platform, setPlatform] = useState<string>("all");
   const [brandId, setBrandId] = useState<string>("all");
   const [query, setQuery] = useState("");
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
+  const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(30);
 
   const loadBrands = async () => {
     const { data, error } = await supabase
@@ -89,6 +93,15 @@ export default function SyncLogs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platform, brandId, brands.length]);
 
+  useEffect(() => {
+    if (!autoRefreshEnabled) return;
+    const id = setInterval(() => {
+      loadLogs();
+    }, autoRefreshSeconds * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefreshEnabled, autoRefreshSeconds, platform, brandId, query]);
+
   const platforms = useMemo(() => [
     { value: "all", label: "Alle platforms" },
     { value: "facebook", label: "Facebook" },
@@ -105,10 +118,26 @@ export default function SyncLogs() {
           <h1 className="text-2xl font-bold text-foreground">Sync Logs</h1>
           <p className="text-muted-foreground">Controleer content-sync runs en API responses</p>
         </div>
-        <Button onClick={loadLogs} disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-          Herladen
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Switch id="autoRefresh" checked={autoRefreshEnabled} onCheckedChange={setAutoRefreshEnabled} />
+            <Label htmlFor="autoRefresh" className="text-sm">Auto-refresh</Label>
+            <Select value={String(autoRefreshSeconds)} onValueChange={(v) => setAutoRefreshSeconds(parseInt(v))} disabled={!autoRefreshEnabled}>
+              <SelectTrigger className="w-24">
+                <SelectValue placeholder="Interval" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10s</SelectItem>
+                <SelectItem value="30">30s</SelectItem>
+                <SelectItem value="60">60s</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={loadLogs} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Herladen
+          </Button>
+        </div>
       </header>
 
       <Card>
