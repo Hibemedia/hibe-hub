@@ -406,6 +406,7 @@ export type Database = {
           created_at: string
           enabled: boolean
           id: number
+          include_posts: boolean
           interval_hours: number
           last_run_at: string | null
           next_run_at: string | null
@@ -416,6 +417,7 @@ export type Database = {
           created_at?: string
           enabled?: boolean
           id?: number
+          include_posts?: boolean
           interval_hours?: number
           last_run_at?: string | null
           next_run_at?: string | null
@@ -426,6 +428,7 @@ export type Database = {
           created_at?: string
           enabled?: boolean
           id?: number
+          include_posts?: boolean
           interval_hours?: number
           last_run_at?: string | null
           next_run_at?: string | null

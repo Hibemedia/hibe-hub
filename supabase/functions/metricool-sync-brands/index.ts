@@ -111,35 +111,42 @@ async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok
   return fetchPagedJson(baseUrl, headers)
 }
 
-async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[]) {
-  // Determine sync mode: full (no data yet) vs incremental (since last recorded day)
-  let mode: 'full' | 'incremental' = 'incremental'
+async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[], opts?: { forceFull?: boolean }) {
+  // Determine sync mode: full (forced or empty) vs incremental
+  let mode: 'full' | 'incremental' = opts?.forceFull ? 'full' : 'incremental'
   let startDate: Date
   const endDate = new Date()
 
-  // Check existing posts
-  const { count: postsCount } = await supabase
-    .from('posts')
-    .select('id', { count: 'exact', head: true })
-    .eq('brand_id', brandId)
+  if (mode !== 'full') {
+    // Check existing data
+    const { count: postsCount } = await supabase
+      .from('posts')
+      .select('id', { count: 'exact', head: true })
+      .eq('brand_id', brandId)
 
-  // Latest metrics date for this brand
-  const { data: lastMetric, error: lastErr } = await supabase
-    .from('post_metrics_daily')
-    .select('date, posts!inner(id, brand_id)')
-    .eq('posts.brand_id', brandId)
-    .order('date', { ascending: false })
-    .limit(1)
+    const { data: lastMetric, error: lastErr } = await supabase
+      .from('post_metrics_daily')
+      .select('date, posts!inner(id, brand_id)')
+      .eq('posts.brand_id', brandId)
+      .order('date', { ascending: false })
+      .limit(1)
 
-  if ((postsCount ?? 0) === 0 || lastErr || !lastMetric || lastMetric.length === 0) {
-    mode = 'full'
+    if ((postsCount ?? 0) === 0 || lastErr || !lastMetric || lastMetric.length === 0) {
+      mode = 'full'
+    }
+  }
+
+  if (mode === 'full') {
     startDate = new Date(endDate)
     startDate.setUTCFullYear(endDate.getUTCFullYear() - 1)
   } else {
-    mode = 'incremental'
-    const lastDate = new Date(lastMetric[0].date as string)
+    const { data: lastMetric } = await supabase
+      .from('post_metrics_daily')
+      .select('date')
+      .order('date', { ascending: false })
+      .limit(1)
+    const lastDate = lastMetric?.[0]?.date ? new Date(lastMetric[0].date as string) : new Date(endDate)
     startDate = new Date(lastDate)
-    // go one day back to catch updates
     startDate.setUTCDate(startDate.getUTCDate() - 1)
   }
 
@@ -324,6 +331,9 @@ serve(async (req) => {
     // Get source from request body (manual or auto)
     const body = await req.json().catch(() => ({}))
     const source = body.source || 'manual'
+    const brandFilter = body.brand_id as number | undefined
+    const forceFull = Boolean(body.force_full)
+
 
     console.log('Starting Metricool brands sync, source:', source)
 
@@ -363,8 +373,21 @@ serve(async (req) => {
         throw new Error(`Metricool API error: ${metricoolResponse.status}`)
       }
 
-      const brands = await metricoolResponse.json()
+      let brands = await metricoolResponse.json()
       console.log('Retrieved brands from Metricool:', brands.length)
+
+      // Optionally filter to a single brand when requested
+      if (brandFilter) {
+        brands = brands.filter((b: any) => b.id === brandFilter)
+      }
+
+      // Read schedule to decide whether to include posts/metrics on auto runs
+      const { data: schedule } = await supabase
+        .from('metricool_sync_schedule')
+        .select('*')
+        .single()
+      const includePosts = schedule?.include_posts !== false
+
 
       // Get existing brands to track what needs to be soft deleted
       const { data: existingBrands } = await supabase
@@ -504,9 +527,12 @@ serve(async (req) => {
           }
         }
 
-        // Content sync for this brand (last 12 months)
+        // Content sync for this brand (last 12 months or incremental)
         try {
-          await syncBrandContent(supabase, userId, accessToken, brand.id, connectedPlatforms)
+          const shouldInclude = includePosts || forceFull || !!brandFilter
+          if (shouldInclude) {
+            await syncBrandContent(supabase, userId, accessToken, brand.id, connectedPlatforms, { forceFull })
+          }
         } catch (e) {
           console.error('Content sync failed for brand', brand.id, e)
         }

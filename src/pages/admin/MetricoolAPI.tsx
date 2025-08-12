@@ -128,6 +128,7 @@ interface SyncSchedule {
   id: number
   interval_hours: number
   enabled: boolean
+  include_posts?: boolean
   last_run_at: string | null
   next_run_at: string | null
   created_at: string
@@ -296,6 +297,7 @@ export default function MetricoolAPI() {
         .update({
           interval_hours: syncSchedule.interval_hours,
           enabled: syncSchedule.enabled,
+          include_posts: syncSchedule.include_posts ?? true,
           next_run_at: nextRunAt?.toISOString() || null,
           updated_at: new Date().toISOString()
         })
@@ -433,6 +435,24 @@ export default function MetricoolAPI() {
     return new Date(dateString).toLocaleString('nl-NL')
   }
 
+  const [resyncingBrandId, setResyncingBrandId] = useState<number | null>(null)
+  const resyncBrand = async (brandId: number) => {
+    try {
+      setResyncingBrandId(brandId)
+      const { data, error } = await supabase.functions.invoke('metricool-sync-brands', {
+        body: { source: 'manual_brand_resync', brand_id: brandId, force_full: true }
+      })
+      if (error) throw error
+      toast({ title: 'Her-sync gestart', description: `Brand ${brandId}: ${data?.updated ?? 0} bijgewerkt` })
+      await loadBrands()
+    } catch (e: any) {
+      toast({ title: 'Her-sync mislukt', description: e.message, variant: 'destructive' })
+    } finally {
+      setResyncingBrandId(null)
+      loadSyncLogs()
+    }
+  }
+
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8">
@@ -552,6 +572,20 @@ export default function MetricoolAPI() {
                     </span>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="includePosts">Posts/metrics opnemen</Label>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="includePosts"
+                      checked={!!syncSchedule.include_posts}
+                      onCheckedChange={(checked) => setSyncSchedule(prev => prev ? { ...prev, include_posts: checked } : null)}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {syncSchedule.include_posts ? 'Posts/metrics worden meegenomen' : 'Posts/metrics worden overgeslagen'}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
@@ -608,6 +642,7 @@ export default function MetricoolAPI() {
                 <TableHead>Platforms</TableHead>
                 <TableHead>Laatste sync</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Acties</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -656,9 +691,12 @@ export default function MetricoolAPI() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={isDeleted ? 'destructive' : 'success'}>
-                        {isDeleted ? 'Verwijderd' : 'Actief'}
-                      </Badge>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => resyncBrand(brand.id)}>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          12m her-sync
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )
