@@ -27,10 +27,8 @@ import videoThumb5 from "@/assets/video-thumb-5.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/useAuth";
 
-// Data state (filled from Supabase)
-const [dailyData, setDailyData] = useState<any[]>([]);
-const [topVideos, setTopVideos] = useState<any[]>([]);
-const [totals, setTotals] = useState<{ views: number; impressions: number; engagement: number; clicks: number }>({ views: 0, impressions: 0, engagement: 0, clicks: 0 });
+// State will be initialized inside the component
+
 
 const performanceVideos = [
   {
@@ -103,6 +101,10 @@ export default function Performance() {
     YouTube: true,
     Facebook: true
   });
+
+  const [dailyData, setDailyData] = useState<any[]>([]);
+  const [topVideos, setTopVideos] = useState<any[]>([]);
+  const [totals, setTotals] = useState<{ views: number; impressions: number; engagement: number; clicks: number }>({ views: 0, impressions: 0, engagement: 0, clicks: 0 });
 
   const months = [
     { value: "december-2024", label: "December 2024" },
