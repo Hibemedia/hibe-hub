@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MetricCard } from "@/components/MetricCard";
 import { AIInsightsWidget } from "@/components/AIInsightsWidget";
 import { Button } from "@/components/ui/button";
@@ -24,41 +24,13 @@ import videoThumb2 from "@/assets/video-thumb-2.jpg";
 import videoThumb3 from "@/assets/video-thumb-3.jpg";
 import videoThumb4 from "@/assets/video-thumb-4.jpg";
 import videoThumb5 from "@/assets/video-thumb-5.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth/useAuth";
 
-// Sample data for daily performance (not cumulative)
-const dailyData = [
-  { day: '1', TikTok: 2400, Instagram: 1800, YouTube: 1200, Facebook: 600 },
-  { day: '2', TikTok: 1900, Instagram: 1500, YouTube: 900, Facebook: 450 },
-  { day: '3', TikTok: 3200, Instagram: 2100, YouTube: 1400, Facebook: 700 },
-  { day: '4', TikTok: 2800, Instagram: 1900, YouTube: 1100, Facebook: 550 },
-  { day: '5', TikTok: 4500, Instagram: 2800, YouTube: 1800, Facebook: 900 }, // Video viral
-  { day: '6', TikTok: 2100, Instagram: 1600, YouTube: 1000, Facebook: 500 },
-  { day: '7', TikTok: 3800, Instagram: 2400, YouTube: 1600, Facebook: 800 },
-  { day: '8', TikTok: 2600, Instagram: 1700, YouTube: 1100, Facebook: 550 },
-  { day: '9', TikTok: 2900, Instagram: 1800, YouTube: 1200, Facebook: 600 },
-  { day: '10', TikTok: 3400, Instagram: 2200, YouTube: 1500, Facebook: 750 },
-  { day: '11', TikTok: 2700, Instagram: 1700, YouTube: 1100, Facebook: 550 },
-  { day: '12', TikTok: 6200, Instagram: 3800, YouTube: 2400, Facebook: 1200 }, // Grote piek
-  { day: '13', TikTok: 3100, Instagram: 2000, YouTube: 1300, Facebook: 650 },
-  { day: '14', TikTok: 2800, Instagram: 1900, YouTube: 1200, Facebook: 600 },
-  { day: '15', TikTok: 4100, Instagram: 2600, YouTube: 1700, Facebook: 850 },
-  { day: '16', TikTok: 2300, Instagram: 1500, YouTube: 1000, Facebook: 500 },
-  { day: '17', TikTok: 3600, Instagram: 2300, YouTube: 1500, Facebook: 750 },
-  { day: '18', TikTok: 2900, Instagram: 1800, YouTube: 1200, Facebook: 600 },
-  { day: '19', TikTok: 5100, Instagram: 3200, YouTube: 2100, Facebook: 1050 }, // Instagram piek
-  { day: '20', TikTok: 2700, Instagram: 1700, YouTube: 1100, Facebook: 550 },
-  { day: '21', TikTok: 3300, Instagram: 2100, YouTube: 1400, Facebook: 700 },
-  { day: '22', TikTok: 2600, Instagram: 1600, YouTube: 1000, Facebook: 500 },
-  { day: '23', TikTok: 4200, Instagram: 2700, YouTube: 1800, Facebook: 900 },
-  { day: '24', TikTok: 2800, Instagram: 1800, YouTube: 1200, Facebook: 600 },
-  { day: '25', TikTok: 3700, Instagram: 2300, YouTube: 1500, Facebook: 750 },
-  { day: '26', TikTok: 2400, Instagram: 1500, YouTube: 1000, Facebook: 500 },
-  { day: '27', TikTok: 3900, Instagram: 2400, YouTube: 1600, Facebook: 800 },
-  { day: '28', TikTok: 7300, Instagram: 4500, YouTube: 2900, Facebook: 1450 }, // Mega viral day
-  { day: '29', TikTok: 3200, Instagram: 2000, YouTube: 1300, Facebook: 650 },
-  { day: '30', TikTok: 2900, Instagram: 1800, YouTube: 1200, Facebook: 600 },
-  { day: '31', TikTok: 3400, Instagram: 2200, YouTube: 1500, Facebook: 750 }
-];
+// Data state (filled from Supabase)
+const [dailyData, setDailyData] = useState<any[]>([]);
+const [topVideos, setTopVideos] = useState<any[]>([]);
+const [totals, setTotals] = useState<{ views: number; impressions: number; engagement: number }>({ views: 0, impressions: 0, engagement: 0 });
 
 const performanceVideos = [
   {
@@ -172,6 +144,102 @@ export default function Performance() {
     }));
   };
 
+  const { profile } = useAuth();
+
+  const displayPlatform: Record<string, string> = {
+    tiktok: 'TikTok',
+    instagram: 'Instagram',
+    youtube: 'YouTube',
+    facebook: 'Facebook',
+    linkedin: 'LinkedIn',
+  };
+
+  const shortNumber = (n: number) => {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+    return String(n);
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      const brandId = profile?.metricool_brand_id;
+      if (!brandId) return;
+
+      const today = new Date();
+      const start = new Date();
+      start.setUTCDate(today.getUTCDate() - 30);
+      const startStr = start.toISOString().slice(0, 10);
+
+      const { data, error } = await supabase
+        .from('post_metrics_daily')
+        .select('date, views, likes, comments, impressions, engagement, post_id, posts!inner(id, brand_id, platform, url, media_url, content, posted_at)')
+        .eq('posts.brand_id', brandId)
+        .gte('date', startStr)
+        .order('date', { ascending: true });
+
+      if (error) {
+        console.error('Load performance data error:', error);
+        return;
+      }
+
+      const dayMap: Record<string, any> = {};
+      let totalViews = 0;
+      let totalImpr = 0;
+      let engSum = 0;
+      let engCount = 0;
+
+      const topMap = new Map<string, any>();
+
+      for (const row of data || []) {
+        const d = new Date(row.date);
+        const dayKey = String(d.getUTCDate());
+        const platformKey = displayPlatform[row.posts.platform] || row.posts.platform;
+
+        dayMap[dayKey] = dayMap[dayKey] || { day: dayKey };
+        dayMap[dayKey][platformKey] = (dayMap[dayKey][platformKey] || 0) + (row.views || 0);
+
+        totalViews += row.views || 0;
+        totalImpr += row.impressions || 0;
+        if (typeof row.engagement === 'number') { engSum += row.engagement; engCount++; }
+
+        // aggregate by post
+        const key = row.post_id as string;
+        const prev = topMap.get(key) || { views: 0, likes: 0, comments: 0, post: row.posts };
+        prev.views += row.views || 0;
+        prev.likes += row.likes || 0;
+        prev.comments += row.comments || 0;
+        prev.post = row.posts; // keep latest meta
+        topMap.set(key, prev);
+      }
+
+      const dailyArr = Object.values(dayMap).sort((a: any, b: any) => parseInt(a.day) - parseInt(b.day));
+      setDailyData(dailyArr);
+
+      const topArr = Array.from(topMap.entries())
+        .map(([id, v]) => ({
+          id,
+          title: v.post?.content || `Post ${id}`,
+          platform: displayPlatform[v.post?.platform] || v.post?.platform,
+          views: shortNumber(v.views || 0),
+          likes: shortNumber(v.likes || 0),
+          comments: shortNumber(v.comments || 0),
+          ctr: '-',
+          engagement: '-',
+          thumbnail: v.post?.media_url || '',
+          url: v.post?.url || '#',
+        }))
+        .sort((a, b) => parseFloat((b.views as string).replace('K','000').replace('M','000000')) - parseFloat((a.views as string).replace('K','000').replace('M','000000')))
+        .slice(0, 6);
+      setTopVideos(topArr);
+
+      setTotals({
+        views: totalViews,
+        impressions: totalImpr,
+        engagement: engCount ? (engSum / engCount) : 0,
+      });
+    };
+    load();
+  }, [profile?.metricool_brand_id]);
   return (
     <div className="p-6 space-y-6">
       {/* Header */}

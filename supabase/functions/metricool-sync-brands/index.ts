@@ -43,6 +43,192 @@ function detectConnectedPlatforms(brand: any): string[] {
   return platforms
 }
 
+// Metricool v2 base URL and helpers
+const API_BASE = 'https://api.metricool.com/v2'
+
+function yyyymmdd(d: Date): string {
+  const year = d.getUTCFullYear()
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  return `${year}${month}${day}`
+}
+
+async function fetchBasePosts(userId: number, brandId: number, token: string, start: string, end: string) {
+  const url = `${API_BASE}/brand-summary/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
+  const res = await fetch(url, {
+    headers: { 'X-Mc-Auth': token, 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) throw new Error(`Metricool base posts failed: ${res.status}`)
+  return res.json()
+}
+
+async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok' | 'linkedin', userId: number, brandId: number, token: string, start: string, end: string) {
+  let endpoint = ''
+  switch (platform) {
+    case 'facebook':
+      endpoint = '/analytics/reels/facebook'; break
+    case 'instagram':
+      endpoint = '/analytics/reels/instagram'; break
+    case 'tiktok':
+      endpoint = '/analytics/posts/tiktok'; break
+    case 'linkedin':
+      endpoint = '/analytics/posts/linkedin'; break
+  }
+  const url = `${API_BASE}${endpoint}?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
+  const res = await fetch(url, {
+    headers: { 'X-Mc-Auth': token, 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) throw new Error(`Metricool ${platform} details failed: ${res.status}`)
+  return res.json()
+}
+
+async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[]) {
+  const endDate = new Date()
+  const startDate = new Date(endDate)
+  startDate.setUTCFullYear(endDate.getUTCFullYear() - 1)
+  const start = yyyymmdd(startDate)
+  const end = yyyymmdd(endDate)
+
+  // Fetch base posts once for all platforms
+  const base = await fetchBasePosts(userId, brandId, token, start, end)
+  const basePosts: any[] = Array.isArray(base?.data) ? base.data : Array.isArray(base) ? base : []
+
+  // Normalize network names and filter by connected
+  const platformMap: Record<string, 'facebook' | 'instagram' | 'tiktok' | 'linkedin' | 'youtube' | undefined> = {
+    'Facebook': 'facebook',
+    'Instagram': 'instagram',
+    'TikTok': 'tiktok',
+    'LinkedIn': 'linkedin',
+    'YouTube': 'youtube',
+  }
+  const connectedLower = connectedPlatforms
+    .map(p => platformMap[p])
+    .filter(Boolean) as Array<'facebook'|'instagram'|'tiktok'|'linkedin'|'youtube'>
+
+  const filteredBase = basePosts.filter(p => connectedLower.includes(platformMap[p.network] ?? ''))
+
+  // Upsert posts in batches
+  const postRows = filteredBase.map((p) => ({
+    brand_id: brandId,
+    platform: (platformMap[p.network] ?? '').toString(),
+    post_id: String(p.id),
+    posted_at: p.publicationdate ? new Date(p.publicationdate).toISOString() : null,
+    content: p.text ?? null,
+    media_url: p.picture ?? null,
+    url: p.link ?? null,
+    updated_at: new Date().toISOString(),
+  }))
+
+  for (let i = 0; i < postRows.length; i += 500) {
+    const batch = postRows.slice(i, i + 500)
+    if (batch.length === 0) continue
+    const { error } = await supabase
+      .from('posts')
+      .upsert(batch, { onConflict: 'brand_id,platform,post_id' })
+    if (error) console.error('Upsert posts error:', error)
+  }
+
+  // Fetch back UUIDs for mapping
+  const extIds = filteredBase.map(p => String(p.id))
+  let postsUuidMap: Record<string, string> = {}
+  if (extIds.length > 0) {
+    const { data: postRowsDb, error } = await supabase
+      .from('posts')
+      .select('id, post_id')
+      .eq('brand_id', brandId)
+      .in('post_id', extIds)
+    if (error) console.error('Fetch posts uuids error:', error)
+    else {
+      for (const r of postRowsDb || []) postsUuidMap[r.post_id] = r.id
+    }
+  }
+
+  // Fetch platform details and build a lookup
+  const detailsByPlatform: Record<string, any[]> = {}
+  for (const p of connectedLower) {
+    if (p === 'youtube') {
+      detailsByPlatform[p] = []
+      continue
+    }
+    try {
+      const det = await fetchPlatformDetails(p, userId, brandId, token, start, end)
+      const arr = Array.isArray(det?.data) ? det.data : Array.isArray(det) ? det : []
+      detailsByPlatform[p] = arr
+      // Log per platform
+      await supabase.from('metricool_content_sync_logs').insert({
+        brand_id: brandId,
+        platform: p,
+        posts_fetched: arr.length,
+        raw_response: null,
+      })
+    } catch (e) {
+      console.error(`Details fetch failed for ${p}:`, e)
+      await supabase.from('metricool_content_sync_logs').insert({
+        brand_id: brandId,
+        platform: p,
+        posts_fetched: 0,
+        errors: { message: (e as Error).message },
+      })
+      detailsByPlatform[p] = []
+    }
+  }
+
+  // Snapshot daily metrics for today
+  const today = new Date().toISOString().slice(0, 10)
+  const metricRows: any[] = []
+
+  for (const bp of filteredBase) {
+    const platform = platformMap[bp.network]!
+    const extId = String(bp.id)
+    const uuid = postsUuidMap[extId]
+    if (!uuid) continue
+
+    // Find detail row by platform-specific key
+    let detail: any | undefined
+    const candidates = detailsByPlatform[platform] || []
+    const matchKey = platform === 'facebook' ? 'reelId'
+      : platform === 'instagram' ? 'businessId'
+      : platform === 'tiktok' ? 'videoId'
+      : platform === 'linkedin' ? 'postId'
+      : 'id'
+    detail = candidates.find((d: any) => String(d[matchKey]) === extId)
+
+    // Prefer detail metrics, fallback to base
+    const likes = parseInt(detail?.likes ?? bp.likes ?? 0)
+    const comments = parseInt(detail?.comments ?? bp.comments ?? 0)
+    const shares = parseInt(detail?.shares ?? bp.shares ?? 0)
+    const views = parseInt(detail?.views ?? detail?.impressions ?? bp.views ?? bp.impressions ?? 0)
+    const impressions = parseInt(detail?.impressions ?? bp.impressions ?? views ?? 0)
+    const reach = parseInt(detail?.reach ?? 0)
+    const saves = parseInt(detail?.saves ?? 0)
+    const clicks = parseInt(detail?.clicks ?? 0)
+    const engagement = Number(detail?.engagement ?? bp.engagement ?? 0)
+    const duration = detail?.duration ? parseInt(detail.duration) : null
+    const fvr = detail?.fullVideoWatchedRate ? Number(detail.fullVideoWatchedRate) : null
+    const ttw = detail?.totalTimeWatched ? Number(detail.totalTimeWatched) : null
+    const atw = detail?.averageTimeWatched ? Number(detail.averageTimeWatched) : null
+
+    metricRows.push({
+      post_id: uuid,
+      date: today,
+      likes, comments, shares, views, impressions, reach, saves, clicks,
+      engagement, duration, full_video_watched_rate: fvr, total_time_watched: ttw, average_time_watched: atw,
+      impression_sources: detail?.impressionSources ?? null,
+      raw_data: detail ?? bp ?? null,
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  for (let i = 0; i < metricRows.length; i += 500) {
+    const batch = metricRows.slice(i, i + 500)
+    if (batch.length === 0) continue
+    const { error } = await supabase
+      .from('post_metrics_daily')
+      .upsert(batch, { onConflict: 'post_id,date' })
+    if (error) console.error('Upsert post_metrics_daily error:', error)
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -250,6 +436,13 @@ serve(async (req) => {
           } else {
             created++
           }
+        }
+
+        // Content sync for this brand (last 12 months)
+        try {
+          await syncBrandContent(supabase, userId, accessToken, brand.id, connectedPlatforms)
+        } catch (e) {
+          console.error('Content sync failed for brand', brand.id, e)
         }
       }
 
