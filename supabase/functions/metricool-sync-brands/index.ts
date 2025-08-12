@@ -43,8 +43,8 @@ function detectConnectedPlatforms(brand: any): string[] {
   return platforms
 }
 
-// Metricool v2 base URL and helpers
-const API_BASE = 'https://api.metricool.com/v2'
+// Metricool API base URL (corrected)
+const API_BASE = 'https://app.metricool.com/api'
 
 function yyyymmdd(d: Date): string {
   const year = d.getUTCFullYear()
@@ -53,13 +53,45 @@ function yyyymmdd(d: Date): string {
   return `${year}${month}${day}`
 }
 
+async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoffMs = 500): Promise<Response> {
+  let attempt = 0
+  let lastErr: any
+  while (attempt < retries) {
+    try {
+      const res = await fetch(url, options)
+      if (res.ok) return res
+      lastErr = new Error(`HTTP ${res.status}`)
+    } catch (e) {
+      lastErr = e
+    }
+    attempt++
+    await new Promise(r => setTimeout(r, backoffMs * attempt))
+  }
+  throw lastErr
+}
+
+async function fetchPagedJson(baseUrl: string, headers: Record<string,string>): Promise<any[]> {
+  // Generic pagination helper (assumes page/size; stops when empty)
+  const all: any[] = []
+  let page = 1
+  while (true) {
+    const url = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}page=${page}&size=500`
+    const res = await fetchWithRetry(url, { headers })
+    const json = await res.json()
+    const items = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
+    if (!items.length) break
+    all.push(...items)
+    if (items.length < 500) break
+    page++
+    if (page > 100) break // safety
+  }
+  return all
+}
+
 async function fetchBasePosts(userId: number, brandId: number, token: string, start: string, end: string) {
-  const url = `${API_BASE}/brand-summary/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
-  const res = await fetch(url, {
-    headers: { 'X-Mc-Auth': token, 'Content-Type': 'application/json' },
-  })
-  if (!res.ok) throw new Error(`Metricool base posts failed: ${res.status}`)
-  return res.json()
+  const baseUrl = `${API_BASE}/v2/brand-summary/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
+  const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
+  return fetchPagedJson(baseUrl, headers)
 }
 
 async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok' | 'linkedin', userId: number, brandId: number, token: string, start: string, end: string) {
@@ -74,12 +106,9 @@ async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok
     case 'linkedin':
       endpoint = '/analytics/posts/linkedin'; break
   }
-  const url = `${API_BASE}${endpoint}?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
-  const res = await fetch(url, {
-    headers: { 'X-Mc-Auth': token, 'Content-Type': 'application/json' },
-  })
-  if (!res.ok) throw new Error(`Metricool ${platform} details failed: ${res.status}`)
-  return res.json()
+  const baseUrl = `${API_BASE}/v2${endpoint}?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
+  const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
+  return fetchPagedJson(baseUrl, headers)
 }
 
 async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[]) {

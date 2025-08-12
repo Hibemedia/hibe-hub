@@ -24,6 +24,7 @@ import ClientDashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import MetricoolAPI from "./pages/admin/MetricoolAPI";
+import SyncLogs from "./pages/admin/SyncLogs";
 
 // Existing pages
 import Performance from "./pages/Performance";
@@ -117,6 +118,16 @@ const App = () => (
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLayout>
                     <MetricoolAPI />
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/sync-logs" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <SyncLogs />
                   </AdminLayout>
                 </ProtectedRoute>
               } 
