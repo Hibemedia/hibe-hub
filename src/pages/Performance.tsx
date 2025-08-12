@@ -30,7 +30,7 @@ import { useAuth } from "@/lib/auth/useAuth";
 // Data state (filled from Supabase)
 const [dailyData, setDailyData] = useState<any[]>([]);
 const [topVideos, setTopVideos] = useState<any[]>([]);
-const [totals, setTotals] = useState<{ views: number; impressions: number; engagement: number }>({ views: 0, impressions: 0, engagement: 0 });
+const [totals, setTotals] = useState<{ views: number; impressions: number; engagement: number; clicks: number }>({ views: 0, impressions: 0, engagement: 0, clicks: 0 });
 
 const performanceVideos = [
   {
@@ -172,7 +172,7 @@ export default function Performance() {
 
       const { data, error } = await supabase
         .from('post_metrics_daily')
-        .select('date, views, likes, comments, impressions, engagement, post_id, posts!inner(id, brand_id, platform, url, media_url, content, posted_at)')
+        .select('date, views, likes, comments, impressions, clicks, engagement, post_id, posts!inner(id, brand_id, platform, url, media_url, content, posted_at)')
         .eq('posts.brand_id', brandId)
         .gte('date', startStr)
         .order('date', { ascending: true });
@@ -185,6 +185,7 @@ export default function Performance() {
       const dayMap: Record<string, any> = {};
       let totalViews = 0;
       let totalImpr = 0;
+      let totalClicks = 0;
       let engSum = 0;
       let engCount = 0;
 
@@ -200,6 +201,7 @@ export default function Performance() {
 
         totalViews += row.views || 0;
         totalImpr += row.impressions || 0;
+        totalClicks += row.clicks || 0;
         if (typeof row.engagement === 'number') { engSum += row.engagement; engCount++; }
 
         // aggregate by post
@@ -236,6 +238,7 @@ export default function Performance() {
         views: totalViews,
         impressions: totalImpr,
         engagement: engCount ? (engSum / engCount) : 0,
+        clicks: totalClicks,
       });
     };
     load();
@@ -270,30 +273,30 @@ export default function Performance() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Totaal Views"
-          value="1.2M"
-          change="+12% vs vorige maand"
-          changeType="positive"
+          value={shortNumber(totals.views)}
+          change="vs vorige maand"
+          changeType="neutral"
           icon={Eye}
         />
         <MetricCard
           title="Engagement Rate"
-          value="8.4%"
-          change="+2.1% vs vorige maand"
-          changeType="positive"
+          value={`${(totals.engagement ?? 0).toFixed(1)}%`}
+          change="vs vorige maand"
+          changeType="neutral"
           icon={Heart}
         />
         <MetricCard
           title="Click-Through Rate"
-          value="3.2%"
-          change="+0.8% vs vorige maand"
-          changeType="positive"
+          value={totals.impressions > 0 ? `${((totals.clicks / totals.impressions) * 100).toFixed(1)}%` : '—'}
+          change="vs vorige maand"
+          changeType="neutral"
           icon={MousePointer}
         />
         <MetricCard
           title="Organic Impressions"
-          value="892K"
-          change="+18% vs vorige maand"
-          changeType="positive"
+          value={shortNumber(totals.impressions)}
+          change="vs vorige maand"
+          changeType="neutral"
           icon={TrendingUp}
         />
       </div>

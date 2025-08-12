@@ -112,15 +112,42 @@ async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok
 }
 
 async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[]) {
+  // Determine sync mode: full (no data yet) vs incremental (since last recorded day)
+  let mode: 'full' | 'incremental' = 'incremental'
+  let startDate: Date
   const endDate = new Date()
-  const startDate = new Date(endDate)
-  startDate.setUTCFullYear(endDate.getUTCFullYear() - 1)
+
+  // Check existing posts
+  const { count: postsCount } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('brand_id', brandId)
+
+  // Latest metrics date for this brand
+  const { data: lastMetric, error: lastErr } = await supabase
+    .from('post_metrics_daily')
+    .select('date, posts!inner(id, brand_id)')
+    .eq('posts.brand_id', brandId)
+    .order('date', { ascending: false })
+    .limit(1)
+
+  if ((postsCount ?? 0) === 0 || lastErr || !lastMetric || lastMetric.length === 0) {
+    mode = 'full'
+    startDate = new Date(endDate)
+    startDate.setUTCFullYear(endDate.getUTCFullYear() - 1)
+  } else {
+    mode = 'incremental'
+    const lastDate = new Date(lastMetric[0].date as string)
+    startDate = new Date(lastDate)
+    // go one day back to catch updates
+    startDate.setUTCDate(startDate.getUTCDate() - 1)
+  }
+
   const start = yyyymmdd(startDate)
   const end = yyyymmdd(endDate)
 
   // Fetch base posts once for all platforms
-  const base = await fetchBasePosts(userId, brandId, token, start, end)
-  const basePosts: any[] = Array.isArray(base?.data) ? base.data : Array.isArray(base) ? base : []
+  const basePosts: any[] = await fetchBasePosts(userId, brandId, token, start, end)
 
   // Normalize network names and filter by connected
   const platformMap: Record<string, 'facebook' | 'instagram' | 'tiktok' | 'linkedin' | 'youtube' | undefined> = {
@@ -172,6 +199,16 @@ async function syncBrandContent(supabase: any, userId: number, token: string, br
     }
   }
 
+  // Log base posts summary
+  try {
+    await supabase.from('metricool_content_sync_logs').insert({
+      brand_id: brandId,
+      platform: 'summary',
+      posts_fetched: filteredBase.length,
+      raw_response: { sample: filteredBase.slice(0, 50), total: filteredBase.length, mode, range: { start, end } },
+    })
+  } catch (_) {}
+
   // Fetch platform details and build a lookup
   const detailsByPlatform: Record<string, any[]> = {}
   for (const p of connectedLower) {
@@ -183,12 +220,12 @@ async function syncBrandContent(supabase: any, userId: number, token: string, br
       const det = await fetchPlatformDetails(p, userId, brandId, token, start, end)
       const arr = Array.isArray(det?.data) ? det.data : Array.isArray(det) ? det : []
       detailsByPlatform[p] = arr
-      // Log per platform
+      // Log per platform with raw response sample
       await supabase.from('metricool_content_sync_logs').insert({
         brand_id: brandId,
         platform: p,
         posts_fetched: arr.length,
-        raw_response: null,
+        raw_response: { sample: arr.slice(0, 50), total: arr.length, mode, range: { start, end } },
       })
     } catch (e) {
       console.error(`Details fetch failed for ${p}:`, e)
