@@ -89,17 +89,48 @@ async function fetchPagedJson(baseUrl: string, headers: Record<string,string>): 
 }
 
 async function fetchBasePosts(userId: number, brandId: number, token: string, start: string, end: string) {
-  const baseUrl = `${API_BASE}/v2/brand-summary/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
-  const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
-  console.log('Fetching base posts:', { baseUrl, userId, brandId, start, end })
-  try {
-    const result = await fetchPagedJson(baseUrl, headers)
-    console.log('Base posts result:', { count: result?.length || 0, firstItem: result?.[0] })
-    return result
-  } catch (error) {
-    console.error('Error fetching base posts:', error)
-    throw error
+  // Try different blogId variations - Metricool API is inconsistent
+  const possibleBlogIds = [brandId, brandId.toString()];
+  
+  for (const blogId of possibleBlogIds) {
+    const baseUrl = `${API_BASE}/v2/brand-summary/posts?userId=${userId}&blogId=${blogId}&start=${start}&end=${end}`;
+    const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' };
+    console.log('Fetching base posts:', { baseUrl, userId, brandId, blogId, start, end });
+    
+    try {
+      const result = await fetchPagedJson(baseUrl, headers);
+      console.log('Base posts result:', { blogId, count: result?.length || 0, firstItem: result?.[0] });
+      if (result && result.length > 0) {
+        return result; // Return first successful result
+      }
+    } catch (error) {
+      console.error(`Error fetching base posts with blogId ${blogId}:`, error);
+    }
   }
+  
+  // If no results, try alternative endpoints
+  const altEndpoints = [
+    `/api/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`,
+    `/api/v1/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
+  ];
+  
+  for (const endpoint of altEndpoints) {
+    try {
+      const response = await fetch(`https://app.metricool.com${endpoint}`, {
+        headers: { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`Success with alt endpoint ${endpoint}:`, { count: result?.length || 0 });
+        return Array.isArray(result) ? result : [];
+      }
+    } catch (error) {
+      console.error(`Error with alt endpoint ${endpoint}:`, error);
+    }
+  }
+  
+  console.log('No posts found for brand', brandId);
+  return [];
 }
 
 async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok' | 'linkedin', userId: number, brandId: number, token: string, start: string, end: string) {
@@ -114,9 +145,18 @@ async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok
     case 'linkedin':
       endpoint = '/analytics/posts/linkedin'; break
   }
+  // Try with brandId as blogId first, fallback to string conversion if needed
   const baseUrl = `${API_BASE}/v2${endpoint}?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
   const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
-  return fetchPagedJson(baseUrl, headers)
+  console.log(`Fetching ${platform} details:`, { baseUrl, userId, brandId, start, end })
+  try {
+    const result = await fetchPagedJson(baseUrl, headers)
+    console.log(`${platform} details result:`, { count: result?.length || 0 })
+    return result
+  } catch (error) {
+    console.error(`Error fetching ${platform} details:`, error)
+    throw error
+  }
 }
 
 async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[], opts?: { forceFull?: boolean }) {
