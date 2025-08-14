@@ -159,7 +159,7 @@ async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok
   }
 }
 
-async function syncBrandContent(supabase: any, userId: number, token: string, brandId: number, connectedPlatforms: string[], opts?: { forceFull?: boolean }) {
+async function syncBrandContent(supabase: any, credentialsUserId: number, token: string, brandId: number, connectedPlatforms: string[], opts?: { forceFull?: boolean }) {
   // Determine sync mode: full (forced or empty) vs incremental
   let mode: 'full' | 'incremental' = opts?.forceFull ? 'full' : 'incremental'
   let startDate: Date
@@ -201,8 +201,8 @@ async function syncBrandContent(supabase: any, userId: number, token: string, br
   const start = yyyymmdd(startDate)
   const end = yyyymmdd(endDate)
 
-  // Fetch base posts once for all platforms
-  const basePosts: any[] = await fetchBasePosts(userId, brandId, token, start, end)
+  // Fetch base posts once for all platforms - use brandId as blogId and credentialsUserId as userId
+  const basePosts: any[] = await fetchBasePosts(credentialsUserId, brandId, token, start, end)
 
   // Normalize network names and filter by connected
   const platformMap: Record<string, 'facebook' | 'instagram' | 'tiktok' | 'linkedin' | 'youtube' | undefined> = {
@@ -272,7 +272,7 @@ async function syncBrandContent(supabase: any, userId: number, token: string, br
       continue
     }
     try {
-      const det = await fetchPlatformDetails(p, userId, brandId, token, start, end)
+      const det = await fetchPlatformDetails(p, credentialsUserId, brandId, token, start, end)
       const arr = Array.isArray(det?.data) ? det.data : Array.isArray(det) ? det : []
       detailsByPlatform[p] = arr
       // Log per platform with raw response sample
