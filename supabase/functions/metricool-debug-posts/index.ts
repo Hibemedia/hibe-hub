@@ -86,8 +86,8 @@ serve(async (req) => {
         
         const response = await fetch(test.url, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
+            'X-Mc-Auth': accessToken,
+            'Accept': 'application/json',
           },
         });
 
