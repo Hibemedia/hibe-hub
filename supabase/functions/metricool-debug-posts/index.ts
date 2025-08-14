@@ -53,27 +53,27 @@ serve(async (req) => {
     const tests = [
       {
         name: 'Base Posts (brand-summary/posts)',
-        url: `https://api.metricool.com/v2/analytics/brand-summary/posts?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`,
+        url: `https://app.metricool.com/api/v2/analytics/brand-summary/posts?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`,
         description: 'Main endpoint to get basic post information'
       },
       {
         name: 'Facebook Reels Details',
-        url: `https://api.metricool.com/v2/analytics/reels/facebook?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
+        url: `https://app.metricool.com/api/v2/analytics/reels/facebook?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
         description: 'Additional Facebook reel metrics'
       },
       {
         name: 'Instagram Reels Details',
-        url: `https://api.metricool.com/v2/analytics/reels/instagram?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`,
+        url: `https://app.metricool.com/api/v2/analytics/reels/instagram?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`,
         description: 'Additional Instagram reel metrics'
       },
       {
         name: 'TikTok Posts Details',
-        url: `https://api.metricool.com/v2/analytics/posts/tiktok?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
+        url: `https://app.metricool.com/api/v2/analytics/posts/tiktok?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
         description: 'Additional TikTok post metrics'
       },
       {
         name: 'LinkedIn Posts Details',
-        url: `https://api.metricool.com/v2/analytics/posts/linkedin?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
+        url: `https://app.metricool.com/api/v2/analytics/posts/linkedin?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
         description: 'Additional LinkedIn post metrics'
       }
     ];
