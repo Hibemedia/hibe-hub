@@ -91,7 +91,15 @@ async function fetchPagedJson(baseUrl: string, headers: Record<string,string>): 
 async function fetchBasePosts(userId: number, brandId: number, token: string, start: string, end: string) {
   const baseUrl = `${API_BASE}/v2/brand-summary/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
   const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
-  return fetchPagedJson(baseUrl, headers)
+  console.log('Fetching base posts:', { baseUrl, userId, brandId, start, end })
+  try {
+    const result = await fetchPagedJson(baseUrl, headers)
+    console.log('Base posts result:', { count: result?.length || 0, firstItem: result?.[0] })
+    return result
+  } catch (error) {
+    console.error('Error fetching base posts:', error)
+    throw error
+  }
 }
 
 async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok' | 'linkedin', userId: number, brandId: number, token: string, start: string, end: string) {
