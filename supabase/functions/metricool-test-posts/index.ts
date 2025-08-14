@@ -66,19 +66,23 @@ serve(async (req) => {
     const start = yyyymmdd(startDate);
     const end = yyyymmdd(endDate);
 
+    // Convert dates to correct format
+    const formatDate = (d: Date): string => {
+      return d.toISOString().split('T')[0];
+    };
+    
+    const fromDate = `${formatDate(startDate)}T00:00:00`;
+    const toDate = `${formatDate(endDate)}T23:59:59`;
+
     // Test different Metricool endpoints
     const tests = [
       {
         name: 'Posts Summary',
-        url: `https://app.metricool.com/api/v2/brand-summary/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
+        url: `https://api.metricool.com/v2/analytics/brand-summary/posts?from=${fromDate}&to=${toDate}&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`
       },
       {
         name: 'Brand Summary',
         url: `https://app.metricool.com/api/admin/simpleProfiles?userId=${userId}`
-      },
-      {
-        name: 'Posts Direct',
-        url: `https://app.metricool.com/api/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
       }
     ];
 
@@ -90,7 +94,7 @@ serve(async (req) => {
         
         const response = await fetch(test.url, {
           headers: {
-            'X-Mc-Auth': accessToken,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
         });

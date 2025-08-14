@@ -2,3 +2,6 @@ project_id = "dhrddccjkzzmgitivjas"
 
 [functions.metricool-auto-sync]
 verify_jwt = false
+
+[functions.metricool-sync-posts]
+verify_jwt = false
