@@ -43,14 +43,11 @@ function detectConnectedPlatforms(brand: any): string[] {
   return platforms
 }
 
-// Metricool API base URL (corrected)
-const API_BASE = 'https://app.metricool.com/api'
-
 function yyyymmdd(d: Date): string {
   const year = d.getUTCFullYear()
   const month = String(d.getUTCMonth() + 1).padStart(2, '0')
   const day = String(d.getUTCDate()).padStart(2, '0')
-  return `${year}${month}${day}`
+  return `${year}-${month}-${day}`
 }
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoffMs = 500): Promise<Response> {
@@ -70,96 +67,70 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, ba
   throw lastErr
 }
 
-async function fetchPagedJson(baseUrl: string, headers: Record<string,string>): Promise<any[]> {
-  // Generic pagination helper (assumes page/size; stops when empty)
-  const all: any[] = []
-  let page = 1
-  while (true) {
-    const url = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}page=${page}&size=500`
-    const res = await fetchWithRetry(url, { headers })
-    const json = await res.json()
-    const items = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
-    if (!items.length) break
-    all.push(...items)
-    if (items.length < 500) break
-    page++
-    if (page > 100) break // safety
-  }
-  return all
-}
-
+// Fetch base posts data from brand-summary/posts endpoint
 async function fetchBasePosts(userId: number, brandId: number, token: string, start: string, end: string) {
-  // Try different blogId variations - Metricool API is inconsistent
-  const possibleBlogIds = [brandId, brandId.toString()];
+  const url = `https://api.metricool.com/v2/analytics/brand-summary/posts?from=${start}T00:00:00&to=${end}T23:59:59&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`;
   
-  for (const blogId of possibleBlogIds) {
-    const baseUrl = `${API_BASE}/v2/brand-summary/posts?userId=${userId}&blogId=${blogId}&start=${start}&end=${end}`;
-    const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' };
-    console.log('Fetching base posts:', { baseUrl, userId, brandId, blogId, start, end });
-    
-    try {
-      const result = await fetchPagedJson(baseUrl, headers);
-      console.log('Base posts result:', { blogId, count: result?.length || 0, firstItem: result?.[0] });
-      if (result && result.length > 0) {
-        return result; // Return first successful result
-      }
-    } catch (error) {
-      console.error(`Error fetching base posts with blogId ${blogId}:`, error);
-    }
-  }
-  
-  // If no results, try alternative endpoints
-  const altEndpoints = [
-    `/api/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`,
-    `/api/v1/posts?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
-  ];
-  
-  for (const endpoint of altEndpoints) {
-    try {
-      const response = await fetch(`https://app.metricool.com${endpoint}`, {
-        headers: { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
-      });
-      if (response.ok) {
-        const result = await response.json();
-        console.log(`Success with alt endpoint ${endpoint}:`, { count: result?.length || 0 });
-        return Array.isArray(result) ? result : [];
-      }
-    } catch (error) {
-      console.error(`Error with alt endpoint ${endpoint}:`, error);
-    }
-  }
-  
-  console.log('No posts found for brand', brandId);
-  return [];
-}
-
-async function fetchPlatformDetails(platform: 'facebook' | 'instagram' | 'tiktok' | 'linkedin', userId: number, brandId: number, token: string, start: string, end: string) {
-  let endpoint = ''
-  switch (platform) {
-    case 'facebook':
-      endpoint = '/analytics/reels/facebook'; break
-    case 'instagram':
-      endpoint = '/analytics/reels/instagram'; break
-    case 'tiktok':
-      endpoint = '/analytics/posts/tiktok'; break
-    case 'linkedin':
-      endpoint = '/analytics/posts/linkedin'; break
-  }
-  // Try with brandId as blogId first, fallback to string conversion if needed
-  const baseUrl = `${API_BASE}/v2${endpoint}?userId=${userId}&blogId=${brandId}&start=${start}&end=${end}`
-  const headers = { 'X-Mc-Auth': token, 'Content-Type': 'application/json' }
-  console.log(`Fetching ${platform} details:`, { baseUrl, userId, brandId, start, end })
   try {
-    const result = await fetchPagedJson(baseUrl, headers)
-    console.log(`${platform} details result:`, { count: result?.length || 0 })
-    return result
+    console.log(`Fetching base posts for brand ${brandId}...`);
+    const response = await fetchWithRetry(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`Base posts success for brand ${brandId}: ${data.data?.length || 0} posts`);
+      return { success: true, data: data.data || [] };
+    } else {
+      console.log(`Base posts failed for brand ${brandId}: HTTP ${response.status}`);
+      return { success: false, data: [] };
+    }
   } catch (error) {
-    console.error(`Error fetching ${platform} details:`, error)
-    throw error
+    console.log(`Base posts error for brand ${brandId}:`, error.message);
+    return { success: false, data: [] };
   }
 }
 
+// Fetch platform-specific details
+async function fetchPlatformDetails(
+  platform: 'facebook' | 'instagram' | 'tiktok' | 'linkedin',
+  userId: number,
+  brandId: number,
+  token: string,
+  start: string,
+  end: string
+) {
+  const urls = {
+    facebook: `https://api.metricool.com/v2/analytics/reels/facebook?from=${start}T00:00:00&to=${end}T23:59:59&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
+    instagram: `https://api.metricool.com/v2/analytics/reels/instagram?from=${start}T00:00:00&to=${end}T23:59:59&timezone=Europe/Amsterdam&userId=${userId}&blogId=${brandId}`,
+    tiktok: `https://api.metricool.com/v2/analytics/posts/tiktok?from=${start}T00:00:00&to=${end}T23:59:59&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`,
+    linkedin: `https://api.metricool.com/v2/analytics/posts/linkedin?from=${start}T00:00:00&to=${end}T23:59:59&timezone=Europe/Amsterdam&blogId=${brandId}&userId=${userId}`
+  };
+
+  try {
+    console.log(`Fetching ${platform} details for brand ${brandId}...`);
+    const response = await fetchWithRetry(urls[platform], {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`${platform} details success for brand ${brandId}: ${data.data?.length || 0} items`);
+      return { success: true, data: data.data || [] };
+    } else {
+      console.log(`${platform} details failed for brand ${brandId}: HTTP ${response.status}`);
+      return { success: false, data: [] };
+    }
+  } catch (error) {
+    console.log(`${platform} details error for brand ${brandId}:`, error.message);
+    return { success: false, data: [] };
+  }
+}
+
+// Main sync function for brand content
 async function syncBrandContent(supabase: any, credentialsUserId: number, token: string, brandId: number, connectedPlatforms: string[], opts?: { forceFull?: boolean }) {
+  console.log(`Starting content sync for brand ${brandId}, platforms: ${connectedPlatforms.join(', ')}`);
+  
   // Determine sync mode: full (forced or empty) vs incremental
   let mode: 'full' | 'incremental' = opts?.forceFull ? 'full' : 'incremental'
   let startDate: Date
@@ -201,56 +172,80 @@ async function syncBrandContent(supabase: any, credentialsUserId: number, token:
   const start = yyyymmdd(startDate)
   const end = yyyymmdd(endDate)
 
-  // Fetch base posts once for all platforms - use brandId as blogId and credentialsUserId as userId
-  const basePosts: any[] = await fetchBasePosts(credentialsUserId, brandId, token, start, end)
+  console.log(`Sync mode: ${mode}, date range: ${start} to ${end}`);
 
-  // Normalize network names and filter by connected
-  const platformMap: Record<string, 'facebook' | 'instagram' | 'tiktok' | 'linkedin' | 'youtube' | undefined> = {
-    'Facebook': 'facebook',
-    'Instagram': 'instagram',
-    'TikTok': 'tiktok',
-    'LinkedIn': 'linkedin',
-    'YouTube': 'youtube',
+  // Fetch base posts
+  const basePostsResult = await fetchBasePosts(credentialsUserId, brandId, token, start, end);
+  if (!basePostsResult.success) {
+    console.log(`No base posts found for brand ${brandId}`);
+    return;
   }
+
+  const basePosts = basePostsResult.data;
+  console.log(`Found ${basePosts.length} base posts for brand ${brandId}`);
+
+  // Platform mapping
+  const platformMap: Record<string, 'facebook' | 'instagram' | 'tiktok' | 'linkedin' | 'youtube'> = {
+    'facebook': 'facebook',
+    'instagram': 'instagram', 
+    'tiktok': 'tiktok',
+    'linkedin': 'linkedin',
+    'youtube': 'youtube'
+  }
+
+  // Filter base posts by connected platforms
   const connectedLower = connectedPlatforms
-    .map(p => platformMap[p])
-    .filter(Boolean) as Array<'facebook'|'instagram'|'tiktok'|'linkedin'|'youtube'>
+    .map(p => p.toLowerCase())
+    .filter(p => Object.keys(platformMap).includes(p)) as Array<keyof typeof platformMap>
 
-  const filteredBase = basePosts.filter(p => connectedLower.includes(platformMap[p.network] ?? ''))
+  const filteredBase = basePosts.filter(p => {
+    const network = p.network?.toLowerCase();
+    return connectedLower.includes(network);
+  });
 
-  // Upsert posts in batches
+  console.log(`Filtered to ${filteredBase.length} posts for connected platforms`);
+
+  // Upsert posts
   const postRows = filteredBase.map((p) => ({
     brand_id: brandId,
-    platform: (platformMap[p.network] ?? '').toString(),
+    platform: p.network?.toLowerCase() || '',
     post_id: String(p.id),
-    posted_at: p.publicationdate ? new Date(p.publicationdate).toISOString() : null,
-    content: p.text ?? null,
-    media_url: p.picture ?? null,
-    url: p.link ?? null,
+    posted_at: p.publicationDate?.dateTime ? new Date(p.publicationDate.dateTime).toISOString() : null,
+    content: p.text || null,
+    media_url: p.picture || null,
+    url: p.link || null,
     updated_at: new Date().toISOString(),
   }))
 
-  for (let i = 0; i < postRows.length; i += 500) {
-    const batch = postRows.slice(i, i + 500)
-    if (batch.length === 0) continue
+  if (postRows.length > 0) {
     const { error } = await supabase
       .from('posts')
-      .upsert(batch, { onConflict: 'brand_id,platform,post_id' })
-    if (error) console.error('Upsert posts error:', error)
+      .upsert(postRows, { onConflict: 'brand_id,platform,post_id' });
+    
+    if (error) {
+      console.error('Error upserting posts:', error);
+    } else {
+      console.log(`Upserted ${postRows.length} posts for brand ${brandId}`);
+    }
   }
 
-  // Fetch back UUIDs for mapping
-  const extIds = filteredBase.map(p => String(p.id))
-  let postsUuidMap: Record<string, string> = {}
+  // Get UUIDs for the posts we just upserted
+  const extIds = filteredBase.map(p => String(p.id));
+  let postsUuidMap: Record<string, string> = {};
+  
   if (extIds.length > 0) {
     const { data: postRowsDb, error } = await supabase
       .from('posts')
       .select('id, post_id')
       .eq('brand_id', brandId)
-      .in('post_id', extIds)
-    if (error) console.error('Fetch posts uuids error:', error)
-    else {
-      for (const r of postRowsDb || []) postsUuidMap[r.post_id] = r.id
+      .in('post_id', extIds);
+      
+    if (error) {
+      console.error('Error fetching post UUIDs:', error);
+    } else {
+      for (const r of postRowsDb || []) {
+        postsUuidMap[r.post_id] = r.id;
+      }
     }
   }
 
@@ -260,94 +255,195 @@ async function syncBrandContent(supabase: any, credentialsUserId: number, token:
       brand_id: brandId,
       platform: 'summary',
       posts_fetched: filteredBase.length,
-      raw_response: { sample: filteredBase.slice(0, 50), total: filteredBase.length, mode, range: { start, end } },
-    })
-  } catch (_) {}
+      raw_response: { 
+        sample: filteredBase.slice(0, 3), 
+        total: filteredBase.length, 
+        mode, 
+        range: { start, end } 
+      },
+    });
+  } catch (e) {
+    console.error('Error logging base posts:', e);
+  }
 
-  // Fetch platform details and build a lookup
-  const detailsByPlatform: Record<string, any[]> = {}
-  for (const p of connectedLower) {
-    if (p === 'youtube') {
-      detailsByPlatform[p] = []
-      continue
+  // Fetch platform-specific details
+  const detailsByPlatform: Record<string, any[]> = {};
+  
+  for (const platform of connectedLower) {
+    if (platform === 'youtube') {
+      // YouTube has no additional endpoint
+      detailsByPlatform[platform] = [];
+      continue;
     }
+
     try {
-      const det = await fetchPlatformDetails(p, credentialsUserId, brandId, token, start, end)
-      const arr = Array.isArray(det?.data) ? det.data : Array.isArray(det) ? det : []
-      detailsByPlatform[p] = arr
-      // Log per platform with raw response sample
+      const detailsResult = await fetchPlatformDetails(platform, credentialsUserId, brandId, token, start, end);
+      detailsByPlatform[platform] = detailsResult.success ? detailsResult.data : [];
+      
+      // Log platform details
       await supabase.from('metricool_content_sync_logs').insert({
         brand_id: brandId,
-        platform: p,
-        posts_fetched: arr.length,
-        raw_response: { sample: arr.slice(0, 50), total: arr.length, mode, range: { start, end } },
-      })
+        platform: platform,
+        posts_fetched: detailsByPlatform[platform].length,
+        raw_response: { 
+          sample: detailsByPlatform[platform].slice(0, 3), 
+          total: detailsByPlatform[platform].length, 
+          mode, 
+          range: { start, end } 
+        },
+      });
     } catch (e) {
-      console.error(`Details fetch failed for ${p}:`, e)
+      console.error(`Error fetching ${platform} details:`, e);
+      detailsByPlatform[platform] = [];
+      
       await supabase.from('metricool_content_sync_logs').insert({
         brand_id: brandId,
-        platform: p,
+        platform: platform,
         posts_fetched: 0,
         errors: { message: (e as Error).message },
-      })
-      detailsByPlatform[p] = []
+      });
     }
   }
 
-  // Snapshot daily metrics for today
-  const today = new Date().toISOString().slice(0, 10)
-  const metricRows: any[] = []
+  // Create daily metrics
+  const today = new Date().toISOString().slice(0, 10);
+  const metricRows: any[] = [];
 
   for (const bp of filteredBase) {
-    const platform = platformMap[bp.network]!
-    const extId = String(bp.id)
-    const uuid = postsUuidMap[extId]
-    if (!uuid) continue
+    const platform = bp.network?.toLowerCase();
+    const extId = String(bp.id);
+    const uuid = postsUuidMap[extId];
+    
+    if (!uuid) {
+      console.log(`No UUID found for post ${extId}`);
+      continue;
+    }
 
-    // Find detail row by platform-specific key
-    let detail: any | undefined
-    const candidates = detailsByPlatform[platform] || []
-    const matchKey = platform === 'facebook' ? 'reelId'
-      : platform === 'instagram' ? 'businessId'
-      : platform === 'tiktok' ? 'videoId'
-      : platform === 'linkedin' ? 'postId'
-      : 'id'
-    detail = candidates.find((d: any) => String(d[matchKey]) === extId)
+    // Find matching detail record based on platform-specific ID field
+    let detail: any | undefined;
+    const candidates = detailsByPlatform[platform] || [];
+    
+    if (platform === 'facebook') {
+      detail = candidates.find((d: any) => String(d.reelId) === extId);
+    } else if (platform === 'instagram') {
+      detail = candidates.find((d: any) => String(d.businessId) === extId);
+    } else if (platform === 'tiktok') {
+      detail = candidates.find((d: any) => String(d.videoId) === extId);
+    } else if (platform === 'linkedin') {
+      detail = candidates.find((d: any) => String(d.postId) === extId);
+    }
 
-    // Prefer detail metrics, fallback to base
-    const likes = parseInt(detail?.likes ?? bp.likes ?? 0)
-    const comments = parseInt(detail?.comments ?? bp.comments ?? 0)
-    const shares = parseInt(detail?.shares ?? bp.shares ?? 0)
-    const views = parseInt(detail?.views ?? detail?.impressions ?? bp.views ?? bp.impressions ?? 0)
-    const impressions = parseInt(detail?.impressions ?? bp.impressions ?? views ?? 0)
-    const reach = parseInt(detail?.reach ?? 0)
-    const saves = parseInt(detail?.saves ?? 0)
-    const clicks = parseInt(detail?.clicks ?? 0)
-    const engagement = Number(detail?.engagement ?? bp.engagement ?? 0)
-    const duration = detail?.duration ? parseInt(detail.duration) : null
-    const fvr = detail?.fullVideoWatchedRate ? Number(detail.fullVideoWatchedRate) : null
-    const ttw = detail?.totalTimeWatched ? Number(detail.totalTimeWatched) : null
-    const atw = detail?.averageTimeWatched ? Number(detail.averageTimeWatched) : null
+    // Extract metrics with platform-specific logic
+    let likes = 0, comments = 0, shares = 0, views = 0, impressions = 0;
+    let reach = 0, saves = 0, clicks = 0, engagement = 0;
+    let duration: number | null = null;
+    let fullVideoWatchedRate: number | null = null;
+    let totalTimeWatched: number | null = null;
+    let averageTimeWatched: number | null = null;
+    let impressionSources: any = null;
+
+    // Base metrics from brand-summary/posts
+    if (bp.metrics) {
+      if (platform === 'youtube') {
+        likes = bp.metrics.INTERACTIONS || 0; // likes
+        views = bp.metrics.IMPRESSIONS || 0;  // views
+        // engagement is null for YouTube
+      } else if (platform === 'tiktok') {
+        likes = bp.metrics.INTERACTIONS || 0; // likes + saves combined
+        views = bp.metrics.IMPRESSIONS || 0;  // views
+        engagement = bp.metrics.ENGAGEMENT || 0;
+      } else if (platform === 'facebook') {
+        likes = bp.metrics.INTERACTIONS || 0; // likes
+        views = bp.metrics.IMPRESSIONS || 0;  // views
+        engagement = bp.metrics.ENGAGEMENT || 0;
+      } else if (platform === 'instagram') {
+        likes = bp.metrics.INTERACTIONS || 0; // likes + saves combined
+        views = bp.metrics.IMPRESSIONS || 0;  // views
+        engagement = bp.metrics.ENGAGEMENT || 0;
+      } else if (platform === 'linkedin') {
+        likes = bp.metrics.INTERACTIONS || 0; // likes + shares combined
+        views = bp.metrics.IMPRESSIONS || 0;  // views
+        engagement = bp.metrics.ENGAGEMENT || 0;
+      }
+    }
+
+    // Override with detailed metrics if available
+    if (detail) {
+      if (platform === 'facebook') {
+        duration = detail.length || null;
+        views = Math.max(views, detail.blueReelsPlayCount || 0);
+        impressions = Math.max(impressions, detail.postImpressionsUnique || 0);
+        totalTimeWatched = detail.postVideoViewTimeSeconds || null;
+        averageTimeWatched = detail.postVideoAvgTimeWatchedSeconds || null;
+        likes = Math.max(likes, detail.postVideoReactions || 0);
+        shares = detail.postVideoSocialActions || 0;
+        engagement = detail.engagement || engagement;
+      } else if (platform === 'instagram') {
+        likes = Math.max(likes, detail.likes || 0);
+        comments = detail.comments || 0;
+        views = Math.max(views, detail.views || 0);
+        reach = detail.reach || 0;
+        saves = detail.saved || 0;
+        shares = detail.shares || 0;
+        engagement = detail.engagement || engagement;
+      } else if (platform === 'tiktok') {
+        duration = detail.duration || null;
+        likes = Math.max(likes, detail.likeCount || 0);
+        comments = detail.commentCount || 0;
+        shares = detail.shareCount || 0;
+        views = Math.max(views, detail.viewCount || 0);
+        engagement = detail.engagement || engagement;
+        reach = detail.reach || 0;
+        fullVideoWatchedRate = detail.fullVideoWatchedRate || null;
+        totalTimeWatched = detail.totalTimeWatched || null;
+        averageTimeWatched = detail.averageTimeWatched || null;
+        impressionSources = detail.impressionSources || null;
+      } else if (platform === 'linkedin') {
+        clicks = detail.clicks || 0;
+        comments = detail.comments || 0;
+        likes = Math.max(likes, detail.likes || 0);
+        shares = detail.shares || 0;
+        impressions = Math.max(impressions, detail.impressions || 0);
+        engagement = detail.engagement || engagement;
+      }
+    }
 
     metricRows.push({
       post_id: uuid,
       date: today,
-      likes, comments, shares, views, impressions, reach, saves, clicks,
-      engagement, duration, full_video_watched_rate: fvr, total_time_watched: ttw, average_time_watched: atw,
-      impression_sources: detail?.impressionSources ?? null,
-      raw_data: detail ?? bp ?? null,
+      likes,
+      comments,
+      shares,
+      views,
+      impressions,
+      reach,
+      saves,
+      clicks,
+      engagement,
+      duration,
+      full_video_watched_rate: fullVideoWatchedRate,
+      total_time_watched: totalTimeWatched,
+      average_time_watched: averageTimeWatched,
+      impression_sources: impressionSources,
+      raw_data: detail || bp,
       updated_at: new Date().toISOString(),
-    })
+    });
   }
 
-  for (let i = 0; i < metricRows.length; i += 500) {
-    const batch = metricRows.slice(i, i + 500)
-    if (batch.length === 0) continue
+  // Upsert metrics
+  if (metricRows.length > 0) {
     const { error } = await supabase
       .from('post_metrics_daily')
-      .upsert(batch, { onConflict: 'post_id,date' })
-    if (error) console.error('Upsert post_metrics_daily error:', error)
+      .upsert(metricRows, { onConflict: 'post_id,date' });
+      
+    if (error) {
+      console.error('Error upserting metrics:', error);
+    } else {
+      console.log(`Upserted ${metricRows.length} metrics for brand ${brandId}`);
+    }
   }
+
+  console.log(`Completed content sync for brand ${brandId}`);
 }
 
 serve(async (req) => {
@@ -381,7 +477,6 @@ serve(async (req) => {
     const source = body.source || 'manual'
     const brandFilter = body.brand_id as number | undefined
     const forceFull = Boolean(body.force_full)
-
 
     console.log('Starting Metricool brands sync, source:', source)
 
@@ -435,7 +530,6 @@ serve(async (req) => {
         .select('*')
         .single()
       const includePosts = schedule?.include_posts !== false
-
 
       // Get existing brands to track what needs to be soft deleted
       const { data: existingBrands } = await supabase
@@ -491,7 +585,7 @@ serve(async (req) => {
           facebookpicture: brand.facebookPicture,
           facebookgrouppicture: brand.facebookGroupPicture,
           instagrampicture: brand.instagramPicture,
-          linkedinpicture: brand.linkedInPicture,
+          linkedinpicture: brand.linkedinPicture,
           facebookadspicture: brand.facebookAdsPicture,
           facebookadsname: brand.facebookAdsName,
           pinterestpicture: brand.pinterestPicture,
@@ -510,103 +604,59 @@ serve(async (req) => {
           gmbaccountname: brand.gmbAccountName,
           gmbaddress: brand.gmbAddress,
           gmburl: brand.gmbUrl,
-          tiktokadsuserid: brand.tiktokadsUserId,
-          linkedincompanypicture: brand.linkedInCompanyPicture,
-          linkedincompanyname: brand.linkedInCompanyName,
-          linkedintokenexpiration: brand.linkedInTokenExpiration,
-          linkedinuserprofileurl: brand.linkedInUserProfileURL,
-          youtubechannelname: brand.youtubeChannelName,
-          youtubechannelpicture: brand.youtubeChannelPicture,
-          twitchname: brand.twitchName,
-          twitchpicture: brand.twitchPicture,
-          twitchchannelid: brand.twitchChannelId,
-          tiktokadsdisplayname: brand.tiktokadsDisplayName,
-          tiktokadspicture: brand.tiktokadsPicture,
-          tiktokuserprofileurl: brand.tiktokUserProfileUrl,
-          isshared: brand.isShared,
-          ownerusername: brand.ownerUsername,
-          whitelabellink: brand.whiteLabelLink,
-          analyticmodewhitelabellink: brand.analyticModeWhitelabelLink,
-          whitelabelalias: brand.whiteLabelAlias,
-          hash: brand.hash,
-          version: brand.version,
-          frontendversion: brand.frontendVersion,
-          role: brand.role,
-          deletedate: brand.deleteDate ? new Date(brand.deleteDate).toISOString() : null,
-          deleted: brand.deleted,
-          joindate: brand.joinDate ? new Date(brand.joinDate).toISOString() : null,
-          firstconnectiondate: brand.firstConnectionDate ? new Date(brand.firstConnectionDate).toISOString() : null,
-          lastresolvedinboxmessagetimestamp: brand.lastResolvedInboxMessageTimestamp ? new Date(brand.lastResolvedInboxMessageTimestamp).toISOString() : null,
-          lastreadinboxmessagetimestamp: brand.lastReadInboxMessageTimestamp ? new Date(brand.lastReadInboxMessageTimestamp).toISOString() : null,
-          timezone: brand.timezone,
-          availableconnectors: Array.isArray(brand.availableConnectors) ? brand.availableConnectors.join(',') : brand.availableConnectors,
-          brandrole: brand.brandRole,
-          iswhitelabel: brand.isWhiteLabel,
-          iswhitelabelonlyread: brand.isWhiteLabelOnlyRead,
-          engagementratio: brand.engagementRatio,
           raw_data: brand,
           last_synced_at: new Date().toISOString(),
-          deleted_at: null // Clear deleted_at if brand reappears
+          deleted_at: null,
+          updated_at: new Date().toISOString(),
         }
 
-        // Check if brand exists
+        // Upsert brand
+        const { error: brandError } = await supabase
+          .from('metricool_brands')
+          .upsert(brandData, { onConflict: 'id' })
+
+        if (brandError) {
+          console.error('Error upserting brand:', brandError)
+          continue
+        }
+
         if (existingBrandIds.has(brand.id)) {
-          // Update existing brand
-          const { error } = await supabase
-            .from('metricool_brands')
-            .update(brandData)
-            .eq('id', brand.id)
-
-          if (error) {
-            console.error('Error updating brand:', error)
-          } else {
-            updated++
-          }
+          updated++
         } else {
-          // Insert new brand
-          const { error } = await supabase
-            .from('metricool_brands')
-            .insert(brandData)
-
-          if (error) {
-            console.error('Error inserting brand:', error)
-          } else {
-            created++
-          }
+          created++
         }
 
-        // Content sync for this brand (last 12 months or incremental)
-        try {
-          const shouldInclude = includePosts || forceFull || !!brandFilter
-          if (shouldInclude) {
-            await syncBrandContent(supabase, userId, accessToken, brand.id, connectedPlatforms, { forceFull })
+        console.log(`Processed brand: ${brand.label} (ID: ${brand.id}), platforms: ${connectedPlatforms.join(', ')}`)
+
+        // Sync content if enabled and platforms are connected
+        if (includePosts && connectedPlatforms.length > 0) {
+          try {
+            await syncBrandContent(supabase, parseInt(userId), accessToken, brand.id, connectedPlatforms, { forceFull })
+          } catch (contentError) {
+            console.error(`Error syncing content for brand ${brand.id}:`, contentError)
           }
-        } catch (e) {
-          console.error('Content sync failed for brand', brand.id, e)
         }
       }
 
-      // Mark missing brands as deleted (soft delete)
+      // Mark brands as soft deleted if they're no longer in Metricool
       for (const existingId of existingBrandIds) {
         if (!fetchedBrandIds.has(existingId)) {
-          const { error } = await supabase
+          const { error: deleteError } = await supabase
             .from('metricool_brands')
-            .update({ deleted_at: new Date().toISOString() })
+            .update({ 
+              deleted_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
             .eq('id', existingId)
             .is('deleted_at', null)
 
-          if (error) {
-            console.error('Error soft deleting brand:', error)
-          } else {
+          if (!deleteError) {
             markedDeleted++
           }
         }
       }
 
-      // Clean up old deleted records (31+ days)
-      await supabase.rpc('cleanup_deleted_metricool_brands')
-
-      // Update sync log with results
+      // Update sync log with success
       await supabase
         .from('metricool_sync_logs')
         .update({
@@ -618,37 +668,46 @@ serve(async (req) => {
         })
         .eq('id', syncLogId)
 
-      console.log(`Sync completed: ${created} created, ${updated} updated, ${markedDeleted} marked deleted`)
+      console.log('Metricool sync completed successfully', { created, updated, markedDeleted })
 
       return new Response(
         JSON.stringify({
           success: true,
-          created,
-          updated,
-          marked_deleted: markedDeleted,
-          total_brands: brands.length
+          message: 'Sync completed successfully',
+          stats: { created, updated, markedDeleted, totalProcessed: brands.length }
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
 
     } catch (error) {
+      console.error('Sync error:', error)
+      
       // Update sync log with error
       await supabase
         .from('metricool_sync_logs')
         .update({
           finished_at: new Date().toISOString(),
           status: 'failed',
-          error_message: error.message
+          error_message: (error as Error).message
         })
         .eq('id', syncLogId)
 
-      throw error
+      return new Response(
+        JSON.stringify({
+          error: 'Sync failed',
+          message: (error as Error).message
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
   } catch (error) {
-    console.error('Error in sync-brands function:', error)
+    console.error('Server error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: 'Server error',
+        message: (error as Error).message
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
