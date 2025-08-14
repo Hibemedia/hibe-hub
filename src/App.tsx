@@ -24,6 +24,7 @@ import ClientDashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import MetricoolAPI from "./pages/admin/MetricoolAPI";
+import MetricoolDebug from "./pages/admin/MetricoolDebug";
 import SyncLogs from "./pages/admin/SyncLogs";
 
 // Existing pages
@@ -118,6 +119,16 @@ const App = () => (
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLayout>
                     <MetricoolAPI />
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/metricool-debug" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <MetricoolDebug />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

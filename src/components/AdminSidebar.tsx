@@ -1,4 +1,4 @@
-import { Users, Settings, BarChart3 } from "lucide-react";
+import { Users, Settings, BarChart3, Bug } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -24,6 +24,11 @@ const menuItems = [
     title: "Metricool API",
     url: "/admin/metricool",
     icon: Settings,
+  },
+  {
+    title: "API Debug",
+    url: "/admin/metricool-debug",
+    icon: Bug,
   },
   {
     title: "Sync Logs",
