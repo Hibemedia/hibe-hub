@@ -201,10 +201,11 @@ serve(async (req) => {
           status: response.status,
           ok: response.ok,
           dataCount: responseData.data?.length || 0,
-          sampleData: responseData.data?.slice(0, 2) || null,
+          sampleData: responseData.data || null, // Full data instead of slice
           processedSample: processedData?.slice(0, 2) || null,
           headers: Object.fromEntries(response.headers.entries()),
-          error: response.ok ? null : responseText
+          error: response.ok ? null : responseText,
+          fullRawResponse: responseData // Add complete response for debugging
         });
 
       } catch (error) {

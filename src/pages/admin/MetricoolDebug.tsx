@@ -18,6 +18,7 @@ interface TestResult {
   processedSample?: any[];
   headers?: Record<string, string>;
   error?: string;
+  fullRawResponse?: any;
 }
 
 interface DebugResponse {
@@ -213,12 +214,27 @@ export default function MetricoolDebug() {
                           </div>
                         )}
 
-                        {/* Sample Data */}
+                        {/* Complete Raw Response */}
+                        {test.fullRawResponse && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Complete Raw Response:</h4>
+                            <div className="bg-muted p-3 rounded">
+                              <div className="text-xs mb-2 text-muted-foreground">
+                                Response Size: {JSON.stringify(test.fullRawResponse).length} characters
+                              </div>
+                              <pre className="text-xs overflow-auto max-h-96 whitespace-pre-wrap">
+                                {JSON.stringify(test.fullRawResponse, null, 2)}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Sample Data (first 2 items) */}
                         {test.sampleData && test.sampleData.length > 0 && (
                           <div>
-                            <h4 className="font-semibold mb-2">Raw Response Sample:</h4>
-                            <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-64">
-                              {JSON.stringify(test.sampleData, null, 2)}
+                            <h4 className="font-semibold mb-2">Data Sample (First 2 Posts):</h4>
+                            <pre className="text-xs bg-blue-50 border border-blue-200 p-3 rounded overflow-auto max-h-64">
+                              {JSON.stringify(test.sampleData.slice(0, 2), null, 2)}
                             </pre>
                           </div>
                         )}
