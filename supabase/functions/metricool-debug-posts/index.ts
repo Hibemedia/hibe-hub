@@ -219,103 +219,129 @@ serve(async (req) => {
       }
     }
 
-    // Create comprehensive merge example
-    const basePostsResult = results.find(r => r.test.includes('Base Posts'));
-    const instagramResult = results.find(r => r.test.includes('Instagram'));
-    const tiktokResult = results.find(r => r.test.includes('TikTok'));
-    const linkedinResult = results.find(r => r.test.includes('LinkedIn'));
+    // Create comprehensive merge example with actual database insertion data
+    const basePostsResult = results.find(r => r.test.includes('Base Posts') && r.ok);
+    const instagramResult = results.find(r => r.test.includes('Instagram') && r.ok);
+    const facebookResult = results.find(r => r.test.includes('Facebook') && r.ok);
+    const tiktokResult = results.find(r => r.test.includes('TikTok') && r.ok);
+    const linkedinResult = results.find(r => r.test.includes('LinkedIn') && r.ok);
     
-    const mergeExample = basePostsResult?.sampleData?.[0] ? {
-      strategy: "Data merge strategie voor database opslag",
+    let mergeExample = null;
+    
+    if (basePostsResult?.sampleData?.data && Array.isArray(basePostsResult.sampleData.data) && basePostsResult.sampleData.data.length > 0) {
+      const samplePost = basePostsResult.sampleData.data[0];
       
-      sourceData: {
-        basePosts: {
-          endpoint: "brand-summary/posts",
-          beschrijving: "Bevat basis post informatie voor alle platforms",
-          voorbeeld: {
-            id: basePostsResult.sampleData[0]?.id,
-            network: basePostsResult.sampleData[0]?.network,
-            text: basePostsResult.sampleData[0]?.text?.substring(0, 100) + "...",
-            link: basePostsResult.sampleData[0]?.link,
-            publicationDate: basePostsResult.sampleData[0]?.publicationDate,
-            basicMetrics: basePostsResult.sampleData[0]?.metrics
-          }
-        },
-        
-        platformSpecific: {
-          instagram: instagramResult?.sampleData?.[0] ? {
-            endpoint: "reels/instagram",
-            extraData: {
-              businessId: instagramResult.sampleData[0]?.businessId,
-              views: instagramResult.sampleData[0]?.views,
-              reach: instagramResult.sampleData[0]?.reach,
-              saved: instagramResult.sampleData[0]?.saved
-            }
-          } : "Geen Instagram data gevonden",
-          
-          tiktok: tiktokResult?.sampleData?.[0] ? {
-            endpoint: "posts/tiktok", 
-            extraData: {
-              videoId: tiktokResult.sampleData[0]?.videoId,
-              duration: tiktokResult.sampleData[0]?.duration,
-              fullVideoWatchedRate: tiktokResult.sampleData[0]?.fullVideoWatchedRate,
-              impressionSources: tiktokResult.sampleData[0]?.impressionSources
-            }
-          } : "Geen TikTok data gevonden"
-        }
-      },
-      
-      databaseStructure: {
-        posts_table: {
-          beschrijving: "Hoofdtabel met basis post informatie",
-          velden: {
-            id: "gen_random_uuid()",
-            brand_id: brandId,
-            platform: basePostsResult.sampleData[0]?.network,
-            post_id: basePostsResult.sampleData[0]?.id + " (Metricool ID)",
-            content: basePostsResult.sampleData[0]?.text,
-            posted_at: basePostsResult.sampleData[0]?.publicationDate?.dateTime,
-            url: basePostsResult.sampleData[0]?.link,
-            media_url: basePostsResult.sampleData[0]?.picture,
-            created_at: "now()",
-            updated_at: "now()"
-          }
-        },
-        
-        post_metrics_daily_table: {
-          beschrijving: "Dagelijkse metrics per post (kan multiple records per post)",
-          velden: {
-            id: "gen_random_uuid()",
-            post_id: "posts.id (foreign key)",
-            date: basePostsResult.sampleData[0]?.publicationDate?.dateTime?.split('T')[0],
-            likes: basePostsResult.sampleData[0]?.metrics?.INTERACTIONS || 0,
-            comments: basePostsResult.sampleData[0]?.metrics?.COMMENTS || 0,
-            shares: basePostsResult.sampleData[0]?.metrics?.SHARES || 0,
-            views: instagramResult?.sampleData?.[0]?.views || 0,
-            impressions: basePostsResult.sampleData[0]?.metrics?.IMPRESSIONS || 0,
-            reach: instagramResult?.sampleData?.[0]?.reach || 0,
-            saves: instagramResult?.sampleData?.[0]?.saved || 0,
-            engagement: basePostsResult.sampleData[0]?.metrics?.ENGAGEMENT || 0,
-            raw_data: "Volledige API response voor debugging",
-            created_at: "now()",
-            updated_at: "now()"
-          }
-        }
-      },
-      
-      syncWorkflow: {
-        stap1: "Haal alle posts op via brand-summary/posts endpoint",
-        stap2: "Voor elke post: kijk welk platform het is",
-        stap3: "Haal platform-specifieke data op (instagram/tiktok/linkedin endpoints)",
-        stap4: "Merge basis post data met platform-specifieke metrics",
-        stap5: "Insert/update posts tabel met basis informatie",
-        stap6: "Insert dagelijkse metrics in post_metrics_daily tabel",
-        stap7: "Bewaar volledige raw data voor debugging",
-        notitie: "Posts worden geïdentificeerd door Metricool ID + platform combinatie"
+      // Find matching platform-specific data based on post platform
+      let platformSpecificData = null;
+      if (samplePost.network === 'instagram' && instagramResult?.sampleData?.data) {
+        platformSpecificData = instagramResult.sampleData.data.find(item => 
+          item.businessId === samplePost.businessId || item.postId === samplePost.id
+        );
+      } else if (samplePost.network === 'facebook' && facebookResult?.sampleData?.data) {
+        platformSpecificData = facebookResult.sampleData.data.find(item => 
+          item.reelId === samplePost.reelId || item.postId === samplePost.id
+        );
+      } else if (samplePost.network === 'tiktok' && tiktokResult?.sampleData?.data) {
+        platformSpecificData = tiktokResult.sampleData.data.find(item => 
+          item.videoId === samplePost.videoId || item.postId === samplePost.id
+        );
+      } else if (samplePost.network === 'linkedin' && linkedinResult?.sampleData?.data) {
+        platformSpecificData = linkedinResult.sampleData.data.find(item => 
+          item.postId === samplePost.id
+        );
       }
-    } : {
-      error: "Geen basis post data beschikbaar voor merge voorbeeld"
-    };
+      
+      mergeExample = {
+        strategy: "Exacte data die in database tabellen wordt opgeslagen",
+        
+        // Data voor de "posts" tabel
+        posts_table_insert: {
+          id: "UUID (wordt automatisch gegenereerd)",
+          brand_id: brandId,
+          platform: samplePost.network,
+          post_id: samplePost.id?.toString(),
+          content: samplePost.text || null,
+          url: samplePost.link || null,
+          media_url: samplePost.picture || null,
+          posted_at: samplePost.publicationDate?.dateTime || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        
+        // Data voor de "post_metrics_daily" tabel
+        post_metrics_daily_insert: {
+          id: "UUID (wordt automatisch gegenereerd)",
+          post_id: "posts.id (foreign key naar posts tabel)",
+          date: samplePost.publicationDate?.dateTime ? samplePost.publicationDate.dateTime.split('T')[0] : new Date().toISOString().split('T')[0],
+          
+          // Basis metrics van posts endpoint
+          likes: samplePost.metrics?.INTERACTIONS || 0,
+          comments: samplePost.metrics?.COMMENTS || 0,  
+          shares: samplePost.metrics?.SHARES || 0,
+          impressions: samplePost.metrics?.IMPRESSIONS || 0,
+          engagement: samplePost.metrics?.ENGAGEMENT || 0,
+          
+          // Platform-specifieke metrics (indien beschikbaar)
+          views: platformSpecificData?.views || platformSpecificData?.viewCount || 0,
+          reach: platformSpecificData?.reach || 0,
+          saves: platformSpecificData?.saved || 0,
+          clicks: platformSpecificData?.clicks || 0,
+          duration: platformSpecificData?.duration || platformSpecificData?.length || null,
+          full_video_watched_rate: platformSpecificData?.fullVideoWatchedRate || null,
+          total_time_watched: platformSpecificData?.totalTimeWatched || platformSpecificData?.postVideoViewTimeSeconds || null,
+          average_time_watched: platformSpecificData?.averageTimeWatched || platformSpecificData?.postVideoAvgTimeWatchedSeconds || null,
+          impression_sources: platformSpecificData?.impressionSources || null,
+          
+          // Volledige raw data voor debugging
+          raw_data: {
+            basePost: samplePost,
+            platformSpecific: platformSpecificData,
+            source: `${samplePost.network}_${new Date().toISOString().split('T')[0]}`
+          },
+          
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        
+        // Originele API data ter referentie
+        source_api_data: {
+          base_posts_endpoint: {
+            url: basePostsResult.url,
+            sample_post: samplePost
+          },
+          platform_specific_endpoint: platformSpecificData ? {
+            url: samplePost.network === 'instagram' ? instagramResult?.url :
+                 samplePost.network === 'facebook' ? facebookResult?.url :
+                 samplePost.network === 'tiktok' ? tiktokResult?.url :
+                 samplePost.network === 'linkedin' ? linkedinResult?.url : null,
+            sample_data: platformSpecificData
+          } : null
+        },
+        
+        // Workflow voor database sync
+        sync_process: {
+          step_1: "Haal alle posts op via brand-summary/posts endpoint",
+          step_2: "Voor elke post: bepaal platform en zoek bijbehorende platform-specifieke data",
+          step_3: "Insert/update record in 'posts' tabel met basis post informatie",
+          step_4: "Insert record in 'post_metrics_daily' tabel met alle metrics",
+          step_5: "Bewaar volledige raw API responses in raw_data veld voor debugging",
+          note: "Posts worden geïdentificeerd door combinatie van Metricool post_id + platform"
+        }
+      };
+    } else {
+      mergeExample = {
+        error: "Geen geldige post data beschikbaar voor merge voorbeeld",
+        debug_info: {
+          basePostsResult_exists: !!basePostsResult,
+          basePostsResult_ok: basePostsResult?.ok,
+          basePostsResult_dataCount: basePostsResult?.dataCount,
+          sampleData_exists: !!basePostsResult?.sampleData,
+          sampleData_hasData: !!basePostsResult?.sampleData?.data,
+          sampleData_isArray: Array.isArray(basePostsResult?.sampleData?.data),
+          sampleData_length: basePostsResult?.sampleData?.data?.length || 0
+        }
+      };
+    }
 
     return new Response(
       JSON.stringify({
