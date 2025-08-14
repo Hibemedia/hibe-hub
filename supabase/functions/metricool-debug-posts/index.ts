@@ -228,25 +228,25 @@ serve(async (req) => {
     
     let mergeExample = null;
     
-    if (basePostsResult?.sampleData?.data && Array.isArray(basePostsResult.sampleData.data) && basePostsResult.sampleData.data.length > 0) {
-      const samplePost = basePostsResult.sampleData.data[0];
+    if (basePostsResult?.sampleData && Array.isArray(basePostsResult.sampleData) && basePostsResult.sampleData.length > 0) {
+      const samplePost = basePostsResult.sampleData[0];
       
       // Find matching platform-specific data based on post platform
       let platformSpecificData = null;
-      if (samplePost.network === 'instagram' && instagramResult?.sampleData?.data) {
-        platformSpecificData = instagramResult.sampleData.data.find(item => 
+      if (samplePost.network === 'instagram' && instagramResult?.sampleData && Array.isArray(instagramResult.sampleData)) {
+        platformSpecificData = instagramResult.sampleData.find(item => 
           item.businessId === samplePost.businessId || item.postId === samplePost.id
         );
-      } else if (samplePost.network === 'facebook' && facebookResult?.sampleData?.data) {
-        platformSpecificData = facebookResult.sampleData.data.find(item => 
+      } else if (samplePost.network === 'facebook' && facebookResult?.sampleData && Array.isArray(facebookResult.sampleData)) {
+        platformSpecificData = facebookResult.sampleData.find(item => 
           item.reelId === samplePost.reelId || item.postId === samplePost.id
         );
-      } else if (samplePost.network === 'tiktok' && tiktokResult?.sampleData?.data) {
-        platformSpecificData = tiktokResult.sampleData.data.find(item => 
+      } else if (samplePost.network === 'tiktok' && tiktokResult?.sampleData && Array.isArray(tiktokResult.sampleData)) {
+        platformSpecificData = tiktokResult.sampleData.find(item => 
           item.videoId === samplePost.videoId || item.postId === samplePost.id
         );
-      } else if (samplePost.network === 'linkedin' && linkedinResult?.sampleData?.data) {
-        platformSpecificData = linkedinResult.sampleData.data.find(item => 
+      } else if (samplePost.network === 'linkedin' && linkedinResult?.sampleData && Array.isArray(linkedinResult.sampleData)) {
+        platformSpecificData = linkedinResult.sampleData.find(item => 
           item.postId === samplePost.id
         );
       }
@@ -336,9 +336,8 @@ serve(async (req) => {
           basePostsResult_ok: basePostsResult?.ok,
           basePostsResult_dataCount: basePostsResult?.dataCount,
           sampleData_exists: !!basePostsResult?.sampleData,
-          sampleData_hasData: !!basePostsResult?.sampleData?.data,
-          sampleData_isArray: Array.isArray(basePostsResult?.sampleData?.data),
-          sampleData_length: basePostsResult?.sampleData?.data?.length || 0
+          sampleData_isArray: Array.isArray(basePostsResult?.sampleData),
+          sampleData_length: basePostsResult?.sampleData?.length || 0
         }
       };
     }
@@ -355,7 +354,13 @@ serve(async (req) => {
           totalTests: results.length,
           successfulTests: results.filter(r => r.ok).length,
           failedTests: results.filter(r => !r.ok).length,
-          totalPostsFound: results.reduce((sum, r) => sum + (r.dataCount || 0), 0)
+          totalPostsFound: basePostsResult?.dataCount || 0,
+          platformBreakdown: {
+            facebook: results.find(r => r.test.includes('Facebook'))?.dataCount || 0,
+            instagram: results.find(r => r.test.includes('Instagram'))?.dataCount || 0,
+            tiktok: results.find(r => r.test.includes('TikTok'))?.dataCount || 0,
+            linkedin: results.find(r => r.test.includes('LinkedIn'))?.dataCount || 0
+          }
         }
       }),
       { 
