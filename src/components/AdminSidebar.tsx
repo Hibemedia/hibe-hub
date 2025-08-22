@@ -25,11 +25,6 @@ const menuItems = [
     url: "/admin/metricool",
     icon: Settings,
   },
-  {
-    title: "Sync Logs",
-    url: "/admin/sync-logs",
-    icon: BarChart3,
-  },
 ];
 
 export function AdminSidebar() {
