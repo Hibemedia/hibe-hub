@@ -26,11 +26,6 @@ const menuItems = [
     icon: Settings,
   },
   {
-    title: "API Debug",
-    url: "/admin/metricool-debug",
-    icon: Bug,
-  },
-  {
     title: "Sync Logs",
     url: "/admin/sync-logs",
     icon: BarChart3,

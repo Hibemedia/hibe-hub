@@ -128,7 +128,6 @@ interface SyncSchedule {
   id: number
   interval_hours: number
   enabled: boolean
-  include_posts?: boolean
   last_run_at: string | null
   next_run_at: string | null
   created_at: string
@@ -180,7 +179,7 @@ export default function MetricoolAPI() {
   const [syncSchedule, setSyncSchedule] = useState<SyncSchedule | null>(null)
   const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [isTestingPosts, setIsTestingPosts] = useState(false)
+  
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [isSavingCredentials, setIsSavingCredentials] = useState(false)
@@ -298,7 +297,6 @@ export default function MetricoolAPI() {
         .update({
           interval_hours: syncSchedule.interval_hours,
           enabled: syncSchedule.enabled,
-          include_posts: syncSchedule.include_posts ?? true,
           next_run_at: nextRunAt?.toISOString() || null,
           updated_at: new Date().toISOString()
         })
@@ -454,48 +452,6 @@ export default function MetricoolAPI() {
     }
   }
 
-  const testPosts = async () => {
-    if (!credentials.access_token) {
-      toast({
-        title: "Fout",
-        description: "Sla eerst de credentials op voordat je posts test",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsTestingPosts(true)
-
-    try {
-      const { data, error } = await supabase.functions.invoke('metricool-test-posts')
-
-      if (error) throw error
-
-      if (data.success) {
-        const totalPosts = data.tests?.reduce((acc: number, test: any) => {
-          return acc + (test.count || 0)
-        }, 0) || 0
-
-        toast({
-          title: "Posts test voltooid",
-          description: `${totalPosts} posts gevonden voor brand ${data.brand?.label || data.brand?.id}`
-        })
-        
-        console.log('Test Posts Results:', data)
-      } else {
-        throw new Error(data.error)
-      }
-    } catch (error: any) {
-      toast({
-        title: "Posts test mislukt",
-        description: error.message,
-        variant: "destructive"
-      })
-      console.error('Test Posts Error:', error)
-    } finally {
-      setIsTestingPosts(false)
-    }
-  }
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -555,16 +511,7 @@ export default function MetricoolAPI() {
             >
               {isSyncing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <RefreshCw className="mr-2 h-4 w-4" />
-              Test & Sync
-            </Button>
-            
-            <Button 
-              onClick={testPosts} 
-              disabled={isTestingPosts || !credentials.access_token}
-              variant="outline"
-            >
-              {isTestingPosts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Test Posts
+              Synchroniseren
             </Button>
           </div>
 
@@ -626,19 +573,6 @@ export default function MetricoolAPI() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="includePosts">Posts/metrics opnemen</Label>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="includePosts"
-                      checked={!!syncSchedule.include_posts}
-                      onCheckedChange={(checked) => setSyncSchedule(prev => prev ? { ...prev, include_posts: checked } : null)}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {syncSchedule.include_posts ? 'Posts/metrics worden meegenomen' : 'Posts/metrics worden overgeslagen'}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
