@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -69,7 +70,7 @@ Deno.serve(async (req) => {
 
     console.log('Time to run sync, calling metricool-sync-brands function');
 
-    // Call the existing sync function
+    // Call the existing sync function for brands only
     const { data: syncResult, error: syncError } = await supabase.functions.invoke('metricool-sync-brands', {
       body: { source: 'auto' }
     });

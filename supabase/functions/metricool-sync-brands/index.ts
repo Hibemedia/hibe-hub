@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -43,33 +44,6 @@ function detectConnectedPlatforms(brand: any): string[] {
   return platforms
 }
 
-function yyyymmdd(d: Date): string {
-  const year = d.getUTCFullYear()
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(d.getUTCDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoffMs = 500): Promise<Response> {
-  let attempt = 0
-  let lastErr: any
-  while (attempt < retries) {
-    try {
-      const res = await fetch(url, options)
-      if (res.ok) return res
-      lastErr = new Error(`HTTP ${res.status}`)
-    } catch (e) {
-      lastErr = e
-    }
-    attempt++
-    await new Promise(r => setTimeout(r, backoffMs * attempt))
-  }
-  throw lastErr
-}
-
-// This function now only handles brand syncing
-// Posts syncing is handled by the separate metricool-sync-posts function
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -100,7 +74,6 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     const source = body.source || 'manual'
     const brandFilter = body.brand_id as number | undefined
-    const forceFull = Boolean(body.force_full)
 
     console.log('Starting Metricool brands sync, source:', source)
 
@@ -147,8 +120,6 @@ serve(async (req) => {
       if (brandFilter) {
         brands = brands.filter((b: any) => b.id === brandFilter)
       }
-
-      // This function only handles brands, not posts
 
       // Get existing brands to track what needs to be soft deleted
       const { data: existingBrands } = await supabase
@@ -278,12 +249,12 @@ serve(async (req) => {
         })
         .eq('id', syncLogId)
 
-      console.log('Metricool sync completed successfully', { created, updated, markedDeleted })
+      console.log('Metricool brands sync completed successfully', { created, updated, markedDeleted })
 
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Sync completed successfully',
+          message: 'Brands sync completed successfully',
           stats: { created, updated, markedDeleted, totalProcessed: brands.length }
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
