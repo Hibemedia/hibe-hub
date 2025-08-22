@@ -1,33 +1,10 @@
-import { useAuth } from '@/lib/auth/useAuth';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Video, Users, Award, Calendar } from 'lucide-react';
 
 export default function Dashboard() {
-  const { profile, signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">H</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">Hibe Media Portal</h1>
-                <p className="text-sm text-muted-foreground">Welkom terug, {profile?.email}</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={signOut}>
-              Uitloggen
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-8">
+    <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">Dashboard</h2>
           <p className="text-muted-foreground">
@@ -136,7 +113,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
-  );
-}
+      </div>
+    );
+  }
