@@ -124,16 +124,6 @@ const App = () => (
               } 
             />
             <Route 
-              path="/admin/sync-logs" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminLayout>
-                    <SyncLogs />
-                  </AdminLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
               path="/admin/settings" 
               element={
                 <ProtectedRoute allowedRoles={['admin', 'manager']}>
