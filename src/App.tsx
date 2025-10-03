@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AindyChat } from "@/components/AindyChat";
 import Dashboard from "./pages/Dashboard";
 import Performance from "./pages/Performance";
 import VideoApproval from "./pages/VideoApproval";
@@ -53,6 +54,7 @@ const App = () => {
                 </Routes>
               </main>
             </div>
+            <AindyChat />
           </SidebarProvider>
         </BrowserRouter>
       </TooltipProvider>
