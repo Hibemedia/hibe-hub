@@ -89,7 +89,17 @@ export default function Dashboard() {
       {/* Platform Overview */}
       <Card className="border-2 hover:shadow-lg transition-all duration-300">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Platform Overzicht 🚀</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Platform Overzicht 🚀</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate("/performance")}
+              className="font-bold"
+            >
+              Bekijk alles!
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
