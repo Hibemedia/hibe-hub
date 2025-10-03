@@ -34,13 +34,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 md:p-8 lg:p-10 space-y-8 max-w-7xl mx-auto animate-fade-in-up">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+      <div className="space-y-2">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
           Dashboard
         </h1>
-        <p className="text-sm text-muted-foreground">Jouw prestaties in één oogopslag</p>
+        <p className="text-base md:text-lg text-muted-foreground font-medium">Jouw prestaties in één oogopslag 📊</p>
       </div>
 
       {/* AI Welcome Message */}
