@@ -20,7 +20,8 @@ import {
   Twitter,
   Linkedin,
   CheckCircle2,
-  Clock
+  Clock,
+  Sparkles
 } from "lucide-react";
 
 const allMedals = [
@@ -117,12 +118,27 @@ const allMedals = [
 const Confetti = ({ show }: { show: boolean }) => {
   if (!show) return null;
 
-  const confettiPieces = Array.from({ length: 30 }).map((_, i) => ({
+  const confettiColors = [
+    '#FF6B35', // Orange
+    '#F7931E', // Amber
+    '#FDC830', // Yellow
+    '#37B7C3', // Cyan
+    '#088395', // Teal
+    '#E74C3C', // Red
+    '#9B59B6', // Purple
+    '#3498DB', // Blue
+    '#2ECC71', // Green
+    '#F39C12', // Gold
+  ];
+
+  const confettiPieces = Array.from({ length: 60 }).map((_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     delay: Math.random() * 0.5,
-    duration: 2.5 + Math.random() * 1,
-    color: ['hsl(24, 70%, 50%)', 'hsl(0, 0%, 70%)', 'hsl(210, 40%, 60%)'][Math.floor(Math.random() * 3)]
+    duration: 2.5 + Math.random() * 1.5,
+    color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+    size: 6 + Math.random() * 8,
+    rotation: Math.random() * 360
   }));
 
   return (
@@ -130,16 +146,20 @@ const Confetti = ({ show }: { show: boolean }) => {
       {confettiPieces.map((piece) => (
         <motion.div
           key={piece.id}
-          className="absolute w-1.5 h-1.5 rounded-full"
+          className="absolute rounded-sm"
           style={{
             left: piece.left,
             backgroundColor: piece.color,
+            width: `${piece.size}px`,
+            height: `${piece.size}px`,
+            transform: `rotate(${piece.rotation}deg)`
           }}
-          initial={{ y: -20, opacity: 0 }}
+          initial={{ y: -20, opacity: 0, scale: 0 }}
           animate={{
             y: window.innerHeight + 20,
             opacity: [0, 1, 1, 0],
-            rotate: 180,
+            rotate: piece.rotation + 720,
+            scale: [0, 1, 1, 0]
           }}
           transition={{
             duration: piece.duration,
@@ -159,26 +179,26 @@ export default function Medals() {
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case 'platinum':
-        return 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700';
+        return 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600';
       case 'gold':
-        return 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700';
+        return 'bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600';
       case 'silver':
-        return 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-700';
+        return 'bg-gradient-to-br from-slate-300 via-gray-400 to-slate-500';
       case 'bronze':
-        return 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-700';
+        return 'bg-gradient-to-br from-orange-400 via-orange-500 to-amber-600';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'bg-muted';
     }
   };
 
   const getRarityBadge = (rarity: string) => {
     switch (rarity) {
       case 'platinum':
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'gold':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'silver':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-slate-100 text-slate-700 border-slate-200';
       case 'bronze':
         return 'bg-orange-50 text-orange-700 border-orange-200';
       default:
@@ -191,11 +211,11 @@ export default function Medals() {
 
   const handleCelebrate = (medalId: number) => {
     setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 3000);
+    setTimeout(() => setShowConfetti(false), 4000);
   };
 
   const shareToSocial = (platform: string, medal: any) => {
-    const text = `Ik heb zojuist de "${medal.title}" medaille behaald bij Hibe Media.`;
+    const text = `Ik heb zojuist de "${medal.title}" medaille behaald bij Hibe Media!`;
     const url = window.location.href;
     
     const shareUrls = {
@@ -213,133 +233,153 @@ export default function Medals() {
       <Confetti show={showConfetti} />
 
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-1"
+      >
+        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+          <Trophy className="h-7 w-7 text-amber-500" />
           Medailles
         </h1>
         <p className="text-sm text-muted-foreground">
           Jouw behaalde prestaties en mijlpalen
         </p>
-      </div>
+      </motion.div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card className="border-border">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                {achievedMedals.length}
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground">Behaald</span>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Card className="border-border bg-gradient-to-br from-primary/5 to-transparent">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-2xl md:text-3xl font-semibold text-foreground">
+                  {achievedMedals.length}
+                </span>
+                <span className="text-xs md:text-sm text-muted-foreground">Behaald</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card className="border-border">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                {inProgressMedals.length}
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground">In progress</span>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Card className="border-border bg-gradient-to-br from-amber-50 to-transparent">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-2xl md:text-3xl font-semibold text-foreground">
+                  {inProgressMedals.length}
+                </span>
+                <span className="text-xs md:text-sm text-muted-foreground">In progress</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card className="border-border">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                {achievedMedals.filter(m => m.rarity === 'gold').length}
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground">Gouden</span>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Card className="border-border bg-gradient-to-br from-amber-100 to-amber-50">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-2xl md:text-3xl font-semibold text-amber-900">
+                  {achievedMedals.filter(m => m.rarity === 'gold').length}
+                </span>
+                <span className="text-xs md:text-sm text-amber-700">Gouden</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card className="border-border">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                {Math.round((achievedMedals.length / allMedals.length) * 100)}%
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground">Voltooid</span>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Card className="border-border bg-gradient-to-br from-green-50 to-transparent">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-2xl md:text-3xl font-semibold text-foreground">
+                  {Math.round((achievedMedals.length / allMedals.length) * 100)}%
+                </span>
+                <span className="text-xs md:text-sm text-muted-foreground">Voltooid</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Achieved Medals */}
       <Card className="border-border">
-        <CardHeader className="border-b border-border">
+        <CardHeader className="border-b border-border bg-gradient-to-r from-amber-50/50 to-transparent">
           <CardTitle className="flex items-center gap-2 text-base md:text-lg font-semibold">
-            <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
             Behaalde Medailles
+            <Sparkles className="h-4 w-4 text-amber-500 ml-auto" />
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 md:p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {achievedMedals.map((medal) => (
-              <Card
+            {achievedMedals.map((medal, index) => (
+              <motion.div
                 key={medal.id}
-                className="border-border hover-card bg-card group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -4 }}
               >
-                <CardContent className="p-4 md:p-5">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getRarityColor(medal.rarity)}`}>
-                      <medal.icon className="h-5 w-5" strokeWidth={1.5} />
+                <Card className="border-border hover-card bg-gradient-to-br from-card to-muted/10 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-200/20 to-transparent rounded-full blur-3xl"></div>
+                  <CardContent className="p-4 md:p-5 relative">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getRarityColor(medal.rarity)} text-white shadow-lg`}>
+                        <medal.icon className="h-6 w-6" strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm text-foreground mb-0.5 truncate">
+                          {medal.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {medal.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm text-foreground mb-0.5 truncate">
-                        {medal.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {medal.description}
+
+                    {/* Motivational text */}
+                    <div className="mb-4 p-2.5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-md border border-green-200">
+                      <p className="text-xs text-green-800 leading-relaxed font-medium">
+                        {medal.motivation}
                       </p>
                     </div>
-                  </div>
 
-                  {/* Motivational text */}
-                  <div className="mb-4 p-2.5 bg-muted/50 rounded-md border border-border">
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {medal.motivation}
-                    </p>
-                  </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <Badge variant="outline" className={`text-xs border ${getRarityBadge(medal.rarity)}`}>
+                        {medal.category}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(medal.achievedDate).toLocaleDateString('nl-NL', { 
+                          day: 'numeric', 
+                          month: 'short'
+                        })}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge variant="outline" className={`text-xs border ${getRarityBadge(medal.rarity)}`}>
-                      {medal.category}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(medal.achievedDate).toLocaleDateString('nl-NL', { 
-                        day: 'numeric', 
-                        month: 'short'
-                      })}
-                    </span>
-                  </div>
-
-                  {/* Share buttons */}
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleCelebrate(medal.id)}
-                      className="flex-1 h-8 text-xs"
-                    >
-                      Vier het
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShareModal(medal.id)}
-                      className="flex-1 h-8 text-xs"
-                    >
-                      <Share2 className="h-3 w-3 mr-1" />
-                      Delen
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                    {/* Share buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleCelebrate(medal.id)}
+                        className="flex-1 h-8 text-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                      >
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Vier het!
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShareModal(medal.id)}
+                        className="flex-1 h-8 text-xs"
+                      >
+                        <Share2 className="h-3 w-3 mr-1" />
+                        Delen
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </CardContent>
@@ -355,46 +395,54 @@ export default function Medals() {
         </CardHeader>
         <CardContent className="p-4 md:p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {inProgressMedals.map((medal) => (
-              <Card
+            {inProgressMedals.map((medal, index) => (
+              <motion.div
                 key={medal.id}
-                className="border-border border-dashed hover-card bg-card"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.01 }}
               >
-                <CardContent className="p-4 md:p-5">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 opacity-40 ${getRarityColor(medal.rarity)}`}>
-                      <medal.icon className="h-5 w-5" strokeWidth={1.5} />
+                <Card className="border-border border-dashed hover-card bg-card">
+                  <CardContent className="p-4 md:p-5">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getRarityColor(medal.rarity)} text-white opacity-60`}>
+                        <medal.icon className="h-5 w-5" strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm text-foreground mb-0.5 truncate">
+                          {medal.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {medal.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm text-foreground mb-0.5 truncate">
-                        {medal.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {medal.description}
+
+                    {/* Motivational text */}
+                    <div className="mb-4 p-2.5 bg-blue-50 rounded-md border border-blue-200">
+                      <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                        {medal.motivation}
                       </p>
                     </div>
-                  </div>
 
-                  {/* Motivational text */}
-                  <div className="mb-4 p-2.5 bg-muted/30 rounded-md border border-border">
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {medal.motivation}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className={`text-xs border ${getRarityBadge(medal.rarity)}`}>
-                        {medal.category}
-                      </Badge>
-                      <span className="text-sm font-medium text-foreground">
-                        {medal.progress}%
-                      </span>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className={`text-xs border ${getRarityBadge(medal.rarity)}`}>
+                          {medal.category}
+                        </Badge>
+                        <span className="text-sm font-semibold text-foreground">
+                          {medal.progress}%
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <Progress value={medal.progress} className="h-2 bg-muted" />
+                        <div className={`absolute top-0 left-0 h-2 rounded-full ${getRarityColor(medal.rarity)}`} style={{ width: `${medal.progress}%` }}></div>
+                      </div>
                     </div>
-                    <Progress value={medal.progress} className="h-1.5" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </CardContent>
@@ -424,7 +472,7 @@ export default function Medals() {
               <div className="space-y-2">
                 <Button
                   onClick={() => shareToSocial('facebook', allMedals.find(m => m.id === shareModal))}
-                  className="w-full bg-[#1877F2] hover:bg-[#1877F2]/90 text-white"
+                  className="w-full bg-[#1877F2] hover:bg-[#1877F2]/90 text-white border-0"
                   size="default"
                 >
                   <Facebook className="h-4 w-4 mr-2" />
@@ -432,7 +480,7 @@ export default function Medals() {
                 </Button>
                 <Button
                   onClick={() => shareToSocial('twitter', allMedals.find(m => m.id === shareModal))}
-                  className="w-full bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white"
+                  className="w-full bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white border-0"
                   size="default"
                 >
                   <Twitter className="h-4 w-4 mr-2" />
@@ -440,7 +488,7 @@ export default function Medals() {
                 </Button>
                 <Button
                   onClick={() => shareToSocial('linkedin', allMedals.find(m => m.id === shareModal))}
-                  className="w-full bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white"
+                  className="w-full bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white border-0"
                   size="default"
                 >
                   <Linkedin className="h-4 w-4 mr-2" />
