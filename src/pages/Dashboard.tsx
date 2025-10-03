@@ -44,11 +44,11 @@ export default function Dashboard() {
       />
 
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-6xl font-black text-foreground tracking-tight">
-          Dashboard
+      <div className="space-y-1">
+        <h1 className="text-4xl font-black text-foreground tracking-tight">
+          DASHBOARD
         </h1>
-        <p className="text-xl text-muted-foreground font-medium">Jouw prestaties in één oogopslag ✨</p>
+        <p className="text-base text-muted-foreground font-medium">Jouw prestaties in één oogopslag ✨</p>
       </div>
 
       {/* Key Metrics */}
@@ -84,43 +84,43 @@ export default function Dashboard() {
       </div>
 
       {/* Platform Overview */}
-      <Card className="border-2 hover:shadow-xl transition-all duration-300">
-        <CardHeader>
-          <CardTitle className="text-2xl">Platform Overzicht 🚀</CardTitle>
+      <Card className="border-2 hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Platform Overzicht 🚀</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-black to-gray-900 text-white overflow-hidden group hover:scale-105 transition-transform duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-colors"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative p-4 rounded-xl bg-gradient-to-br from-black to-gray-900 text-white overflow-hidden group hover:scale-105 transition-transform duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl group-hover:bg-primary/30 transition-colors"></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-lg">TikTok</h3>
-                  <Badge className="bg-accent text-accent-foreground font-bold shadow-accent">Trending 🔥</Badge>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold text-sm">TikTok</h3>
+                  <Badge className="bg-accent text-accent-foreground font-bold text-xs shadow-accent">Trending 🔥</Badge>
                 </div>
-                <div className="text-4xl font-black mb-2">456K</div>
-                <p className="text-sm text-white/70 font-semibold">+24% deze maand</p>
+                <div className="text-2xl font-black mb-1">456K</div>
+                <p className="text-xs text-white/70 font-semibold">+24% deze maand</p>
               </div>
             </div>
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 text-white overflow-hidden group hover:scale-105 transition-transform duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="relative p-4 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white overflow-hidden group hover:scale-105 transition-transform duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-lg">Instagram</h3>
-                  <Badge className="bg-white/20 text-white backdrop-blur-sm font-bold">Stabiel ✓</Badge>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold text-sm">Instagram</h3>
+                  <Badge className="bg-white/20 text-white backdrop-blur-sm font-bold text-xs">Stabiel ✓</Badge>
                 </div>
-                <div className="text-4xl font-black mb-2">234K</div>
-                <p className="text-sm text-white/70 font-semibold">+8% deze maand</p>
+                <div className="text-2xl font-black mb-1">234K</div>
+                <p className="text-xs text-white/70 font-semibold">+8% deze maand</p>
               </div>
             </div>
-            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 text-white overflow-hidden group hover:scale-105 transition-transform duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="relative p-4 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white overflow-hidden group hover:scale-105 transition-transform duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-lg">YouTube</h3>
-                  <Badge className="bg-accent text-accent-foreground font-bold shadow-accent">Groeiend 📈</Badge>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold text-sm">YouTube</h3>
+                  <Badge className="bg-accent text-accent-foreground font-bold text-xs shadow-accent">Groeiend 📈</Badge>
                 </div>
-                <div className="text-4xl font-black mb-2">123K</div>
-                <p className="text-sm text-white/70 font-semibold">+31% deze maand</p>
+                <div className="text-2xl font-black mb-1">123K</div>
+                <p className="text-xs text-white/70 font-semibold">+31% deze maand</p>
               </div>
             </div>
           </div>
@@ -129,68 +129,68 @@ export default function Dashboard() {
 
       {/* Video Approval Widget - Full Width */}
       <Card 
-        className="cursor-pointer hover:shadow-2xl transition-all duration-300 border-2 border-primary/30 hover:border-primary/60 hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent"
+        className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-primary/30 hover:border-primary/60 hover:-translate-y-0.5 bg-gradient-to-br from-primary/5 to-transparent"
         onClick={handleVideoApprovalClick}
       >
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-3 text-2xl font-black">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-primary">
-                <PlayCircle className="h-6 w-6 text-white" />
+            <CardTitle className="flex items-center gap-2 text-lg font-black">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-primary">
+                <PlayCircle className="h-4 w-4 text-white" />
               </div>
               Video's nog goed te keuren
             </CardTitle>
-            <Badge className="bg-gradient-to-r from-primary to-primary-light text-white font-bold text-sm px-4 py-2 shadow-primary">
+            <Badge className="bg-gradient-to-r from-primary to-primary-light text-white font-bold text-xs px-3 py-1 shadow-primary">
               3 video's 🎬
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-transparent hover:border-primary/30 transition-all duration-200 hover:shadow-md">
-              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative group">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 p-3 bg-white/80 backdrop-blur-sm rounded-xl border-2 border-transparent hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative group">
                 <img 
                   src={dashboardVideo1} 
                   alt="Fade tutorial voor beginners"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
-                    <Play className="h-4 w-4 text-primary ml-0.5" />
+                  <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center">
+                    <Play className="h-3 w-3 text-primary ml-0.5" />
                   </div>
                 </div>
               </div>
               <div className="flex-1">
-                <p className="font-bold text-base">Fade tutorial voor beginners</p>
-                <p className="text-sm text-muted-foreground">Geüpload 2 uur geleden</p>
+                <p className="font-bold text-sm">Fade tutorial voor beginners</p>
+                <p className="text-xs text-muted-foreground">Geüpload 2 uur geleden</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-transparent hover:border-primary/30 transition-all duration-200 hover:shadow-md">
-              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative group">
+            <div className="flex items-center gap-3 p-3 bg-white/80 backdrop-blur-sm rounded-xl border-2 border-transparent hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative group">
                 <img 
                   src={dashboardVideo2} 
                   alt="Trending kapsel deze week"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
-                    <Play className="h-4 w-4 text-primary ml-0.5" />
+                  <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center">
+                    <Play className="h-3 w-3 text-primary ml-0.5" />
                   </div>
                 </div>
               </div>
               <div className="flex-1">
-                <p className="font-bold text-base">Trending kapsel deze week</p>
-                <p className="text-sm text-muted-foreground">Geüpload 4 uur geleden</p>
+                <p className="font-bold text-sm">Trending kapsel deze week</p>
+                <p className="text-xs text-muted-foreground">Geüpload 4 uur geleden</p>
               </div>
             </div>
             <Button 
-              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-white font-bold text-base py-6 rounded-xl shadow-primary hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-white font-bold text-sm py-5 rounded-xl shadow-primary hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
               onClick={(e) => {
                 e.stopPropagation();
                 handleVideoApprovalClick();
               }}
             >
-              <PlayCircle className="h-5 w-5 mr-2" />
+              <PlayCircle className="h-4 w-4 mr-2" />
               Bekijk alle video's
             </Button>
           </div>
