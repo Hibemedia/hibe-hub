@@ -50,18 +50,18 @@ export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProp
   }, [customerName, metrics]);
 
   return (
-    <Card className="border-2 hover-card">
-      <CardContent className="p-4">
+    <Card className="border-0 shadow-md">
+      <CardContent className="p-5">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-primary rounded-lg shadow-primary shrink-0">
+          <div className="p-2.5 bg-primary rounded-xl shadow-sm shrink-0">
             <Sparkles className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
           </div>
           <div className="flex-1">
             {isLoading ? (
               <div className="space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-3/4 rounded-lg" />
+                <Skeleton className="h-4 w-full rounded-lg" />
+                <Skeleton className="h-4 w-2/3 rounded-lg" />
               </div>
             ) : (
               <p className="text-sm leading-relaxed text-foreground font-medium">{welcomeMessage}</p>
