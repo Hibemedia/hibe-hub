@@ -106,8 +106,24 @@ export function AppSidebar() {
                       to={item.url} 
                       className={getNavClasses(item.url)}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span className="ml-3">{item.title}</span>}
+                      <div className="relative">
+                        <item.icon className="h-4 w-4" />
+                        {item.url === "/video-approval" && (
+                          <div className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-destructive text-white text-[9px] font-bold animate-pulse">
+                            3
+                          </div>
+                        )}
+                      </div>
+                      {!collapsed && (
+                        <span className="ml-3 flex items-center gap-2">
+                          {item.title}
+                          {item.url === "/video-approval" && (
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive text-white text-[10px] font-bold animate-pulse">
+                              3
+                            </div>
+                          )}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
