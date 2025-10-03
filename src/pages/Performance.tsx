@@ -402,13 +402,10 @@ export default function Performance() {
         </CardContent>
       </Card>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* AI Insights - Now on Performance page */}
-        <AIInsightsWidget />
-        
-        {/* Top Videos - Larger on Performance page */}
-        <div className="lg:col-span-3">
+      {/* Content Grid - AI Insights next to Top Videos */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Videos */}
+        <div className="lg:col-span-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -500,6 +497,9 @@ export default function Performance() {
             </CardContent>
           </Card>
         </div>
+        
+        {/* AI Insights */}
+        <AIInsightsWidget />
       </div>
     </div>
   );
