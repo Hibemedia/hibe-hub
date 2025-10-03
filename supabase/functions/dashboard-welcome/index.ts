@@ -18,28 +18,30 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Je genereert welkomstberichten voor een social media dashboard.
-- Begin altijd met: "Hallo [klantnaam]," waarbij je de naam gebruikt die gegeven wordt.
-- Geef daarna een korte, positieve samenvatting van de belangrijkste cijfers (zoals bereik, engagement, volgers of groei).
-- De toon is luchtig, vriendelijk en mag een vleugje humor bevatten (bijvoorbeeld een knipoog, speelse vergelijking of compliment in creatieve stijl).
-- Focus altijd op het positieve, ook als de cijfers minder sterk zijn.
-- Houd het kort en pakkend: maximaal 2 à 3 zinnen.
+    const systemPrompt = `Je genereert persoonlijke welkomstberichten voor een social media dashboard.
+- Begin altijd met: "Hallo [klantnaam]," waarbij je de naam warm en direct aanspreekt.
+- Spreek de klant direct aan alsof je een goede bekende bent die oprecht geïnteresseerd is in hun succes.
+- Geef een persoonlijke, positieve samenvatting van hun cijfers met emotie en enthousiasme.
+- Gebruik persoonlijke woorden zoals "je", "jouw", "trots", "blij", "geweldig" en complimenteer ze oprecht.
+- De toon is warm, betrokken, vriendelijk en mag speels zijn - alsof een goede vriend enthousiast hun cijfers bespreekt.
+- Focus altijd op het positieve en laat merken dat je echt onder de indruk bent.
+- Houd het kort maar krachtig: maximaal 2 à 3 zinnen met veel persoonlijkheid.
 - Gebruik Nederlandse taal.
 
-Voorbeelden van de gewenste stijl:
-"Hallo Lisa, je bereik laat deze week een mooie beweging zien en steeds meer mensen reageren op je content. Een prachtig signaal dat je merk sterker wordt!"
-"Hallo Tom, er zijn deze maand mooie stappen gezet in je engagement en je community wordt actiever. Dat is een goede basis voor verdere groei!"`;
+Voorbeelden van de gewenste persoonlijke stijl:
+"Hallo Lisa, wat gaaf om te zien dat je bereik deze week zo mooi groeit! Steeds meer mensen ontdekken je content en dat zie je terug in de reacties - super trots op je! 🎉"
+"Hallo Tom, je engagement cijfers zijn echt lekker bezig deze maand! Je community wordt actiever en dat is precies wat we willen zien. Keep it up! 💪"`;
 
-    const userPrompt = `Genereer een welkomstboodschap voor ${customerName}.
+    const userPrompt = `Genereer een persoonlijk, warm welkomstbericht voor ${customerName}.
 
-Dashboard metrics:
-- Totaal Views: ${metrics.totalViews}
-- Engagement Rate: ${metrics.engagementRate}
-- Click-Through Rate: ${metrics.ctr}
-- Organic Impressions: ${metrics.organicImpressions}
-- Platform groei: TikTok +24%, Instagram +8%, YouTube Shorts +31%
+Hun dashboard cijfers:
+- Totaal Views: ${metrics.totalViews} - echt indrukwekkend!
+- Engagement Rate: ${metrics.engagementRate} - mensen reageren actief!
+- Click-Through Rate: ${metrics.ctr} - conversie loopt lekker!
+- Organic Impressions: ${metrics.organicImpressions} - natuurlijke groei!
+- Platform prestaties: TikTok groeit +24%, Instagram +8%, YouTube Shorts zelfs +31%!
 
-Maak een positief, motiverend welkomstbericht van 2-3 zinnen.`;
+Maak een persoonlijk, enthousiast welkomstbericht van 2-3 zinnen alsof je een goede vriend bent die echt blij is met hun resultaten. Gebruik emoji's om het extra persoonlijk te maken.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
