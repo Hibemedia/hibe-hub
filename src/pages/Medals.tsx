@@ -27,9 +27,9 @@ import {
 const allMedals = [
   {
     id: 1,
-    title: "100K Views",
+    title: "100K Views 🎯",
     description: "Eerste video met 100.000+ views",
-    motivation: "Uitstekende prestatie! Je content wordt breed gezien.",
+    motivation: "Uitstekende prestatie! Je content wordt breed gezien. 🚀",
     icon: Eye,
     achieved: true,
     achievedDate: "2024-01-15",
@@ -38,9 +38,9 @@ const allMedals = [
   },
   {
     id: 2,
-    title: "Engagement King",
+    title: "Engagement King 👑",
     description: "10%+ engagement rate behaald",
-    motivation: "Je publiek reageert actief op je content.",
+    motivation: "Je publiek reageert actief op je content. ❤️",
     icon: Users,
     achieved: true,
     achievedDate: "2024-01-10",
@@ -49,9 +49,9 @@ const allMedals = [
   },
   {
     id: 3,
-    title: "Trending Star",
+    title: "Trending Star ⭐",
     description: "Video in trending geplaatst",
-    motivation: "Je content heeft de trending pagina bereikt.",
+    motivation: "Je content heeft de trending pagina bereikt. 🔥",
     icon: TrendingUp,
     achieved: true,
     achievedDate: "2024-01-08",
@@ -60,9 +60,9 @@ const allMedals = [
   },
   {
     id: 4,
-    title: "Viral Hit",
+    title: "Viral Hit 💥",
     description: "1 miljoen views bereikt",
-    motivation: "Nog 25% te gaan tot deze mijlpaal.",
+    motivation: "Nog 25% te gaan tot deze mijlpaal. Blijf doorgaan! 🎯",
     icon: Target,
     achieved: false,
     progress: 75,
@@ -71,9 +71,9 @@ const allMedals = [
   },
   {
     id: 5,
-    title: "Consistency Master",
+    title: "Consistency Master 📅",
     description: "30 dagen op rij content gepost",
-    motivation: "6 van 30 dagen voltooid.",
+    motivation: "6 van 30 dagen voltooid. Consistentie is de sleutel! 💪",
     icon: Star,
     achieved: false,
     progress: 20,
@@ -82,9 +82,9 @@ const allMedals = [
   },
   {
     id: 6,
-    title: "Love Magnet",
+    title: "Love Magnet 💕",
     description: "50.000+ likes verzameld",
-    motivation: "Nog 7.500 likes te gaan.",
+    motivation: "Nog 7.500 likes te gaan. Bijna daar! 🌟",
     icon: Heart,
     achieved: false,
     progress: 85,
@@ -93,9 +93,9 @@ const allMedals = [
   },
   {
     id: 7,
-    title: "Content Creator",
+    title: "Content Creator 🎬",
     description: "100 video's gepubliceerd",
-    motivation: "45 van 100 video's gepubliceerd.",
+    motivation: "45 van 100 video's gepubliceerd. Blijf creëren! 🎥",
     icon: PlayCircle,
     achieved: false,
     progress: 45,
@@ -104,9 +104,9 @@ const allMedals = [
   },
   {
     id: 8,
-    title: "Anniversary",
+    title: "Anniversary 🎉",
     description: "1 jaar samenwerking",
-    motivation: "7 maanden voltooid.",
+    motivation: "7 maanden voltooid. Wat een reis samen! 🎊",
     icon: Calendar,
     achieved: false,
     progress: 60,
@@ -240,10 +240,10 @@ export default function Medals() {
       >
         <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight flex items-center gap-2">
           <Trophy className="h-7 w-7 text-amber-500" />
-          Medailles
+          Medailles 🏆
         </h1>
         <p className="text-sm text-muted-foreground">
-          Jouw behaalde prestaties en mijlpalen
+          Jouw behaalde prestaties en mijlpalen ✨
         </p>
       </motion.div>
 
@@ -254,7 +254,7 @@ export default function Medals() {
             <CardContent className="p-4 md:p-6">
               <div className="flex flex-col gap-1">
                 <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                  {achievedMedals.length}
+                  {achievedMedals.length} 🎉
                 </span>
                 <span className="text-xs md:text-sm text-muted-foreground">Behaald</span>
               </div>
@@ -267,7 +267,7 @@ export default function Medals() {
             <CardContent className="p-4 md:p-6">
               <div className="flex flex-col gap-1">
                 <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                  {inProgressMedals.length}
+                  {inProgressMedals.length} 🎯
                 </span>
                 <span className="text-xs md:text-sm text-muted-foreground">In progress</span>
               </div>
@@ -280,7 +280,7 @@ export default function Medals() {
             <CardContent className="p-4 md:p-6">
               <div className="flex flex-col gap-1">
                 <span className="text-2xl md:text-3xl font-semibold text-amber-900">
-                  {achievedMedals.filter(m => m.rarity === 'gold').length}
+                  {achievedMedals.filter(m => m.rarity === 'gold').length} 🥇
                 </span>
                 <span className="text-xs md:text-sm text-amber-700">Gouden</span>
               </div>
@@ -293,7 +293,7 @@ export default function Medals() {
             <CardContent className="p-4 md:p-6">
               <div className="flex flex-col gap-1">
                 <span className="text-2xl md:text-3xl font-semibold text-foreground">
-                  {Math.round((achievedMedals.length / allMedals.length) * 100)}%
+                  {Math.round((achievedMedals.length / allMedals.length) * 100)}% 💪
                 </span>
                 <span className="text-xs md:text-sm text-muted-foreground">Voltooid</span>
               </div>
@@ -307,7 +307,7 @@ export default function Medals() {
         <CardHeader className="border-b border-border bg-gradient-to-r from-amber-50/50 to-transparent">
           <CardTitle className="flex items-center gap-2 text-base md:text-lg font-semibold">
             <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
-            Behaalde Medailles
+            Behaalde Medailles 🎊
             <Sparkles className="h-4 w-4 text-amber-500 ml-auto" />
           </CardTitle>
         </CardHeader>
@@ -390,7 +390,7 @@ export default function Medals() {
         <CardHeader className="border-b border-border">
           <CardTitle className="flex items-center gap-2 text-base md:text-lg font-semibold">
             <Clock className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-            In Progress
+            In Progress 🚀
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 md:p-6">
@@ -465,9 +465,9 @@ export default function Medals() {
               onClick={(e) => e.stopPropagation()}
               className="bg-card border border-border rounded-lg shadow-xl max-w-md w-full p-6"
             >
-              <h3 className="text-lg font-semibold mb-1">Deel je prestatie</h3>
+              <h3 className="text-lg font-semibold mb-1">Deel je prestatie 🎉</h3>
               <p className="text-sm text-muted-foreground mb-6">
-                Laat anderen weten dat je {allMedals.find(m => m.id === shareModal)?.title} hebt behaald
+                Laat anderen weten dat je {allMedals.find(m => m.id === shareModal)?.title} hebt behaald!
               </p>
               <div className="space-y-2">
                 <Button
