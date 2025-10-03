@@ -5,8 +5,8 @@
 /* Pastel Crypto-Inspired B2B Portal */
 @layer base {
   :root {
-    /* Base - Beige/Cream palette */
-    --background: 33 20% 96%;
+    /* Base - Clean white palette */
+    --background: 0 0% 100%;
     --foreground: 0 0% 5%;
 
     /* Cards and surfaces */
