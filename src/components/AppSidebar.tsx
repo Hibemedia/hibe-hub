@@ -5,7 +5,6 @@ import {
   CheckCircle, 
   Award, 
   Archive, 
-  TrendingUp,
   Link,
   Settings,
   Home
@@ -55,16 +54,6 @@ const menuItems = [
     title: "Contentmomenten",
     url: "/content-moments",
     icon: Calendar,
-  },
-  {
-    title: "Metricool Admin",
-    url: "/metricool-admin",
-    icon: Settings,
-  },
-  {
-    title: "Social Analytics",
-    url: "/metricool-dashboard",
-    icon: TrendingUp,
   },
   {
     title: "Link in Bio",
