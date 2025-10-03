@@ -11,7 +11,7 @@ import VideoApproval from "./pages/VideoApproval";
 import Medals from "./pages/Medals";
 import Branding from "./pages/Branding";
 import ContentMoments from "./pages/ContentMoments";
-import LinkInBio from "./pages/LinkInBio";
+
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -46,7 +46,7 @@ const App = () => {
                   <Route path="/medals" element={<Medals />} />
                   <Route path="/branding" element={<Branding />} />
                   <Route path="/content-moments" element={<ContentMoments />} />
-                  <Route path="/link-in-bio" element={<LinkInBio />} />
+                  
                   <Route path="/settings" element={<Settings />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

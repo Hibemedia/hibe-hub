@@ -4,8 +4,7 @@ import {
   Calendar, 
   CheckCircle, 
   Award, 
-  Archive, 
-  Link,
+  Archive,
   Settings,
   Home
 } from "lucide-react";
@@ -54,11 +53,6 @@ const menuItems = [
     title: "Contentmomenten",
     url: "/content-moments",
     icon: Calendar,
-  },
-  {
-    title: "Link in Bio",
-    url: "/link-in-bio",
-    icon: Link,
   },
 ];
 
