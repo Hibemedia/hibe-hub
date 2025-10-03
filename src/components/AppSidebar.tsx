@@ -106,14 +106,7 @@ export function AppSidebar() {
                       to={item.url} 
                       className={getNavClasses(item.url)}
                     >
-                      <div className="relative">
-                        <item.icon className="h-4 w-4" />
-                        {item.url === "/video-approval" && (
-                          <div className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-destructive text-white text-[9px] font-bold animate-pulse">
-                            3
-                          </div>
-                        )}
-                      </div>
+                      <item.icon className="h-4 w-4" />
                       {!collapsed && (
                         <span className="ml-3 flex items-center gap-2">
                           {item.title}

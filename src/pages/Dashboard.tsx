@@ -179,9 +179,6 @@ export default function Dashboard() {
                 <PlayCircle className="h-4 w-4 text-white" />
               </div>
               Video's nog goed te keuren
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-destructive text-destructive-foreground text-xs font-bold animate-pulse">
-                3
-              </div>
             </CardTitle>
             <Badge className="bg-gradient-to-r from-primary to-primary-light text-white font-bold text-xs px-3 py-1 shadow-primary">
               3 video's 🎬
