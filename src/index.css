@@ -17,11 +17,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 5%;
 
-    /* Primary - Bold Orange (#FF6B35) */
-    --primary: 16 100% 60%;
+    /* Primary - Neon Orange (#FF5C00) */
+    --primary: 22 100% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 16 100% 95%;
-    --primary-dark: 16 100% 50%;
+    --primary-light: 22 100% 95%;
+    --primary-dark: 22 100% 40%;
 
     /* Secondary - Dark gray */
     --secondary: 0 0% 15%;
@@ -50,7 +50,7 @@
     /* Borders and inputs */
     --border: 0 0% 88%;
     --input: 0 0% 90%;
-    --ring: 16 100% 60%;
+    --ring: 22 100% 50%;
 
     /* Radius - Sharp minimal */
     --radius: 0.75rem;
@@ -58,12 +58,12 @@
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 5%;
-    --sidebar-primary: 16 100% 60%;
+    --sidebar-primary: 22 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 5%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 16 100% 60%;
+    --sidebar-ring: 22 100% 50%;
 
     /* Shadows - Bold and elevated */
     --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 0.08);
@@ -84,7 +84,7 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 16 100% 60%;
+    --primary: 22 100% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 15%;
@@ -98,7 +98,7 @@
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 16 100% 60%;
+    --ring: 22 100% 50%;
 
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 98%;
