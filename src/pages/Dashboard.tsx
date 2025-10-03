@@ -1,3 +1,4 @@
+import { DashboardWelcome } from "@/components/DashboardWelcome";
 import { MetricCard } from "@/components/MetricCard";
 import { MedaillesWidget } from "@/components/MedaillesWidget";
 import { TopVideos } from "@/components/TopVideos";
@@ -27,18 +28,25 @@ export default function Dashboard() {
     navigate("/video-approval");
   };
 
+  const metrics = {
+    totalViews: "1.2M",
+    engagementRate: "8.4%",
+    ctr: "3.2%",
+    organicImpressions: "892K"
+  };
+
   return (
     <div className="p-6 space-y-6">
+      {/* AI Welcome Message */}
+      <DashboardWelcome 
+        customerName="Barbershop Amsterdam" 
+        metrics={metrics}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Welkom terug, <span className="font-medium">Barbershop Amsterdam</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Removed the 3 nieuwe medailles badge and Download Rapport button */}
         </div>
       </div>
 
