@@ -10,385 +10,142 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.12 (cd3cf9e)"
+    PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
-      metricool_brands: {
+      metricool_config: {
         Row: {
-          adwords: string | null
-          adwordsaccountname: string | null
-          adwordsuserid: string | null
-          analyticmodewhitelabellink: string | null
-          availableconnectors: string | null
-          bluesky: string | null
-          blueskyhandle: string | null
-          blueskypicture: string | null
-          brandrole: string | null
+          blog_id: number
+          brand_name: string
+          client_id: string
           created_at: string | null
-          deleted: boolean | null
-          deleted_at: string | null
-          deletedate: string | null
-          description: string | null
-          engagementratio: number | null
-          facebook: string | null
-          facebookads: string | null
-          facebookadsname: string | null
-          facebookadspicture: string | null
-          facebookgroup: string | null
-          facebookgroupid: string | null
-          facebookgrouppicture: string | null
-          facebookpageid: string | null
-          facebookpicture: string | null
-          fbbusinessid: string | null
-          fbuserid: string | null
-          feedrss: string | null
-          firstconnectiondate: string | null
-          frontendversion: string | null
-          gmb: string | null
-          gmbaccountname: string | null
-          gmbaddress: string | null
-          gmburl: string | null
-          gmbuserid: string | null
-          googleplus: string | null
-          hash: string | null
-          id: number
-          instagram: string | null
-          instagramconnectiontype: string | null
-          instagrampicture: string | null
-          inuserid: string | null
-          isshared: boolean | null
-          iswhitelabel: boolean | null
-          iswhitelabelonlyread: boolean | null
-          joindate: string | null
-          label: string | null
-          last_synced_at: string | null
-          lastreadinboxmessagetimestamp: string | null
-          lastresolvedinboxmessagetimestamp: string | null
-          linkedincompany: string | null
-          linkedincompanyname: string | null
-          linkedincompanypicture: string | null
-          linkedinpicture: string | null
-          linkedintokenexpiration: string | null
-          linkedinuserprofileurl: string | null
-          owneruserid: number | null
-          ownerusername: string | null
-          picture: string | null
-          pinterest: string | null
-          pinterestbusiness: string | null
-          pinterestpicture: string | null
-          raw_data: Json | null
-          role: string | null
-          threads: string | null
-          threadsaccountname: string | null
-          threadspicture: string | null
-          tiktok: string | null
-          tiktokaccounttype: string | null
-          tiktokads: string | null
-          tiktokadsdisplayname: string | null
-          tiktokadspicture: string | null
-          tiktokadsuserid: string | null
-          tiktokbusinesstokenexpiration: string | null
-          tiktokpicture: string | null
-          tiktokuserprofileurl: string | null
-          timezone: string | null
-          title: string | null
-          twitch: string | null
-          twitchchannelid: string | null
-          twitchname: string | null
-          twitchpicture: string | null
-          twitter: string | null
-          twitterpicture: string | null
-          twittersubscriptiontype: string | null
-          updated_at: string | null
-          url: string | null
-          userid: number | null
-          version: string | null
-          whitelabelalias: string | null
-          whitelabellink: string | null
-          youtube: string | null
-          youtubechannelname: string | null
-          youtubechannelpicture: string | null
-        }
-        Insert: {
-          adwords?: string | null
-          adwordsaccountname?: string | null
-          adwordsuserid?: string | null
-          analyticmodewhitelabellink?: string | null
-          availableconnectors?: string | null
-          bluesky?: string | null
-          blueskyhandle?: string | null
-          blueskypicture?: string | null
-          brandrole?: string | null
-          created_at?: string | null
-          deleted?: boolean | null
-          deleted_at?: string | null
-          deletedate?: string | null
-          description?: string | null
-          engagementratio?: number | null
-          facebook?: string | null
-          facebookads?: string | null
-          facebookadsname?: string | null
-          facebookadspicture?: string | null
-          facebookgroup?: string | null
-          facebookgroupid?: string | null
-          facebookgrouppicture?: string | null
-          facebookpageid?: string | null
-          facebookpicture?: string | null
-          fbbusinessid?: string | null
-          fbuserid?: string | null
-          feedrss?: string | null
-          firstconnectiondate?: string | null
-          frontendversion?: string | null
-          gmb?: string | null
-          gmbaccountname?: string | null
-          gmbaddress?: string | null
-          gmburl?: string | null
-          gmbuserid?: string | null
-          googleplus?: string | null
-          hash?: string | null
-          id: number
-          instagram?: string | null
-          instagramconnectiontype?: string | null
-          instagrampicture?: string | null
-          inuserid?: string | null
-          isshared?: boolean | null
-          iswhitelabel?: boolean | null
-          iswhitelabelonlyread?: boolean | null
-          joindate?: string | null
-          label?: string | null
-          last_synced_at?: string | null
-          lastreadinboxmessagetimestamp?: string | null
-          lastresolvedinboxmessagetimestamp?: string | null
-          linkedincompany?: string | null
-          linkedincompanyname?: string | null
-          linkedincompanypicture?: string | null
-          linkedinpicture?: string | null
-          linkedintokenexpiration?: string | null
-          linkedinuserprofileurl?: string | null
-          owneruserid?: number | null
-          ownerusername?: string | null
-          picture?: string | null
-          pinterest?: string | null
-          pinterestbusiness?: string | null
-          pinterestpicture?: string | null
-          raw_data?: Json | null
-          role?: string | null
-          threads?: string | null
-          threadsaccountname?: string | null
-          threadspicture?: string | null
-          tiktok?: string | null
-          tiktokaccounttype?: string | null
-          tiktokads?: string | null
-          tiktokadsdisplayname?: string | null
-          tiktokadspicture?: string | null
-          tiktokadsuserid?: string | null
-          tiktokbusinesstokenexpiration?: string | null
-          tiktokpicture?: string | null
-          tiktokuserprofileurl?: string | null
-          timezone?: string | null
-          title?: string | null
-          twitch?: string | null
-          twitchchannelid?: string | null
-          twitchname?: string | null
-          twitchpicture?: string | null
-          twitter?: string | null
-          twitterpicture?: string | null
-          twittersubscriptiontype?: string | null
-          updated_at?: string | null
-          url?: string | null
-          userid?: number | null
-          version?: string | null
-          whitelabelalias?: string | null
-          whitelabellink?: string | null
-          youtube?: string | null
-          youtubechannelname?: string | null
-          youtubechannelpicture?: string | null
-        }
-        Update: {
-          adwords?: string | null
-          adwordsaccountname?: string | null
-          adwordsuserid?: string | null
-          analyticmodewhitelabellink?: string | null
-          availableconnectors?: string | null
-          bluesky?: string | null
-          blueskyhandle?: string | null
-          blueskypicture?: string | null
-          brandrole?: string | null
-          created_at?: string | null
-          deleted?: boolean | null
-          deleted_at?: string | null
-          deletedate?: string | null
-          description?: string | null
-          engagementratio?: number | null
-          facebook?: string | null
-          facebookads?: string | null
-          facebookadsname?: string | null
-          facebookadspicture?: string | null
-          facebookgroup?: string | null
-          facebookgroupid?: string | null
-          facebookgrouppicture?: string | null
-          facebookpageid?: string | null
-          facebookpicture?: string | null
-          fbbusinessid?: string | null
-          fbuserid?: string | null
-          feedrss?: string | null
-          firstconnectiondate?: string | null
-          frontendversion?: string | null
-          gmb?: string | null
-          gmbaccountname?: string | null
-          gmbaddress?: string | null
-          gmburl?: string | null
-          gmbuserid?: string | null
-          googleplus?: string | null
-          hash?: string | null
-          id?: number
-          instagram?: string | null
-          instagramconnectiontype?: string | null
-          instagrampicture?: string | null
-          inuserid?: string | null
-          isshared?: boolean | null
-          iswhitelabel?: boolean | null
-          iswhitelabelonlyread?: boolean | null
-          joindate?: string | null
-          label?: string | null
-          last_synced_at?: string | null
-          lastreadinboxmessagetimestamp?: string | null
-          lastresolvedinboxmessagetimestamp?: string | null
-          linkedincompany?: string | null
-          linkedincompanyname?: string | null
-          linkedincompanypicture?: string | null
-          linkedinpicture?: string | null
-          linkedintokenexpiration?: string | null
-          linkedinuserprofileurl?: string | null
-          owneruserid?: number | null
-          ownerusername?: string | null
-          picture?: string | null
-          pinterest?: string | null
-          pinterestbusiness?: string | null
-          pinterestpicture?: string | null
-          raw_data?: Json | null
-          role?: string | null
-          threads?: string | null
-          threadsaccountname?: string | null
-          threadspicture?: string | null
-          tiktok?: string | null
-          tiktokaccounttype?: string | null
-          tiktokads?: string | null
-          tiktokadsdisplayname?: string | null
-          tiktokadspicture?: string | null
-          tiktokadsuserid?: string | null
-          tiktokbusinesstokenexpiration?: string | null
-          tiktokpicture?: string | null
-          tiktokuserprofileurl?: string | null
-          timezone?: string | null
-          title?: string | null
-          twitch?: string | null
-          twitchchannelid?: string | null
-          twitchname?: string | null
-          twitchpicture?: string | null
-          twitter?: string | null
-          twitterpicture?: string | null
-          twittersubscriptiontype?: string | null
-          updated_at?: string | null
-          url?: string | null
-          userid?: number | null
-          version?: string | null
-          whitelabelalias?: string | null
-          whitelabellink?: string | null
-          youtube?: string | null
-          youtubechannelname?: string | null
-          youtubechannelpicture?: string | null
-        }
-        Relationships: []
-      }
-      metricool_credentials: {
-        Row: {
-          access_token: string
-          created_at: string | null
-          id: number
-          singleton_check: boolean | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          access_token: string
-          created_at?: string | null
-          id?: number
-          singleton_check?: boolean | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          access_token?: string
-          created_at?: string | null
-          id?: number
-          singleton_check?: boolean | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      metricool_sync_logs: {
-        Row: {
-          created: number | null
-          created_at: string | null
-          error_message: string | null
-          finished_at: string | null
-          id: number
-          marked_deleted: number | null
-          source: string | null
-          started_at: string | null
-          status: string | null
-          updated: number | null
-        }
-        Insert: {
-          created?: number | null
-          created_at?: string | null
-          error_message?: string | null
-          finished_at?: string | null
-          id?: number
-          marked_deleted?: number | null
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          updated?: number | null
-        }
-        Update: {
-          created?: number | null
-          created_at?: string | null
-          error_message?: string | null
-          finished_at?: string | null
-          id?: number
-          marked_deleted?: number | null
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          updated?: number | null
-        }
-        Relationships: []
-      }
-      users: {
-        Row: {
-          created_at: string | null
-          email: string
           id: string
-          role: Database["public"]["Enums"]["user_role"]
+          is_active: boolean | null
           updated_at: string | null
+          user_id: number
         }
         Insert: {
+          blog_id: number
+          brand_name: string
+          client_id: string
           created_at?: string | null
-          email: string
-          id: string
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
           id?: string
-          role?: Database["public"]["Enums"]["user_role"]
+          is_active?: boolean | null
           updated_at?: string | null
+          user_id: number
+        }
+        Update: {
+          blog_id?: number
+          brand_name?: string
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: number
+        }
+        Relationships: []
+      }
+      metricool_metrics: {
+        Row: {
+          blog_id: number
+          client_id: string
+          created_at: string | null
+          id: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          platform: string
+        }
+        Insert: {
+          blog_id: number
+          client_id: string
+          created_at?: string | null
+          id?: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          platform: string
+        }
+        Update: {
+          blog_id?: number
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          platform?: string
+        }
+        Relationships: []
+      }
+      metricool_posts: {
+        Row: {
+          blog_id: number
+          caption: string | null
+          client_id: string
+          created_at: string | null
+          id: string
+          metrics: Json | null
+          platform: string
+          post_id: string
+          post_type: string
+          published_at: string | null
+          scheduled_at: string | null
+        }
+        Insert: {
+          blog_id: number
+          caption?: string | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          metrics?: Json | null
+          platform: string
+          post_id: string
+          post_type: string
+          published_at?: string | null
+          scheduled_at?: string | null
+        }
+        Update: {
+          blog_id?: number
+          caption?: string | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          metrics?: Json | null
+          platform?: string
+          post_id?: string
+          post_type?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+        }
+        Relationships: []
+      }
+      metricool_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: number
+          user_token: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: number
+          user_token: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: number
+          user_token?: string
         }
         Relationships: []
       }
@@ -397,21 +154,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_deleted_metricool_brands: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      user_role: "admin" | "manager" | "klant"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -538,8 +284,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      user_role: ["admin", "manager", "klant"],
-    },
+    Enums: {},
   },
 } as const

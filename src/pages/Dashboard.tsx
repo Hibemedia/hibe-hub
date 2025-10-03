@@ -1,6 +1,9 @@
-import { MetricCard } from "@/components/MetricCard";
+import { useState } from "react";
+import { RealtimeMetricCard } from "@/components/RealtimeMetricCard";
 import { MedaillesWidget } from "@/components/MedaillesWidget";
 import { TopVideos } from "@/components/TopVideos";
+import { ClientSelector } from "@/components/ClientSelector";
+import { PlatformOverview } from "@/components/PlatformOverview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,9 +25,16 @@ import dashboardVideo2 from "@/assets/dashboard-video-2.jpg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
+  const [selectedBrandName, setSelectedBrandName] = useState<string>("");
 
   const handleVideoApprovalClick = () => {
     navigate("/video-approval");
+  };
+
+  const handleClientSelect = (blogId: number, brandName: string) => {
+    setSelectedBlogId(blogId);
+    setSelectedBrandName(brandName);
   };
 
   return (
@@ -34,7 +44,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
-            Welkom terug, <span className="font-medium">Barbershop Amsterdam</span>
+            Welkom terug, <span className="font-medium">{selectedBrandName || "Selecteer een klant"}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -42,72 +52,46 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Client Selection */}
+      <ClientSelector 
+        onClientSelect={handleClientSelect}
+        selectedClient={selectedBlogId?.toString() || ""}
+      />
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
+        <RealtimeMetricCard
           title="Totaal Views"
-          value="1.2M"
-          change="+12% vs vorige maand"
-          changeType="positive"
+          metricType="performance"
           icon={Eye}
+          selectedBlogId={selectedBlogId}
+          selectedBrandName={selectedBrandName}
         />
-        <MetricCard
+        <RealtimeMetricCard
           title="Engagement Rate"
-          value="8.4%"
-          change="+2.1% vs vorige maand"
-          changeType="positive"
+          metricType="engagement"
           icon={Heart}
+          selectedBlogId={selectedBlogId}
+          selectedBrandName={selectedBrandName}
         />
-        <MetricCard
-          title="Click-Through Rate"
-          value="3.2%"
-          change="+0.8% vs vorige maand"
-          changeType="positive"
+        <RealtimeMetricCard
+          title="Volgers"
+          metricType="followers"
           icon={MousePointer}
+          selectedBlogId={selectedBlogId}
+          selectedBrandName={selectedBrandName}
         />
-        <MetricCard
-          title="Organic Impressions"
-          value="892K"
-          change="+18% vs vorige maand"
-          changeType="positive"
+        <RealtimeMetricCard
+          title="Overzicht"
+          metricType="overview"
           icon={TrendingUp}
+          selectedBlogId={selectedBlogId}
+          selectedBrandName={selectedBrandName}
         />
       </div>
 
       {/* Platform Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Platform Overzicht</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">TikTok</h3>
-                <Badge className="bg-black text-white">Trending</Badge>
-              </div>
-              <div className="text-2xl font-bold text-foreground">456K</div>
-              <p className="text-sm text-muted-foreground">+24% deze maand</p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">Instagram</h3>
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">Stabiel</Badge>
-              </div>
-              <div className="text-2xl font-bold text-foreground">234K</div>
-              <p className="text-sm text-muted-foreground">+8% deze maand</p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">YouTube Shorts</h3>
-                <Badge className="bg-red-500 text-white">Groeiend</Badge>
-              </div>
-              <div className="text-2xl font-bold text-foreground">123K</div>
-              <p className="text-sm text-muted-foreground">+31% deze maand</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <PlatformOverview selectedBlogId={selectedBlogId} />
 
       {/* Video Approval Widget - Full Width */}
       <Card 
@@ -176,10 +160,16 @@ export default function Dashboard() {
       {/* Two Column Layout for Medals and Top Videos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Medailles Widget */}
-        <MedaillesWidget />
+        <MedaillesWidget 
+          selectedBlogId={selectedBlogId}
+          selectedBrandName={selectedBrandName}
+        />
         
         {/* Top Videos */}
-        <TopVideos />
+        <TopVideos 
+          selectedBlogId={selectedBlogId}
+          selectedBrandName={selectedBrandName}
+        />
       </div>
 
       {/* Recent Activity */}
