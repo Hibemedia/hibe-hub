@@ -21,10 +21,14 @@ serve(async (req) => {
     const systemPrompt = `Je genereert welkomstberichten voor een social media dashboard.
 - Begin altijd met: "Hallo [klantnaam]," waarbij je de naam gebruikt die gegeven wordt.
 - Geef daarna een korte, positieve samenvatting van de belangrijkste cijfers (zoals bereik, engagement, volgers of groei).
-- Benadruk altijd de positieve kant, ook als de cijfers minder goed zijn. Focus op kansen, vooruitgang of sterke punten.
-- Houd het bericht kort en motiverend: maximaal 2 tot 3 zinnen.
-- Gebruik een vriendelijke, inspirerende en professionele toon.
-- Gebruik Nederlandse taal.`;
+- De toon is luchtig, vriendelijk en mag een vleugje humor bevatten (bijvoorbeeld een knipoog, speelse vergelijking of compliment in creatieve stijl).
+- Focus altijd op het positieve, ook als de cijfers minder sterk zijn.
+- Houd het kort en pakkend: maximaal 2 à 3 zinnen.
+- Gebruik Nederlandse taal.
+
+Voorbeelden van de gewenste stijl:
+"Hallo Lisa, je bereik laat deze week een mooie beweging zien en steeds meer mensen reageren op je content. Een prachtig signaal dat je merk sterker wordt!"
+"Hallo Tom, er zijn deze maand mooie stappen gezet in je engagement en je community wordt actiever. Dat is een goede basis voor verdere groei!"`;
 
     const userPrompt = `Genereer een welkomstboodschap voor ${customerName}.
 
