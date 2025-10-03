@@ -108,7 +108,7 @@ const reviewer = {
 };
 
 const statusFilters = [
-  { value: "all", label: "Alles", count: 5 },
+  { value: "pending", label: "Wachtend", count: 2 },
   { value: "approved", label: "Goedgekeurd", count: 2 },
   { value: "rejected", label: "Afgekeurd", count: 1 }
 ];
@@ -119,14 +119,13 @@ export default function VideoApproval() {
   const [currentTime, setCurrentTime] = useState(0);
   const [newComment, setNewComment] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("pending");
   const [videoStatus, setVideoStatus] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [videoDuration, setVideoDuration] = useState(0);
   const videoRef = useRef(null);
 
   const filteredVideos = videos.filter(video => {
-    if (statusFilter === "all") return true;
     return video.status === statusFilter;
   });
 
