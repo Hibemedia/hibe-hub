@@ -35,17 +35,17 @@ export function MetricCard({
       "relative overflow-hidden group border-2 hover-card backdrop-blur-sm",
       className
     )}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-3 px-3">
+        <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           {title}
         </CardTitle>
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-primary group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-          <Icon className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-primary group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+          <Icon className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold text-foreground mb-2 tracking-tight">{value}</div>
-        <p className={cn("text-xs font-bold uppercase tracking-wide", getChangeColor())}>
+      <CardContent className="px-3 pb-3">
+        <div className="text-2xl font-bold text-foreground mb-1 tracking-tight">{value}</div>
+        <p className={cn("text-[11px] font-bold uppercase tracking-wide", getChangeColor())}>
           {change}
         </p>
       </CardContent>

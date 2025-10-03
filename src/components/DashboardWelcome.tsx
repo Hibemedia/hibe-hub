@@ -51,20 +51,20 @@ export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProp
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 via-background to-primary/5 border-2 border-primary/20 hover-card backdrop-blur-sm">
-      <CardContent className="p-6 md:p-8">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-primary rounded-xl shadow-primary">
-            <Sparkles className="h-6 w-6 text-primary-foreground" strokeWidth={2.5} />
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-primary rounded-lg shadow-primary">
+            <Sparkles className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
           </div>
           <div className="flex-1">
             {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-2/3" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
               </div>
             ) : (
-              <p className="text-base md:text-lg leading-relaxed text-foreground font-medium">{welcomeMessage}</p>
+              <p className="text-sm leading-relaxed text-foreground font-medium">{welcomeMessage}</p>
             )}
           </div>
         </div>
