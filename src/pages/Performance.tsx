@@ -402,34 +402,33 @@ export default function Performance() {
         </CardContent>
       </Card>
 
-      {/* Content Grid - AI Insights next to Top Videos */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Content Grid - Top Videos and AI Insights side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Videos */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Play className="h-5 w-5 text-primary" />
-                  Top 5 Video's deze maand
-                </CardTitle>
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-48">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border border-border shadow-lg z-50">
-                    {months.map((month) => (
-                      <SelectItem key={month.value} value={month.value}>
-                        {month.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Play className="h-5 w-5 text-primary" />
+                Top 5 Video's deze maand
+              </CardTitle>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-48">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border border-border shadow-lg z-50">
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4">
                 {performanceVideos.map((video, index) => (
                   <div 
                     key={video.id} 
@@ -496,8 +495,7 @@ export default function Performance() {
               </div>
             </CardContent>
           </Card>
-        </div>
-        
+
         {/* AI Insights */}
         <AIInsightsWidget />
       </div>
