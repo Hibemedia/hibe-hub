@@ -238,9 +238,8 @@ export default function Medals() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-1"
       >
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <Trophy className="h-7 w-7 text-amber-500" />
-          Medailles 🏆
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight flex items-center gap-3">
+          🏆 Medailles 🏆
         </h1>
         <p className="text-sm text-muted-foreground">
           Jouw behaalde prestaties en mijlpalen ✨
