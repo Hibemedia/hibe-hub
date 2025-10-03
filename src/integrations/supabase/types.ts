@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
+  // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -302,39 +302,6 @@ export type Database = {
         }
         Relationships: []
       }
-      metricool_content_sync_logs: {
-        Row: {
-          brand_id: number | null
-          created_at: string
-          errors: Json | null
-          id: string
-          platform: string | null
-          posts_fetched: number | null
-          raw_response: Json | null
-          synced_at: string
-        }
-        Insert: {
-          brand_id?: number | null
-          created_at?: string
-          errors?: Json | null
-          id?: string
-          platform?: string | null
-          posts_fetched?: number | null
-          raw_response?: Json | null
-          synced_at?: string
-        }
-        Update: {
-          brand_id?: number | null
-          created_at?: string
-          errors?: Json | null
-          id?: string
-          platform?: string | null
-          posts_fetched?: number | null
-          raw_response?: Json | null
-          synced_at?: string
-        }
-        Relationships: []
-      }
       metricool_credentials: {
         Row: {
           access_token: string
@@ -401,210 +368,11 @@ export type Database = {
         }
         Relationships: []
       }
-      metricool_sync_schedule: {
-        Row: {
-          created_at: string
-          enabled: boolean
-          id: number
-          include_posts: boolean
-          interval_hours: number
-          last_run_at: string | null
-          next_run_at: string | null
-          singleton_check: boolean | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          enabled?: boolean
-          id?: number
-          include_posts?: boolean
-          interval_hours?: number
-          last_run_at?: string | null
-          next_run_at?: string | null
-          singleton_check?: boolean | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          enabled?: boolean
-          id?: number
-          include_posts?: boolean
-          interval_hours?: number
-          last_run_at?: string | null
-          next_run_at?: string | null
-          singleton_check?: boolean | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      post_metrics_daily: {
-        Row: {
-          average_time_watched: number | null
-          clicks: number | null
-          comments: number | null
-          created_at: string
-          date: string
-          duration: number | null
-          engagement: number | null
-          full_video_watched_rate: number | null
-          id: string
-          impression_sources: Json | null
-          impressions: number | null
-          likes: number | null
-          post_id: string
-          raw_data: Json | null
-          reach: number | null
-          saves: number | null
-          shares: number | null
-          total_time_watched: number | null
-          updated_at: string
-          views: number | null
-        }
-        Insert: {
-          average_time_watched?: number | null
-          clicks?: number | null
-          comments?: number | null
-          created_at?: string
-          date: string
-          duration?: number | null
-          engagement?: number | null
-          full_video_watched_rate?: number | null
-          id?: string
-          impression_sources?: Json | null
-          impressions?: number | null
-          likes?: number | null
-          post_id: string
-          raw_data?: Json | null
-          reach?: number | null
-          saves?: number | null
-          shares?: number | null
-          total_time_watched?: number | null
-          updated_at?: string
-          views?: number | null
-        }
-        Update: {
-          average_time_watched?: number | null
-          clicks?: number | null
-          comments?: number | null
-          created_at?: string
-          date?: string
-          duration?: number | null
-          engagement?: number | null
-          full_video_watched_rate?: number | null
-          id?: string
-          impression_sources?: Json | null
-          impressions?: number | null
-          likes?: number | null
-          post_id?: string
-          raw_data?: Json | null
-          reach?: number | null
-          saves?: number | null
-          shares?: number | null
-          total_time_watched?: number | null
-          updated_at?: string
-          views?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "post_metrics_daily_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      posts: {
-        Row: {
-          brand_id: number | null
-          content: string | null
-          created_at: string
-          id: string
-          media_url: string | null
-          platform: string
-          post_id: string
-          posted_at: string | null
-          updated_at: string
-          url: string | null
-        }
-        Insert: {
-          brand_id?: number | null
-          content?: string | null
-          created_at?: string
-          id?: string
-          media_url?: string | null
-          platform: string
-          post_id: string
-          posted_at?: string | null
-          updated_at?: string
-          url?: string | null
-        }
-        Update: {
-          brand_id?: number | null
-          content?: string | null
-          created_at?: string
-          id?: string
-          media_url?: string | null
-          platform?: string
-          post_id?: string
-          posted_at?: string | null
-          updated_at?: string
-          url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "posts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "metricool_brands"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      social_accounts: {
-        Row: {
-          account_id: string | null
-          account_name: string | null
-          brand_id: number | null
-          created_at: string
-          id: string
-          platform: string
-          updated_at: string
-        }
-        Insert: {
-          account_id?: string | null
-          account_name?: string | null
-          brand_id?: number | null
-          created_at?: string
-          id?: string
-          platform: string
-          updated_at?: string
-        }
-        Update: {
-          account_id?: string | null
-          account_name?: string | null
-          brand_id?: number | null
-          created_at?: string
-          id?: string
-          platform?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "social_accounts_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "metricool_brands"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       users: {
         Row: {
           created_at: string | null
           email: string
           id: string
-          metricool_brand_id: number | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
@@ -612,7 +380,6 @@ export type Database = {
           created_at?: string | null
           email: string
           id: string
-          metricool_brand_id?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
@@ -620,19 +387,10 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
-          metricool_brand_id?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "users_metricool_brand_id_fkey"
-            columns: ["metricool_brand_id"]
-            isOneToOne: false
-            referencedRelation: "metricool_brands"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -640,10 +398,6 @@ export type Database = {
     }
     Functions: {
       cleanup_deleted_metricool_brands: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_old_sync_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

@@ -8,8 +8,6 @@ import { AdminSidebar } from "@/components/AdminSidebar";
 import { ClientSidebar } from "@/components/ClientSidebar";
 import { AuthProvider, useAuth } from "@/lib/auth/useAuth";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
-import { LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // Auth pages
 import Login from "./pages/auth/Login";
@@ -26,8 +24,6 @@ import ClientDashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import MetricoolAPI from "./pages/admin/MetricoolAPI";
-
-
 
 // Existing pages
 import Performance from "./pages/Performance";
@@ -229,58 +225,20 @@ const App = () => (
 
 // Layout component for admin pages
 function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      // Clean up auth state
-      const cleanupAuthState = () => {
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-            localStorage.removeItem(key);
-          }
-        });
-        Object.keys(sessionStorage || {}).forEach((key) => {
-          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-            sessionStorage.removeItem(key);
-          }
-        });
-      };
-      
-      cleanupAuthState();
-      await signOut();
-      window.location.href = '/admin/login';
-    } catch (error) {
-      console.error('Error signing out:', error);
-      window.location.href = '/admin/login';
-    }
-  };
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AdminSidebar />
         <main className="flex-1 overflow-auto">
           <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-            <div className="flex items-center justify-between h-full px-6">
-              <div className="flex items-center">
-                <SidebarTrigger className="mr-4" />
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gradient-primary rounded-md flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">H</span>
-                  </div>
-                  <span className="font-semibold text-foreground">Hibe Media Admin</span>
+            <div className="flex items-center h-full px-6">
+              <SidebarTrigger className="mr-4" />
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-primary rounded-md flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">H</span>
                 </div>
+                <span className="font-semibold text-foreground">Hibe Media Admin</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Uitloggen</span>
-              </Button>
             </div>
           </header>
           {children}
@@ -292,58 +250,20 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
 // Layout component for client pages
 function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      // Clean up auth state
-      const cleanupAuthState = () => {
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-            localStorage.removeItem(key);
-          }
-        });
-        Object.keys(sessionStorage || {}).forEach((key) => {
-          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-            sessionStorage.removeItem(key);
-          }
-        });
-      };
-      
-      cleanupAuthState();
-      await signOut();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Error signing out:', error);
-      window.location.href = '/login';
-    }
-  };
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <ClientSidebar />
         <main className="flex-1 overflow-auto">
           <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-            <div className="flex items-center justify-between h-full px-6">
-              <div className="flex items-center">
-                <SidebarTrigger className="mr-4" />
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gradient-primary rounded-md flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">H</span>
-                  </div>
-                  <span className="font-semibold text-foreground">Hibe Media Portal</span>
+            <div className="flex items-center h-full px-6">
+              <SidebarTrigger className="mr-4" />
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-primary rounded-md flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">H</span>
                 </div>
+                <span className="font-semibold text-foreground">Hibe Media Portal</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Uitloggen</span>
-              </Button>
             </div>
           </header>
           {children}

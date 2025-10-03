@@ -6,10 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
-import { Loader2, CheckCircle, XCircle, RefreshCw, Clock, Users, Settings, Timer } from 'lucide-react'
+import { Loader2, CheckCircle, XCircle, RefreshCw, Clock, Users } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 
@@ -124,16 +121,6 @@ interface SyncLog {
   error_message: string | null
 }
 
-interface SyncSchedule {
-  id: number
-  interval_hours: number
-  enabled: boolean
-  last_run_at: string | null
-  next_run_at: string | null
-  created_at: string
-  updated_at: string
-}
-
 const PLATFORM_COLORS = {
   Facebook: 'bg-blue-500',
   Instagram: 'bg-pink-500',
@@ -176,34 +163,19 @@ export default function MetricoolAPI() {
   })
   const [brands, setBrands] = useState<MetricoolBrand[]>([])
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([])
-  const [syncSchedule, setSyncSchedule] = useState<SyncSchedule | null>(null)
   const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [isSavingCredentials, setIsSavingCredentials] = useState(false)
-  const [isSavingSchedule, setIsSavingSchedule] = useState(false)
-  
-  // Pagination state for sync logs
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [totalCount, setTotalCount] = useState(0)
-  
   const { toast } = useToast()
 
   // Load existing credentials and data
   useEffect(() => {
     loadCredentials()
     loadBrands()
-    loadSyncSchedule()
     loadSyncLogs()
   }, [])
-
-  // Reload sync logs when pagination changes
-  useEffect(() => {
-    loadSyncLogs()
-  }, [currentPage, itemsPerPage])
 
   const loadCredentials = async () => {
     try {
@@ -239,88 +211,19 @@ export default function MetricoolAPI() {
     }
   }
 
-  const loadSyncSchedule = async () => {
-    try {
-      const { data } = await supabase
-        .from('metricool_sync_schedule')
-        .select('*')
-        .single()
-
-      if (data) {
-        setSyncSchedule(data as SyncSchedule)
-      }
-    } catch (error) {
-      console.error('Error loading sync schedule:', error)
-    }
-  }
-
   const loadSyncLogs = async () => {
     try {
-      // Get total count
-      const { count } = await supabase
-        .from('metricool_sync_logs')
-        .select('*', { count: 'exact', head: true })
-
-      setTotalCount(count || 0)
-
-      // Get paginated data
-      const offset = (currentPage - 1) * itemsPerPage
       const { data } = await supabase
         .from('metricool_sync_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .range(offset, offset + itemsPerPage - 1)
+        .limit(10)
 
       if (data) {
         setSyncLogs(data as any)
       }
     } catch (error) {
       console.error('Error loading sync logs:', error)
-    }
-  }
-
-  const saveScheduleSettings = async () => {
-    if (!syncSchedule) return
-
-    setIsSavingSchedule(true)
-
-    try {
-      // Calculate next run time if enabled
-      let nextRunAt = null
-      if (syncSchedule.enabled) {
-        const now = new Date()
-        nextRunAt = new Date(now.getTime() + syncSchedule.interval_hours * 60 * 60 * 1000)
-      }
-
-      const { error } = await supabase
-        .from('metricool_sync_schedule')
-        .update({
-          interval_hours: syncSchedule.interval_hours,
-          enabled: syncSchedule.enabled,
-          next_run_at: nextRunAt?.toISOString() || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', syncSchedule.id)
-
-      if (error) throw error
-
-      // Reload schedule to ensure state is up to date
-      await loadSyncSchedule()
-
-      toast({
-        title: "Instellingen opgeslagen",
-        description: syncSchedule.enabled 
-          ? `Automatische synchronisatie ingesteld op elke ${syncSchedule.interval_hours} uur`
-          : "Automatische synchronisatie uitgeschakeld"
-      })
-    } catch (error: any) {
-      toast({
-        title: "Fout bij opslaan",
-        description: error.message,
-        variant: "destructive"
-      })
-    } finally {
-      setIsSavingSchedule(false)
     }
   }
 
@@ -434,25 +337,6 @@ export default function MetricoolAPI() {
     return new Date(dateString).toLocaleString('nl-NL')
   }
 
-  const [resyncingBrandId, setResyncingBrandId] = useState<number | null>(null)
-  const resyncBrand = async (brandId: number) => {
-    try {
-      setResyncingBrandId(brandId)
-      const { data, error } = await supabase.functions.invoke('metricool-sync-brands', {
-        body: { source: 'manual_brand_resync', brand_id: brandId, force_full: true }
-      })
-      if (error) throw error
-      toast({ title: 'Her-sync gestart', description: `Brand ${brandId}: ${data?.updated ?? 0} bijgewerkt` })
-      await loadBrands()
-    } catch (e: any) {
-      toast({ title: 'Her-sync mislukt', description: e.message, variant: 'destructive' })
-    } finally {
-      setResyncingBrandId(null)
-      loadSyncLogs()
-    }
-  }
-
-
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8">
@@ -511,7 +395,7 @@ export default function MetricoolAPI() {
             >
               {isSyncing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <RefreshCw className="mr-2 h-4 w-4" />
-              Synchroniseren
+              Handmatig synchroniseren
             </Button>
           </div>
 
@@ -524,88 +408,6 @@ export default function MetricoolAPI() {
               )}
               <AlertDescription>{connectionMessage}</AlertDescription>
             </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Automatic Synchronization */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Timer className="h-5 w-5" />
-            Automatische Synchronisatie
-          </CardTitle>
-          <CardDescription>
-            Stel in wanneer brands automatisch opgehaald moeten worden
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {syncSchedule && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="syncInterval">Synchronisatie interval</Label>
-                  <Select 
-                    value={syncSchedule.interval_hours.toString()} 
-                    onValueChange={(value) => setSyncSchedule(prev => prev ? { ...prev, interval_hours: parseInt(value) } : null)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecteer interval" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">Elke 12 uur</SelectItem>
-                      <SelectItem value="24">Elke 24 uur</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="autoSyncEnabled">Automatische sync inschakelen</Label>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="autoSyncEnabled"
-                      checked={syncSchedule.enabled}
-                      onCheckedChange={(checked) => setSyncSchedule(prev => prev ? { ...prev, enabled: checked } : null)}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {syncSchedule.enabled ? 'Ingeschakeld' : 'Uitgeschakeld'}
-                    </span>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium">Laatste synchronisatie</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {syncSchedule.last_run_at ? formatDate(syncSchedule.last_run_at) : 'Nog niet uitgevoerd'}
-                  </p>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium">Volgende synchronisatie</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {syncSchedule.enabled && syncSchedule.next_run_at 
-                      ? formatDate(syncSchedule.next_run_at) 
-                      : syncSchedule.enabled 
-                        ? 'Wordt berekend na opslaan' 
-                        : 'Uitgeschakeld'
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <Button 
-                onClick={saveScheduleSettings} 
-                disabled={isSavingSchedule}
-                className="w-full md:w-auto"
-              >
-                {isSavingSchedule && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Settings className="mr-2 h-4 w-4" />
-                Schema instellingen opslaan
-              </Button>
-            </>
           )}
         </CardContent>
       </Card>
@@ -629,7 +431,6 @@ export default function MetricoolAPI() {
                 <TableHead>Platforms</TableHead>
                 <TableHead>Laatste sync</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Acties</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -678,12 +479,9 @@ export default function MetricoolAPI() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => resyncBrand(brand.id)}>
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          12m her-sync
-                        </Button>
-                      </div>
+                      <Badge variant={isDeleted ? 'destructive' : 'success'}>
+                        {isDeleted ? 'Verwijderd' : 'Actief'}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 )
@@ -708,36 +506,7 @@ export default function MetricoolAPI() {
             Overzicht van recente synchronisaties
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Pagination Controls Top */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="itemsPerPage" className="text-sm">Items per pagina:</Label>
-              <Select value={itemsPerPage.toString()} onValueChange={(value) => {
-                setItemsPerPage(parseInt(value))
-                setCurrentPage(1) // Reset to first page when changing items per page
-              }}>
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="text-sm text-muted-foreground">
-              {totalCount > 0 ? (
-                `Resultaten ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, totalCount)} van ${totalCount}`
-              ) : (
-                'Geen resultaten'
-              )}
-            </div>
-          </div>
-
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -801,75 +570,6 @@ export default function MetricoolAPI() {
               )}
             </TableBody>
           </Table>
-          
-          {/* Pagination Controls Bottom */}
-          {totalCount > 0 && (
-            <div className="flex items-center justify-center">
-              <Pagination>
-                <PaginationContent>
-                  {currentPage > 1 && (
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setCurrentPage(currentPage - 1)
-                        }}
-                      />
-                    </PaginationItem>
-                  )}
-                  
-                  {/* Page numbers */}
-                  {Array.from({ length: Math.ceil(totalCount / itemsPerPage) }, (_, i) => i + 1)
-                    .filter(page => {
-                      // Show current page, first page, last page, and pages around current
-                      const totalPages = Math.ceil(totalCount / itemsPerPage)
-                      return page === 1 || 
-                             page === totalPages || 
-                             Math.abs(page - currentPage) <= 1
-                    })
-                    .map((page, index, array) => {
-                      // Add ellipsis if there's a gap
-                      const showEllipsisBefore = index > 0 && page - array[index - 1] > 1
-                      
-                      return (
-                        <div key={page} className="flex items-center">
-                          {showEllipsisBefore && (
-                            <PaginationItem>
-                              <span className="px-3 py-2">...</span>
-                            </PaginationItem>
-                          )}
-                          <PaginationItem>
-                            <PaginationLink
-                              href="#"
-                              isActive={page === currentPage}
-                              onClick={(e) => {
-                                e.preventDefault()
-                                setCurrentPage(page)
-                              }}
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        </div>
-                      )
-                    })}
-                  
-                  {currentPage < Math.ceil(totalCount / itemsPerPage) && (
-                    <PaginationItem>
-                      <PaginationNext 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setCurrentPage(currentPage + 1)
-                        }}
-                      />
-                    </PaginationItem>
-                  )}
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
         </CardContent>
       </Card>
       </div>

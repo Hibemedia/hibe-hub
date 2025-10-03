@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -73,7 +72,6 @@ serve(async (req) => {
     // Get source from request body (manual or auto)
     const body = await req.json().catch(() => ({}))
     const source = body.source || 'manual'
-    const brandFilter = body.brand_id as number | undefined
 
     console.log('Starting Metricool brands sync, source:', source)
 
@@ -113,13 +111,8 @@ serve(async (req) => {
         throw new Error(`Metricool API error: ${metricoolResponse.status}`)
       }
 
-      let brands = await metricoolResponse.json()
+      const brands = await metricoolResponse.json()
       console.log('Retrieved brands from Metricool:', brands.length)
-
-      // Optionally filter to a single brand when requested
-      if (brandFilter) {
-        brands = brands.filter((b: any) => b.id === brandFilter)
-      }
 
       // Get existing brands to track what needs to be soft deleted
       const { data: existingBrands } = await supabase
@@ -143,7 +136,7 @@ serve(async (req) => {
           id: brand.id,
           userid: brand.userId,
           owneruserid: brand.ownerUserId,
-          label: brand.label || "Empty brand",
+          label: brand.label,
           url: brand.url,
           title: brand.title,
           description: brand.description,
@@ -175,7 +168,7 @@ serve(async (req) => {
           facebookpicture: brand.facebookPicture,
           facebookgrouppicture: brand.facebookGroupPicture,
           instagrampicture: brand.instagramPicture,
-          linkedinpicture: brand.linkedinPicture,
+          linkedinpicture: brand.linkedInPicture,
           facebookadspicture: brand.facebookAdsPicture,
           facebookadsname: brand.facebookAdsName,
           pinterestpicture: brand.pinterestPicture,
@@ -194,50 +187,93 @@ serve(async (req) => {
           gmbaccountname: brand.gmbAccountName,
           gmbaddress: brand.gmbAddress,
           gmburl: brand.gmbUrl,
+          tiktokadsuserid: brand.tiktokadsUserId,
+          linkedincompanypicture: brand.linkedInCompanyPicture,
+          linkedincompanyname: brand.linkedInCompanyName,
+          linkedintokenexpiration: brand.linkedInTokenExpiration,
+          linkedinuserprofileurl: brand.linkedInUserProfileURL,
+          youtubechannelname: brand.youtubeChannelName,
+          youtubechannelpicture: brand.youtubeChannelPicture,
+          twitchname: brand.twitchName,
+          twitchpicture: brand.twitchPicture,
+          twitchchannelid: brand.twitchChannelId,
+          tiktokadsdisplayname: brand.tiktokadsDisplayName,
+          tiktokadspicture: brand.tiktokadsPicture,
+          tiktokuserprofileurl: brand.tiktokUserProfileUrl,
+          isshared: brand.isShared,
+          ownerusername: brand.ownerUsername,
+          whitelabellink: brand.whiteLabelLink,
+          analyticmodewhitelabellink: brand.analyticModeWhitelabelLink,
+          whitelabelalias: brand.whiteLabelAlias,
+          hash: brand.hash,
+          version: brand.version,
+          frontendversion: brand.frontendVersion,
+          role: brand.role,
+          deletedate: brand.deleteDate ? new Date(brand.deleteDate).toISOString() : null,
+          deleted: brand.deleted,
+          joindate: brand.joinDate ? new Date(brand.joinDate).toISOString() : null,
+          firstconnectiondate: brand.firstConnectionDate ? new Date(brand.firstConnectionDate).toISOString() : null,
+          lastresolvedinboxmessagetimestamp: brand.lastResolvedInboxMessageTimestamp ? new Date(brand.lastResolvedInboxMessageTimestamp).toISOString() : null,
+          lastreadinboxmessagetimestamp: brand.lastReadInboxMessageTimestamp ? new Date(brand.lastReadInboxMessageTimestamp).toISOString() : null,
+          timezone: brand.timezone,
+          availableconnectors: Array.isArray(brand.availableConnectors) ? brand.availableConnectors.join(',') : brand.availableConnectors,
+          brandrole: brand.brandRole,
+          iswhitelabel: brand.isWhiteLabel,
+          iswhitelabelonlyread: brand.isWhiteLabelOnlyRead,
+          engagementratio: brand.engagementRatio,
           raw_data: brand,
           last_synced_at: new Date().toISOString(),
-          deleted_at: null,
-          updated_at: new Date().toISOString(),
+          deleted_at: null // Clear deleted_at if brand reappears
         }
 
-        // Upsert brand
-        const { error: brandError } = await supabase
-          .from('metricool_brands')
-          .upsert(brandData, { onConflict: 'id' })
-
-        if (brandError) {
-          console.error('Error upserting brand:', brandError)
-          continue
-        }
-
+        // Check if brand exists
         if (existingBrandIds.has(brand.id)) {
-          updated++
-        } else {
-          created++
-        }
+          // Update existing brand
+          const { error } = await supabase
+            .from('metricool_brands')
+            .update(brandData)
+            .eq('id', brand.id)
 
-        console.log(`Processed brand: ${brand.label} (ID: ${brand.id}), platforms: ${connectedPlatforms.join(', ')}`)
+          if (error) {
+            console.error('Error updating brand:', error)
+          } else {
+            updated++
+          }
+        } else {
+          // Insert new brand
+          const { error } = await supabase
+            .from('metricool_brands')
+            .insert(brandData)
+
+          if (error) {
+            console.error('Error inserting brand:', error)
+          } else {
+            created++
+          }
+        }
       }
 
-      // Mark brands as soft deleted if they're no longer in Metricool
+      // Mark missing brands as deleted (soft delete)
       for (const existingId of existingBrandIds) {
         if (!fetchedBrandIds.has(existingId)) {
-          const { error: deleteError } = await supabase
+          const { error } = await supabase
             .from('metricool_brands')
-            .update({ 
-              deleted_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
+            .update({ deleted_at: new Date().toISOString() })
             .eq('id', existingId)
             .is('deleted_at', null)
 
-          if (!deleteError) {
+          if (error) {
+            console.error('Error soft deleting brand:', error)
+          } else {
             markedDeleted++
           }
         }
       }
 
-      // Update sync log with success
+      // Clean up old deleted records (31+ days)
+      await supabase.rpc('cleanup_deleted_metricool_brands')
+
+      // Update sync log with results
       await supabase
         .from('metricool_sync_logs')
         .update({
@@ -249,46 +285,37 @@ serve(async (req) => {
         })
         .eq('id', syncLogId)
 
-      console.log('Metricool brands sync completed successfully', { created, updated, markedDeleted })
+      console.log(`Sync completed: ${created} created, ${updated} updated, ${markedDeleted} marked deleted`)
 
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Brands sync completed successfully',
-          stats: { created, updated, markedDeleted, totalProcessed: brands.length }
+          created,
+          updated,
+          marked_deleted: markedDeleted,
+          total_brands: brands.length
         }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
 
     } catch (error) {
-      console.error('Sync error:', error)
-      
       // Update sync log with error
       await supabase
         .from('metricool_sync_logs')
         .update({
           finished_at: new Date().toISOString(),
           status: 'failed',
-          error_message: (error as Error).message
+          error_message: error.message
         })
         .eq('id', syncLogId)
 
-      return new Response(
-        JSON.stringify({
-          error: 'Sync failed',
-          message: (error as Error).message
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw error
     }
 
   } catch (error) {
-    console.error('Server error:', error)
+    console.error('Error in sync-brands function:', error)
     return new Response(
-      JSON.stringify({
-        error: 'Server error',
-        message: (error as Error).message
-      }),
+      JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

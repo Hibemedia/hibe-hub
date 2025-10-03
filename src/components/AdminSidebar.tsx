@@ -1,4 +1,4 @@
-import { Users, Settings, BarChart3, Bug } from "lucide-react";
+import { Users, Settings } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,

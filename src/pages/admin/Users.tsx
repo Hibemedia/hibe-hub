@@ -10,8 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Trash2 } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { UserPlus, Edit } from 'lucide-react';
 import type { UserProfile, UserRole } from '@/lib/auth/useAuth';
 
 interface MetricoolBrand {
@@ -39,9 +38,6 @@ export default function AdminUsers() {
     role: 'klant',
     metricool_brand_id: null,
   });
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<UserProfile | null>(null);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -205,68 +201,6 @@ export default function AdminUsers() {
     }
   };
 
-  const deleteUser = async () => {
-    if (!profile || profile.role !== 'admin' || !userToDelete) {
-      toast({
-        title: "Geen toegang",
-        description: "Alleen admins kunnen gebruikers verwijderen.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (deleteConfirmText !== 'VERWIJDEREN') {
-      toast({
-        title: "Bevestiging vereist",
-        description: "Typ 'VERWIJDEREN' om te bevestigen.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Use the new edge function for secure deletion
-      const { data, error } = await supabase.functions.invoke('delete-user', {
-        body: { userId: userToDelete.id }
-      });
-
-      if (error) {
-        console.error('Error calling delete-user function:', error);
-        throw error;
-      }
-
-      if (data?.error) {
-        console.error('Error from delete-user function:', data.error);
-        if (data.partial_success) {
-          toast({
-            title: "Gedeeltelijk verwijderd",
-            description: `${userToDelete.email}: ${data.error}`,
-            variant: "destructive",
-          });
-        } else {
-          throw new Error(data.error);
-        }
-      } else {
-        toast({
-          title: "Gebruiker verwijderd",
-          description: `${userToDelete.email} is succesvol verwijderd uit alle systemen.`,
-        });
-      }
-
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
-      setDeleteConfirmText('');
-      fetchUsers();
-    } catch (error: any) {
-      console.error('Error deleting user:', error);
-      toast({
-        title: "Fout",
-        description: error.message || "Kon gebruiker niet verwijderen.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
       case 'admin':
@@ -356,7 +290,7 @@ export default function AdminUsers() {
                         <SelectItem value="none">Geen brand</SelectItem>
                         {brands.map((brand) => (
                           <SelectItem key={brand.id} value={brand.id.toString()}>
-                            {brand.label}
+                            {brand.label || brand.title || `Brand ${brand.id}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -397,33 +331,12 @@ export default function AdminUsers() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {user.role === 'klant' ? (
-                      profile?.role === 'admin' ? (
-                        <Select
-                          value={user.metricool_brand_id?.toString() || 'none'}
-                          onValueChange={(value) => updateUserBrand(user.id, value === 'none' ? null : parseInt(value))}
-                        >
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Selecteer brand" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Geen brand</SelectItem>
-                            {brands.map((brand) => (
-                              <SelectItem key={brand.id} value={brand.id.toString()}>
-                                {brand.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="text-sm">
-                          {(user as any).metricool_brands?.label || 
-                           (user as any).metricool_brands?.title || 
-                           (user.metricool_brand_id ? `Brand ${user.metricool_brand_id}` : 'Geen brand')}
-                        </div>
-                      )
-                    ) : (
-                      <span className="text-muted-foreground">N.v.t.</span>
+                    {user.role === 'klant' && (
+                      <div className="text-sm">
+                        {(user as any).metricool_brands?.label || 
+                         (user as any).metricool_brands?.title || 
+                         (user.metricool_brand_id ? `Brand ${user.metricool_brand_id}` : 'Geen brand')}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -431,7 +344,7 @@ export default function AdminUsers() {
                   </TableCell>
                   <TableCell>
                     {profile?.role === 'admin' && (
-                      <div className="flex items-center gap-2">
+                      <div className="space-y-2">
                         <Select
                           value={user.role}
                           onValueChange={(newRole: UserRole) => updateUserRole(user.id, newRole)}
@@ -445,53 +358,24 @@ export default function AdminUsers() {
                             <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>
-                        
-                        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => setUserToDelete(user)}
-                              className="h-8 w-8 text-destructive hover:text-destructive"
+                        {user.role === 'klant' && (
+                            <Select
+                              value={user.metricool_brand_id?.toString() || 'none'}
+                              onValueChange={(value) => updateUserBrand(user.id, value === 'none' ? null : parseInt(value))}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Gebruiker verwijderen</AlertDialogTitle>
-                              <AlertDialogDescription className="space-y-2">
-                                <p>Weet je zeker dat je gebruiker <strong>{userToDelete?.email}</strong> wilt verwijderen?</p>
-                                <p className="text-destructive font-medium">Deze actie kan niet ongedaan worden gemaakt.</p>
-                                <div className="mt-4">
-                                  <Label htmlFor="delete-confirm">Typ 'VERWIJDEREN' om te bevestigen:</Label>
-                                  <Input
-                                    id="delete-confirm"
-                                    value={deleteConfirmText}
-                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                                    placeholder="VERWIJDEREN"
-                                    className="mt-2"
-                                  />
-                                </div>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel onClick={() => {
-                                setDeleteConfirmText('');
-                                setUserToDelete(null);
-                              }}>
-                                Annuleren
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={deleteUser}
-                                disabled={deleteConfirmText !== 'VERWIJDEREN'}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Definitief verwijderen
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <SelectTrigger className="w-48">
+                              <SelectValue placeholder="Selecteer brand" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Geen brand</SelectItem>
+                              {brands.map((brand) => (
+                                <SelectItem key={brand.id} value={brand.id.toString()}>
+                                  {brand.label || brand.title || `Brand ${brand.id}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                     )}
                   </TableCell>
