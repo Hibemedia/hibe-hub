@@ -5,8 +5,8 @@
 /* Hibe Media B2B Portal Design System */
 @layer base {
   :root {
-    /* Base colors - Beige/Cream background */
-    --background: 40 20% 92%;
+    /* Base colors - Clean white base with playful accents */
+    --background: 0 0% 100%;
     --foreground: 0 0% 10%;
 
     /* Cards and surfaces */
@@ -15,28 +15,28 @@
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Primary brand colors - Hibe Media orange */
+    /* Primary brand colors - Vibrant Hibe Media orange */
     --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 35 95% 60%;
-    --primary-dark: 20 95% 45%;
+    --primary-light: 35 100% 65%;
+    --primary-dark: 20 90% 45%;
 
-    /* Secondary colors */
-    --secondary: 220 13% 96%;
-    --secondary-foreground: 215 25% 27%;
+    /* Secondary colors - Playful purple/blue */
+    --secondary: 250 70% 60%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted colors */
     --muted: 220 13% 96%;
     --muted-foreground: 215 16% 47%;
 
-    /* Accent colors - for medailles and highlights */
-    --accent: 43 96% 56%;
-    --accent-foreground: 215 25% 27%;
+    /* Accent colors - Neon lime/green */
+    --accent: 80 90% 55%;
+    --accent-foreground: 0 0% 10%;
 
     /* Success color - for approved content */
-    --success: 120 60% 50%;
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
     /* Warning color - for feedback needed */
@@ -52,8 +52,8 @@
     --input: 220 13% 91%;
     --ring: 25 95% 53%;
 
-    /* Radius */
-    --radius: 1.25rem;
+    /* Radius - More playful rounded corners */
+    --radius: 1.5rem;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
@@ -65,16 +65,20 @@
     --sidebar-border: 40 15% 85%;
     --sidebar-ring: 25 95% 53%;
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(20 95% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(220 13% 96%), hsl(220 13% 91%));
-    --gradient-accent: linear-gradient(135deg, hsl(43 96% 56%), hsl(35 91% 62%));
+    /* Custom gradients - Playful and vibrant */
+    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(35 100% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(250 70% 60%), hsl(260 80% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(80 90% 55%), hsl(90 85% 60%));
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 
-    /* Shadows */
+    /* Shadows - More dramatic for depth */
     --shadow-sm: 0 1px 2px 0 hsl(215 25% 27% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(215 25% 27% / 0.1), 0 2px 4px -1px hsl(215 25% 27% / 0.06);
     --shadow-lg: 0 10px 15px -3px hsl(215 25% 27% / 0.1), 0 4px 6px -2px hsl(215 25% 27% / 0.05);
-    --shadow-primary: 0 8px 25px -8px hsl(25 95% 53% / 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(215 25% 27% / 0.1), 0 10px 10px -5px hsl(215 25% 27% / 0.04);
+    --shadow-primary: 0 8px 25px -8px hsl(25 95% 53% / 0.5);
+    --shadow-accent: 0 8px 25px -8px hsl(80 90% 55% / 0.4);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

@@ -31,18 +31,22 @@ export function MetricCard({
   };
 
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-300 hover:-translate-y-1", className)}>
+    <Card className={cn(
+      "relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-1",
+      "before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
+      className
+    )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           {title}
         </CardTitle>
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-primary group-hover:scale-110 transition-transform duration-300">
+          <Icon className="h-6 w-6 text-white" />
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold text-foreground mb-1">{value}</div>
-        <p className={cn("text-sm font-medium", getChangeColor())}>
+        <div className="text-4xl font-extrabold text-foreground mb-2 tracking-tight">{value}</div>
+        <p className={cn("text-sm font-semibold", getChangeColor())}>
           {change}
         </p>
       </CardContent>
