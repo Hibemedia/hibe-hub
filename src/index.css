@@ -5,13 +5,13 @@
 /* Hibe Media B2B Portal Design System */
 @layer base {
   :root {
-    /* Base colors */
-    --background: 0 0% 100%;
-    --foreground: 215 25% 27%;
+    /* Base colors - Beige/Cream background */
+    --background: 40 20% 92%;
+    --foreground: 0 0% 10%;
 
     /* Cards and surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card-foreground: 0 0% 10%;
 
     /* Popover */
     --popover: 0 0% 100%;
@@ -53,16 +53,16 @@
     --ring: 25 95% 53%;
 
     /* Radius */
-    --radius: 0.75rem;
+    --radius: 1.25rem;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 215 25% 27%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 10%;
     --sidebar-primary: 25 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 13% 96%;
-    --sidebar-accent-foreground: 215 25% 27%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-accent: 40 20% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 40 15% 85%;
     --sidebar-ring: 25 95% 53%;
 
     /* Custom gradients */
@@ -133,6 +133,10 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
   }
 }
