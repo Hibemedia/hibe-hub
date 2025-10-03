@@ -50,13 +50,14 @@ export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProp
   }, [customerName, metrics]);
 
   return (
-    <Card className="border-0 shadow-md">
-      <CardContent className="p-5">
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-primary rounded-xl shadow-sm shrink-0">
-            <Sparkles className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
+    <Card className="border-0 shadow-md bg-white/80">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-primary rounded-2xl shadow-md shrink-0">
+            <Sparkles className="h-6 w-6 text-primary-foreground" strokeWidth={2.5} />
           </div>
           <div className="flex-1">
+            <h3 className="text-base font-bold mb-2 text-foreground">✨ AI Insights</h3>
             {isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-4 w-3/4 rounded-lg" />
@@ -64,7 +65,7 @@ export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProp
                 <Skeleton className="h-4 w-2/3 rounded-lg" />
               </div>
             ) : (
-              <p className="text-sm leading-relaxed text-foreground font-medium">{welcomeMessage}</p>
+              <p className="text-sm leading-relaxed text-foreground">{welcomeMessage}</p>
             )}
           </div>
         </div>

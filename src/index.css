@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Web3-Inspired Premium B2B Portal */
+/* Pastel Crypto-Inspired B2B Portal */
 @layer base {
   :root {
-    /* Base - Black/White/Gray palette */
-    --background: 0 0% 98%;
+    /* Base - Beige/Cream palette */
+    --background: 33 20% 96%;
     --foreground: 0 0% 5%;
 
     /* Cards and surfaces */
@@ -52,8 +52,16 @@
     --input: 0 0% 90%;
     --ring: 22 100% 50%;
 
-    /* Radius - Rounder, more modern */
-    --radius: 1rem;
+    /* Radius - Extra round, crypto-style */
+    --radius: 1.5rem;
+    
+    /* Pastel Colors */
+    --pastel-pink: 330 60% 95%;
+    --pastel-lavender: 270 50% 95%;
+    --pastel-mint: 150 40% 95%;
+    --pastel-yellow: 50 60% 95%;
+    --pastel-blue: 210 50% 95%;
+    --pastel-peach: 20 60% 95%;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
