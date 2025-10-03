@@ -50,10 +50,10 @@ export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProp
   }, [customerName, metrics]);
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 via-background to-primary/5 border-2 border-primary/20 hover-card backdrop-blur-sm">
+    <Card className="border-2 hover-card">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-primary rounded-lg shadow-primary">
+          <div className="p-2 bg-primary rounded-lg shadow-primary shrink-0">
             <Sparkles className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
           </div>
           <div className="flex-1">
