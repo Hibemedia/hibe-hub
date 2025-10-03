@@ -1,6 +1,5 @@
 import { 
   BarChart3, 
-  Brain, 
   Calendar, 
   CheckCircle, 
   Award, 
@@ -64,24 +63,24 @@ export function AppSidebar() {
   const getNavClasses = (url: string) => {
     const isActive = location.pathname === url;
     return cn(
-      "transition-all duration-200 hover:bg-sidebar-accent rounded-lg",
+      "transition-colors duration-200 rounded-lg text-sm font-medium",
       {
-        "bg-gradient-primary text-white shadow-primary": isActive,
-        "text-sidebar-foreground": !isActive,
+        "bg-primary text-primary-foreground": isActive,
+        "text-foreground hover:bg-muted": !isActive,
       }
     );
   };
 
   return (
-    <Sidebar className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border p-6">
+    <Sidebar className="border-r border-border bg-card">
+      <SidebarHeader className="border-b border-border p-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">H</span>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-semibold text-sm">H</span>
           </div>
           {!collapsed && (
             <div>
-              <h2 className="text-lg font-semibold text-sidebar-foreground">
+              <h2 className="text-base font-semibold text-foreground">
                 Hibe Media
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -94,24 +93,24 @@ export function AppSidebar() {
 
       <SidebarContent className="p-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground mb-2">
+          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground mb-2 px-3">
             Navigatie
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="h-10">
+                  <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url} 
                       className={getNavClasses(item.url)}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4" strokeWidth={1.5} />
                       {!collapsed && (
                         <span className="ml-3 flex items-center gap-2">
                           {item.title}
                           {item.url === "/video-approval" && (
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive text-white text-[10px] font-bold animate-pulse">
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                               3
                             </div>
                           )}
@@ -129,12 +128,12 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className="h-10">
+                <SidebarMenuButton asChild>
                   <NavLink 
                     to="/settings" 
                     className={getNavClasses("/settings")}
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-4 w-4" strokeWidth={1.5} />
                     {!collapsed && <span className="ml-3">Instellingen</span>}
                   </NavLink>
                 </SidebarMenuButton>
