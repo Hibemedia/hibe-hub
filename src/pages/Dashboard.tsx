@@ -40,12 +40,6 @@ export default function Dashboard() {
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      {/* AI Welcome Message */}
-      <DashboardWelcome 
-        customerName="Barbershop Amsterdam" 
-        metrics={metrics}
-      />
-
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-4xl font-black text-foreground tracking-tight">
@@ -53,6 +47,12 @@ export default function Dashboard() {
         </h1>
         <p className="text-base text-muted-foreground font-medium">Jouw prestaties in één oogopslag ✨</p>
       </div>
+
+      {/* AI Welcome Message */}
+      <DashboardWelcome 
+        customerName="Barbershop Amsterdam" 
+        metrics={metrics}
+      />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
