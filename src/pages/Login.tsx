@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,15 +10,23 @@ import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
-    
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
+  useEffect(()=>{
+    const session = supabase.auth.getSession().then(({ data }) => {
+            setUser(data.session?.user || null);
+        });
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user || null);
+        });
+    if (user){
+        navigate("/home")
+    }
+  })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -32,8 +40,8 @@ const Login = () => {
         setIsLoading(false);
         return;
     }
-    console.log('test');
-    return <Navigate to="/home" replace />;
+    
+    navigate('/home');
 };
 
   return (
@@ -60,7 +68,7 @@ const Login = () => {
               <span className="text-2xl font-display font-bold text-primary-foreground">L</span>
             </div>
             <h2 className="text-3xl font-display font-bold text-foreground">
-              {isLogin ? "Sign in" : "Create account"}
+                Sign in
             </h2>
             <p className="mt-2 text-muted-foreground">
               Enter your credentials to access your account
@@ -109,25 +117,12 @@ const Login = () => {
                 </div>
               </div>
             </div>
-
-            {isLogin && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="remember" 
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                    className="border-border/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                    Remember me
-                  </Label>
-                </div>
-                <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                  Forgot password?
-                </a>
-              </div>
-            )}
+        
+            <div className="flex items-center justify-between">
+            <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                Forgot password?
+            </a>
+            </div>
 
             <Button 
               type="submit" 
@@ -138,7 +133,7 @@ const Login = () => {
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 <>
-                  {isLogin ? "Sign in" : "Create account"}
+                  Sign in
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
