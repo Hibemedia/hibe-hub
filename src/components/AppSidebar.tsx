@@ -5,6 +5,7 @@ import {
   Award, 
   Archive,
   Settings,
+  LogOut,
   Home
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -21,6 +22,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 const menuItems = [
   {
@@ -59,7 +62,15 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const [isAdmin, setAdmin] = useState(false); 
+  
+ const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error logging out:", error.message);
+    } 
 
+  }
   const getNavClasses = (url: string) => {
     const isActive = location.pathname === url;
     return cn(
@@ -70,6 +81,7 @@ export function AppSidebar() {
       }
     );
   };
+  
 
   return (
     <Sidebar className="border-r border-border bg-card">
@@ -136,6 +148,10 @@ export function AppSidebar() {
                     <Settings className="h-4 w-4" strokeWidth={1.5} />
                     {!collapsed && <span className="ml-3">Instellingen</span>}
                   </NavLink>
+                </SidebarMenuButton>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" strokeWidth={1.5}/>
+                   {!collapsed && <span className="ml-3">Log uit</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
