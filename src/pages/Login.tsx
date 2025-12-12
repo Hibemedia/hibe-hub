@@ -2,45 +2,32 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import { supabase } from "@/integrations/supabase/client";
+import { UserAuth } from "@/context/AuthContext.jsx";
 
 const Login = () => {
+  const {user, signInUser} = UserAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  useEffect(()=>{
-    const session = supabase.auth.getSession().then(({ data }) => {
-            setUser(data.session?.user || null);
-        });
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user || null);
-        });
-    if (user){
-        navigate("/home")
-    }
-  })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error){
-        console.log(error);
-        setIsLoading(false);
-        return;
+    try {
+      const result = await signInUser(email,password);
+      if(result.success){
+        navigate('/home');
+      }
+      console.log(result);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    navigate('/home');
 };
 
   return (

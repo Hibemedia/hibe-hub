@@ -1,28 +1,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { UserAuth } from "@/context/AuthContext.jsx";
 
 const ProtectedRoute = ({ children }) => {
-    const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
-    useEffect(() =>{
-        const session = supabase.auth.getSession().then(({ data }) => {
-            setUser(data.session?.user || null);
-            setLoading(false);
-        });
+    const { session } = UserAuth();
+    // const navigate = useNavigate();
+    
+    // useEffect(()=>{
         
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user || null);
-        });
-        return () => {
-            listener.subscription.unsubscribe();
-        };
-    })
-    if (!user) {
-        return navigate('/');
-    }   
-    return children;
+    // if (!user) {
+    //     return navigate('/');
+    // }   
+    console.log(session);
+    return <>{children}</>;
+    // })
+    
  }
 
 export default ProtectedRoute;
