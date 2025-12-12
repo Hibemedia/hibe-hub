@@ -22,7 +22,6 @@ const Login = () => {
       if(result.success){
         navigate('/home');
       }
-      console.log(result);
     } catch (error) {
       console.log(error);
     } finally {

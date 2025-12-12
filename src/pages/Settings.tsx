@@ -14,8 +14,15 @@ import {
   Building,
   Save
 } from "lucide-react";
+import { UserAuth } from "@/context/AuthContext.jsx";
+import GebruikersBeheer from "./GebruikersBeheer";
 
 export default function Settings() {
+
+  const {  user } = UserAuth();
+  if (user?.role == 'admin'){
+    return <GebruikersBeheer></GebruikersBeheer>
+  }
   return (
     <div className="p-6 space-y-6">
       {/* Header */}

@@ -5,18 +5,13 @@ import { UserAuth } from "@/context/AuthContext.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const { session } = UserAuth();
-    const { user } = UserAuth();
     const navigate = useNavigate();
 
         
     if (!session) {
         return navigate('/');
     }   
-    // console.log(user);
-    
-    return <>{children}</>;
-    
-    
+    return <>{children}</>;    
  }
 
 export default ProtectedRoute;

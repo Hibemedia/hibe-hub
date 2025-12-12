@@ -1,49 +1,97 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { jwtDecode } from "jwt-decode"; // Vite-friendly import
 
 const AuthContext = createContext();
 
-
 export const AuthContextProvider = ({ children }) => {
-    const [session, setSession] = useState(null);
-    const [user,setUser] = useState(null);
-    useEffect(()=>{
-        supabase.auth.getSession().then(({data:{session}})=>{
-            setSession(session);
-        })
-        supabase.auth.onAuthStateChange((_event, session)=>{
-            setSession(session);
-        });
-    })
-    
-    const signInUser = async (email, password) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
 
-
-        if (error) {
-            return { success: false, response: error };
-        }
-        setSession(data.session);
-    
-        // console.log(data.session.user.id);
-        const {data: userInfo, error: errors } = supabase
-        .from('users')
-        .select('*')
-        .eq('id', data.session.user.id);
-        setUser(userInfo)
-        return { success: true, session: session };
+  // Decode user info from JWT
+  const decodeUserFromToken = (access_token) => {
+    if (!access_token) return null;
+    try {
+      const decoded = jwtDecode(access_token);
+      return {
+        id: decoded.sub,
+        email: decoded.email || null,
+        role: decoded.role || null,
+        username: decoded.username || null,
+        ...decoded.user_metadata, // include extra fields from JWT
+      };
+    } catch (err) {
+      console.error("JWT decode error:", err);
+      return null;
     }
-    
-    return (
-        <AuthContext.Provider value={{ children, signInUser, session, user }}>
-            {children}
-        </AuthContext.Provider>
-    )
-}
+  };
 
-export const UserAuth = () => {
-    return useContext(AuthContext);
-}
+  // Helper to set session and fetch full user info
+  const setSessionAndUser = async (supabaseSession) => {
+    setSession(supabaseSession);
+
+    if (supabaseSession?.access_token) {
+      const decodedUser = decodeUserFromToken(supabaseSession.access_token);
+      // Fetch full user info from 'users' table
+      const { data: userInfo, error: errors } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", decodedUser.id)
+        .single();
+
+      if (errors) {
+        console.error("Error fetching user info:", errors);
+        setUser(decodedUser); // fallback to decoded JWT if DB fetch fails
+      } else {
+        setUser(userInfo); // full user row from DB
+      }
+    } else {
+      setUser(null);
+    }
+  };
+
+  useEffect(() => {
+    // Initial session fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSessionAndUser(session);
+    });
+
+    // Listen to auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSessionAndUser(session);
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Sign in function
+  const signInUser = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) return { success: false, response: error };
+
+    await setSessionAndUser(data.session);
+
+    return { success: true, session: data.session };
+  };
+
+  // Optional sign out
+  const signOutUser = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ session, user, signInUser, signOutUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const UserAuth = () => useContext(AuthContext);

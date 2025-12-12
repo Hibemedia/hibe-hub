@@ -53,11 +53,11 @@ const App = () => {
                         </header>
                         <Routes>
                           <Route path="/home" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                          <Route path="/performance" element={<Performance />} />
-                          <Route path="/video-approval" element={<VideoApproval />} />
-                          <Route path="/medals" element={<Medals />} />
-                          <Route path="/branding" element={<Branding />} />
-                          <Route path="/content-moments" element={<ContentMoments />} />
+                          <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+                          <Route path="/video-approval" element={<ProtectedRoute><VideoApproval /></ProtectedRoute>} />
+                          <Route path="/medals" element={<ProtectedRoute><Medals /></ProtectedRoute>} />
+                          <Route path="/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
+                          <Route path="/content-moments" element={<ProtectedRoute><ContentMoments /></ProtectedRoute>} />
 
                           <Route path="/settings" element={<Settings />} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
