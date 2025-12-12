@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import GebruikersBeheer from "./GebruikersBeheer";
-
 export default function Settings() {
 
   const {  user } = UserAuth();
