@@ -5,16 +5,17 @@ import { UserAuth } from "@/context/AuthContext.jsx";
 
 const ProtectedRoute = ({ children }) => {
     const { session } = UserAuth();
-    // const navigate = useNavigate();
-    
-    // useEffect(()=>{
+    const { user } = UserAuth();
+    const navigate = useNavigate();
+
         
-    // if (!user) {
-    //     return navigate('/');
-    // }   
-    console.log(session);
+    if (!session) {
+        return navigate('/');
+    }   
+    // console.log(user);
+    
     return <>{children}</>;
-    // })
+    
     
  }
 
