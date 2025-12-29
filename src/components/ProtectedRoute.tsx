@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { UserAuth } from "@/context/AuthContext.jsx";
 
-const ProtectedRoute = ({ children }) => {
-    const { session } = UserAuth();
-    const navigate = useNavigate();
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const { user , loading} = UserAuth();
+  if (loading) return <div>Loading...</div>;
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
 
-        
-    if (!session) {
-        return navigate('/');
-    }   
-    return <>{children}</>;    
- }
+  return children;
+};
 
 export default ProtectedRoute;

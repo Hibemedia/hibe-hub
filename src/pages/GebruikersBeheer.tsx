@@ -1,46 +1,67 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { Users } from "lucide-react";
-import { UserTable } from "@/components/UserTable"
-import { supabase } from "@/integrations/supabase/client";
-const { data: users, error: errors } = await supabase
+  import { useEffect, useState } from "react";
+  import { Users } from "lucide-react";
+  import { UserTable } from "@/components/UserTable";
+  import { supabase } from "@/integrations/supabase/client";
+  import { MetricoolService } from "@/integrations/metricool.service";
+  const mapBrandsById = (brandsArray) => {
+    return brandsArray.reduce((acc, brand) => {
+      acc[brand.id] = brand;
+      return acc;
+    }, {});
+  };
+  const GebruikersBeheer = () => {
+    const [loading, setLoading] = useState(true);
+    const [users, setUsers] = useState([]);
+    const [allBrandsInfo, setAllBrandsInfo] = useState(null);
+
+    useEffect(() => {
+      const loadData = async () => {
+        try {
+          // Users ophalen
+          const { data, error } = await supabase
             .from("users")
             .select("*");
 
+          if (error) throw error;
+          setUsers(data);
 
-const GebruikersBeheer = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-              <p className="text-sm text-muted-foreground">
-                Gebruikers beheer
-              </p>
+          // Metricool brands ophalen
+          const brands = await MetricoolService.getFromMetricool("getBrands");
+          setAllBrandsInfo(mapBrandsById(brands));
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadData();
+    }, []); // 👈 slechts 1x bij mount
+
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-6xl px-4 py-8">
+
+          {/* Header */}
+          <div className="mb-8 flex items-center gap-3">
+            <Users />
+            <h1 className="text-2xl font-semibold">Users</h1>
+          </div>
+
+          {/* Stats */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <p>Total Users</p>
+              <p className="text-2xl">{users.length}</p>
             </div>
           </div>
-          {/* <CreateUserDialog onCreateUser={handleCreateUser} /> */}
-        </div>
 
-        {/* Stats */}
-        <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border bg-card p-4">
-            <p className="text-sm text-muted-foreground">Total Users</p>
-            <p className="text-2xl font-semibold">{users.length}</p>
-          </div>
-        </div>
 
-        {/* Table */}
-        <UserTable users={users} />
+          {/* Users table */}
+          <UserTable users={users} brands={allBrandsInfo} />
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-export default GebruikersBeheer;
+  export default GebruikersBeheer;

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { MetricoolService } from "@/integrations/metricool.service";
+import { UserAuth } from "@/context/AuthContext.jsx";
 interface DashboardWelcomeProps {
   customerName: string;
   metrics: {
@@ -16,7 +17,7 @@ interface DashboardWelcomeProps {
 export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProps) {
   const [welcomeMessage, setWelcomeMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
-
+  const {  user } = UserAuth();
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
@@ -45,8 +46,6 @@ export function DashboardWelcome({ customerName, metrics }: DashboardWelcomeProp
         setIsLoading(false);
       }
     };
-
-    fetchWelcomeMessage();
   }, [customerName, metrics]);
 
   return (

@@ -28,7 +28,7 @@ import { useState } from "react";
 const menuItems = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/home",
     icon: Home,
   },
   {

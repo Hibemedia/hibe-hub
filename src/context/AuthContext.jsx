@@ -8,6 +8,8 @@ export const AuthContextProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
 
+  const [loading, setLoading] = useState(true); 
+
   // Decode user info from JWT
   const decodeUserFromToken = (access_token) => {
     if (!access_token) return null;
@@ -48,12 +50,15 @@ export const AuthContextProvider = ({ children }) => {
     } else {
       setUser(null);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
     // Initial session fetch
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSessionAndUser(session);
+      console.log(session);
     });
 
     // Listen to auth state changes
@@ -88,7 +93,7 @@ export const AuthContextProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, signInUser, signOutUser }}>
+    <AuthContext.Provider value={{ session, user, loading, signInUser, signOutUser }}>
       {children}
     </AuthContext.Provider>
   );
