@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MetricoolService } from "@/integrations/metricool.service";
+import { MetricoolService } from "@/integrations/Metricool.service";
 import { UserAuth } from "@/context/AuthContext.jsx";
 interface DashboardWelcomeProps {
   customerName: string;

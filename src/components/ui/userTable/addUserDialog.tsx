@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UserAuth } from "@/context/AuthContext.jsx";
 import {
   Dialog,
   DialogContent,
@@ -31,14 +32,22 @@ interface AddUserDialogProps {
 }
 
 export function AddUserDialog({ open, onOpenChange, brands, onAdd }: AddUserDialogProps) {
-  const [formData, setFormData] = useState({ email: "", brandid: "" });
 
-  const handleAdd = () => {
+  const { insertUser } = UserAuth();
+  const [formData, setFormData] = useState({ email: "", brandid: "" });
+  const [error, setError] = useState("");
+  const handleAdd = async () => {
     if (onAdd && formData.email) {
       onAdd(formData);
     }
-    onOpenChange(false);
-    setFormData({ email: "", brandid: "" });
+    const result = await insertUser(formData.email, formData.brandid);
+    if (result.success) {
+      onOpenChange(false);
+      setFormData({ email: "", brandid: "" });
+      
+    }else{
+      setError(result.response.message)
+    }
   };
 
   const handleClose = () => {
@@ -55,7 +64,7 @@ export function AddUserDialog({ open, onOpenChange, brands, onAdd }: AddUserDial
             Create a new user by filling in the details below.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-5">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -83,6 +92,9 @@ export function AddUserDialog({ open, onOpenChange, brands, onAdd }: AddUserDial
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid gap-2">
+            {error}
           </div>
         </div>
         <DialogFooter>

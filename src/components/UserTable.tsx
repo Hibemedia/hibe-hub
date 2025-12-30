@@ -18,8 +18,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { AddUserDialog } from "./ui/userTable/addUserDialog";
 import { EditUserDialog } from "./ui/userTable/editUserDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { UserAuth } from "@/context/AuthContext.jsx";
 
 interface User {
   id: string;
@@ -45,20 +46,30 @@ export function UserTable({ users, brands, onAddUser, onEditUser, onDeleteUser }
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [localUsers, setLocalUsers] = useState<User[]>(users);
 
+  const { deleteUser } = UserAuth();
   const handleOpenEdit = (user: User) => {
     setSelectedUser(user);
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (user: User) => {
-    if (onDeleteUser) {
-      onDeleteUser(user.id);
-    }
+  const handleDelete = async (user: User) => {
+      if (onDeleteUser) {
+        onDeleteUser(user.id);
+      } else if (deleteUser) {
+        const result = await deleteUser(user.id);
+        if (result?.success) {
+          setLocalUsers((prev) => prev.filter((u) => u.id !== user.id));
+        }
+      }
+    
   };
 
   const brandOptions = brands ? Object.values(brands) : [];
-
+  useEffect(() => {
+    setLocalUsers(users);
+  }, [users]);
   return (
     <>
       <Table>
@@ -82,7 +93,7 @@ export function UserTable({ users, brands, onAddUser, onEditUser, onDeleteUser }
               </TableCell>
             </TableRow>
           ) : (
-            users.map((user) => (
+            localUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">

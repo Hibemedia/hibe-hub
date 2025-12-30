@@ -2,7 +2,7 @@
   import { Users } from "lucide-react";
   import { UserTable } from "@/components/UserTable";
   import { supabase } from "@/integrations/supabase/client";
-  import { MetricoolService } from "@/integrations/metricool.service";
+  import { MetricoolService } from "@/integrations/Metricool.service";
   const mapBrandsById = (brandsArray) => {
     return brandsArray.reduce((acc, brand) => {
       acc[brand.id] = brand;
@@ -21,7 +21,6 @@
           const { data, error } = await supabase
             .from("users")
             .select("*");
-
           if (error) throw error;
           setUsers(data);
 
@@ -36,7 +35,7 @@
       };
 
       loadData();
-    }, []); // 👈 slechts 1x bij mount
+    }, []); 
 
     return (
       <div className="min-h-screen bg-background">
