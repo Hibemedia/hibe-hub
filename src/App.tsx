@@ -32,7 +32,8 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Login />} />
+              {/* Login pagina uitgeschakeld - redirect naar home */}
+              <Route path="/" element={<Dashboard />} />
 
               <Route path="/*"
                 element={
