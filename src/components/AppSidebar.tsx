@@ -7,8 +7,11 @@ import {
   Settings,
   LogOut,
   Home,
-  Users
+  Users,
+  Building2
 } from "lucide-react";
+import { useClient } from "@/context/ClientContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -64,18 +67,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { isAdmin } = UserAuth();
-  const [isAdminUser, setIsAdminUser] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    if (typeof isAdmin === "function") {
-      Promise.resolve(isAdmin()).then((ok) => {
-        if (active) setIsAdminUser(!!ok);
-      });
-    }
-    return () => { active = false; };
-  }, [isAdmin]);
+  const { isAdmin: isAdminUser, clients, clientId, setClientId, client } = useClient();
   
  const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -114,6 +106,17 @@ export function AppSidebar() {
             </div>
           )}
         </div>
+        {!collapsed && isAdminUser && clients.length > 0 && (
+          <div className="mt-4">
+            <Select value={clientId ?? ""} onValueChange={setClientId}>
+              <SelectTrigger aria-label="Kies klant" className="h-9 text-sm"><SelectValue placeholder="Kies klant" /></SelectTrigger>
+              <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        )}
+        {!collapsed && !isAdminUser && client && (
+          <p className="mt-3 text-sm font-medium text-foreground">{client.name}</p>
+        )}
       </SidebarHeader>
 
       <SidebarContent className="p-4">
@@ -140,6 +143,16 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isAdminUser && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/klanten" className={getNavClasses("/klanten")}>
+                      <Building2 className="h-4 w-4" strokeWidth={1.5} />
+                      {!collapsed && <span className="ml-3">Klanten</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {isAdminUser && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
