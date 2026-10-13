@@ -134,11 +134,6 @@ export function AppSidebar() {
                       {!collapsed && (
                         <span className="ml-3 flex items-center gap-2">
                           {item.title}
-                          {item.url === "/video-approval" && (
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
-                              3
-                            </div>
-                          )}
                         </span>
                       )}
                     </NavLink>

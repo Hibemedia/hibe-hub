@@ -47,7 +47,8 @@ export function NetworkBreakdown({ stats, range }: { stats: DailyStat[]; range: 
               <div key={n} className="rounded-xl border p-4">
                 <div className="text-xs font-semibold uppercase text-muted-foreground">{NETWORK_LABELS[n]}</div>
                 <div className="text-2xl font-bold">{formatNumber(t.followers)}</div>
-                <div className="text-xs text-muted-foreground">volgers · {formatNumber(t.views)} weergaven</div>
+                <div className="text-xs text-muted-foreground">{n === "yt" ? "abonnees" : "volgers"}{t.followersGrowth != null && <span className={t.followersGrowth >= 0 ? "text-success" : "text-destructive"}> ({t.followersGrowth >= 0 ? "+" : ""}{formatNumber(t.followersGrowth)})</span>}</div>
+                <div className="text-xs text-muted-foreground">{formatNumber(t.views)} weergaven · {formatNumber(t.posts)} posts</div>
               </div>
             ))}
           </div>
