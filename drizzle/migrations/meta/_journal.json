@@ -43,6 +43,13 @@
       "when": 1791901192595,
       "tag": "0005_client_logos_read",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791902195441,
+      "tag": "0006_review_items",
+      "breakpoints": true
     }
   ]
 }

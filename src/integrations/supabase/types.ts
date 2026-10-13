@@ -118,6 +118,100 @@ export type Database = {
         }
         Relationships: []
       }
+      review_events: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          note: string | null
+          review_item_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          review_item_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          review_item_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_events_review_item_id_fkey"
+            columns: ["review_item_id"]
+            isOneToOne: false
+            referencedRelation: "review_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_items: {
+        Row: {
+          caption: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          external_link: string | null
+          id: string
+          metricool_post_id: string | null
+          metricool_post_uuid: string | null
+          networks: string[]
+          planned_date: string | null
+          source: string
+          status: string
+          storage_path: string | null
+          title: string
+        }
+        Insert: {
+          caption?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          external_link?: string | null
+          id?: string
+          metricool_post_id?: string | null
+          metricool_post_uuid?: string | null
+          networks?: string[]
+          planned_date?: string | null
+          source?: string
+          status?: string
+          storage_path?: string | null
+          title: string
+        }
+        Update: {
+          caption?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          external_link?: string | null
+          id?: string
+          metricool_post_id?: string | null
+          metricool_post_uuid?: string | null
+          networks?: string[]
+          planned_date?: string | null
+          source?: string
+          status?: string
+          storage_path?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_runs: {
         Row: {
           client_id: string
@@ -287,6 +381,36 @@ export type Database = {
     Functions: {
       current_client_id: { Args: never; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      review_action: {
+        Args: {
+          _action: string
+          _item_id: string
+          _note?: string
+          _storage_path?: string
+        }
+        Returns: {
+          caption: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          external_link: string | null
+          id: string
+          metricool_post_id: string | null
+          metricool_post_uuid: string | null
+          networks: string[]
+          planned_date: string | null
+          source: string
+          status: string
+          storage_path: string | null
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "review_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
