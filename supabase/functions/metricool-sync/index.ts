@@ -95,7 +95,7 @@ async function syncStats(db: any, client: { id: string; metricool_blog_id: strin
     for (const [k, row] of rows) if (k.startsWith("yt|")) row.posts = perDay.get(row.date as string) ?? 0;
 
     const list = Array.from(rows.values()).map((r) => {
-      for (const c of ["followers", "posts", "followers_gained", "followers_lost"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
+      for (const c of ["followers", "posts", "followers_gained", "followers_lost", "views", "reach", "interactions"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
       return r;
     });
     if (list.length) {
