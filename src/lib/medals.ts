@@ -89,7 +89,7 @@ export function computeMedals(videos: MedalVideo[], stats: MedalStat[], today = 
     viewSeries.push({ date: d, total: cumViews });
   }
   const firstCross = (series: { date: string; total: number }[], l: number) => series.find((x) => x.total >= l)?.date ?? null;
-  const followers = build("totalFollowers", followerSeries.at(-1)?.total ?? 0, (l) => ({ date: firstCross(followerSeries, l) }));
+  const followers = build("totalFollowers", followerSeries[followerSeries.length - 1]?.total ?? 0, (l) => ({ date: firstCross(followerSeries, l) }));
   const views = build("totalViews", cumViews, (l) => ({ date: firstCross(viewSeries, l) }));
 
   // (d) number of videos over 10K
