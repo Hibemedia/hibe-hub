@@ -6,8 +6,8 @@ const corsHeaders = {
 };
 
 // Map of supported apiDef values to Metricool API endpoints
-const ENDPOINTS: Record<string, string> = {
-  getBrands: "https://app.metricool.com/api/v2/admin/simpleProfiles",
+const ENDPOINTS: Record<string, (userId: string) => string> = {
+  getBrands: (userId) => `https://app.metricool.com/api/admin/simpleProfiles?userId=${userId}`,
 };
 
 Deno.serve(async (req) => {
