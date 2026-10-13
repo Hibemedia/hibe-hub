@@ -35,7 +35,7 @@ function Change({ value, suffix }: { value: number | null; suffix?: string }) {
   if (value == null) return <span className="text-muted-foreground">geen vergelijking</span>;
   return (
     <span className={value >= 0 ? "text-success" : "text-destructive"}>
-      {suffix ? fmtSigned(value) + suffix : `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`}
+      {suffix != null ? fmtSigned(value) + suffix : `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`}
     </span>
   );
 }

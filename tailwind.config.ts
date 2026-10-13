@@ -19,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['"Instrument Sans"', 'ui-sans-serif', 'system-ui'],
+				sans: ['"Instrument Sans"', 'ui-sans-serif', 'system-ui', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"'],
 				display: ['Archivo', 'ui-sans-serif', 'system-ui'],
 			},
 			colors: {
