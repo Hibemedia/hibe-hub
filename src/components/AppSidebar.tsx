@@ -1,200 +1,80 @@
-import { 
-  BarChart3, 
-  Calendar, 
-  CheckCircle, 
-  Award, 
-  Archive,
-  Settings,
-  LogOut,
-  Home,
-  Users,
-  Building2
-} from "lucide-react";
-import { useClient } from "@/context/ClientContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart3, Calendar, CheckCircle, Award, Archive, Settings, LogOut, Home, Users, Building2, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useClient } from "@/context/ClientContext";
 import { usePendingReviewCount } from "@/hooks/useReviews";
-import { UserAuth } from "@/context/AuthContext.jsx";
 
-const menuItems = [
-  {
-    title: "Dashboard",
-    url: "/home",
-    icon: Home,
-  },
-  {
-    title: "Performance",
-    url: "/performance",
-    icon: BarChart3,
-  },
-  {
-    title: "Video Goedkeuring",
-    url: "/video-approval",
-    icon: CheckCircle,
-  },
-  {
-    title: "Medailles",
-    url: "/medals",
-    icon: Award,
-  },
-  {
-    title: "Branding & Archief",
-    url: "/branding",
-    icon: Archive,
-  },
-  {
-    title: "Contentmomenten",
-    url: "/content-moments",
-    icon: Calendar,
-  },
+type Item = { title: string; url: string; icon: LucideIcon; admin?: boolean };
+const menuItems: Item[] = [
+  { title: "Dashboard", url: "/home", icon: Home },
+  { title: "Performance", url: "/performance", icon: BarChart3 },
+  { title: "Video Goedkeuring", url: "/video-approval", icon: CheckCircle },
+  { title: "Medailles", url: "/medals", icon: Award },
+  { title: "Branding & Archief", url: "/branding", icon: Archive },
+  { title: "Contentmomenten", url: "/content-moments", icon: Calendar },
+  { title: "Klanten", url: "/klanten", icon: Building2, admin: true },
+  { title: "Gebruikers Beheer", url: "/gebruikersbeheer", icon: Users, admin: true },
 ];
 
-export function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === 'collapsed';
-  const location = useLocation();
-  const { isAdmin: isAdminUser, clients, clientId, setClientId, client } = useClient();
-  const { data: pending = 0 } = usePendingReviewCount();
-  
- const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error logging out:", error.message);
-    } 
+function RoundLink({ item, side = "right", badge }: { item: Item; side?: "right" | "top"; badge?: number }) {
+  const active = useLocation().pathname === item.url;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <NavLink to={item.url} aria-label={item.title}
+          className={cn("relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors",
+            active ? "bg-foreground text-background" : "bg-card text-foreground hover:bg-popover")}>
+          <item.icon className="h-5 w-5" strokeWidth={1.6} />
+          {active && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-lime" aria-hidden />}
+          {!!badge && badge > 0 && (
+            <span className="absolute -bottom-1 -right-1 min-w-5 rounded-full bg-lime px-1.5 text-center text-[11px] font-bold leading-5 text-lime-foreground tabular" aria-label={`${badge} te beoordelen`}>{badge}</span>
+          )}
+        </NavLink>
+      </TooltipTrigger>
+      <TooltipContent side={side}>{item.title}</TooltipContent>
+    </Tooltip>
+  );
+}
 
-  }
-  const getNavClasses = (url: string) => {
-    const isActive = location.pathname === url;
-    return cn(
-      "transition-colors duration-200 rounded-md text-sm font-medium",
-      {
-        "bg-primary text-primary-foreground": isActive,
-        "text-foreground hover:bg-muted": !isActive,
-      }
-    );
-  };
-  
+const logout = () => supabase.auth.signOut();
+
+export function AppSidebar() {
+  const { isAdmin } = useClient();
+  const { data: pending = 0 } = usePendingReviewCount();
+  const items = menuItems.filter((i) => !i.admin || isAdmin);
+  const settings: Item = { title: "Instellingen", url: "/settings", icon: Settings };
+  const badgeFor = (i: Item) => (i.url === "/video-approval" ? pending : undefined);
 
   return (
-    <Sidebar className="border-r border-border bg-card">
-      <SidebarHeader className="border-b border-border p-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-foreground rounded-md flex items-center justify-center">
-            <span className="font-display text-background font-extrabold text-sm">H</span>
-          </div>
-          {!collapsed && (
-            <div>
-              <h2 className="text-base font-semibold text-foreground">
-                HIBE Media
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Klantportaal
-              </p>
-            </div>
-          )}
+    <>
+      <aside className="sticky top-0 hidden h-screen w-20 shrink-0 flex-col items-center gap-3 py-5 md:flex">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-foreground">
+          <span className="text-lg font-extrabold text-background">H</span>
         </div>
-        {!collapsed && isAdminUser && clients.length > 0 && (
-          <div className="mt-4">
-            <Select value={clientId ?? ""} onValueChange={setClientId}>
-              <SelectTrigger aria-label="Kies klant" className="h-9 text-sm"><SelectValue placeholder="Kies klant" /></SelectTrigger>
-              <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-        )}
-        {!collapsed && !isAdminUser && client && (
-          <p className="mt-3 text-sm font-medium text-foreground">{client.name}</p>
-        )}
-      </SidebarHeader>
+        <nav className="flex flex-1 flex-col items-center gap-2" aria-label="Hoofdmenu">
+          {items.map((i) => <RoundLink key={i.url} item={i} badge={badgeFor(i)} />)}
+        </nav>
+        <RoundLink item={settings} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={logout} aria-label="Log uit" className="flex h-12 w-12 items-center justify-center rounded-full bg-card hover:bg-popover">
+              <LogOut className="h-5 w-5" strokeWidth={1.6} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Log uit</TooltipContent>
+        </Tooltip>
+      </aside>
 
-      <SidebarContent className="p-4">
-        <SidebarGroup>
-          
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      className={getNavClasses(item.url)}
-                    >
-                      <item.icon className="h-4 w-4" strokeWidth={1.5} />
-                      {!collapsed && (
-                        <span className="ml-3 flex flex-1 items-center justify-between gap-2">
-                          {item.title}
-                          {item.url === "/video-approval" && pending > 0 && (
-                            <span className="min-w-5 rounded-md bg-foreground px-1.5 text-center text-xs font-semibold tabular text-background" aria-label={`${pending} te beoordelen`}>{pending}</span>
-                          )}
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              {isAdminUser && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/klanten" className={getNavClasses("/klanten")}>
-                      <Building2 className="h-4 w-4" strokeWidth={1.5} />
-                      {!collapsed && <span className="ml-3">Klanten</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-              {isAdminUser && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to="/gebruikersbeheer"
-                      className={getNavClasses("/gebruikersbeheer")}
-                    >
-                      <Users className="h-4 w-4" strokeWidth={1.5} />
-                      {!collapsed && <span className="ml-3">Gebruikers Beheer</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/settings" 
-                    className={getNavClasses("/settings")}
-                  >
-                    <Settings className="h-4 w-4" strokeWidth={1.5} />
-                    {!collapsed && <span className="ml-3">Instellingen</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-                <SidebarMenuButton onClick={handleLogout}>
-                  <LogOut className="h-4 w-4" strokeWidth={1.5}/>
-                   {!collapsed && <span className="ml-3">Log uit</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+      <nav aria-label="Hoofdmenu" className="fixed inset-x-0 bottom-0 z-50 bg-background/95 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 md:hidden">
+        <div className="flex gap-2 overflow-x-auto">
+          {[...items, settings].map((i) => <RoundLink key={i.url} item={i} side="top" badge={badgeFor(i)} />)}
+          <button onClick={logout} aria-label="Log uit" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-card">
+            <LogOut className="h-5 w-5" strokeWidth={1.6} />
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }
