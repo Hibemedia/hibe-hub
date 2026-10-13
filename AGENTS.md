@@ -5,3 +5,5 @@
 - Selected client lives in ClientContext (admins pick via sidebar, persisted in localStorage; clients use users.client_id); all data pages read clientId from it.
 - Roles: user_roles holds 'admin' (HIBE staff, all clients) or 'client' (own client); RLS uses has_role()/current_client_id().
 - Every metricool-sync run writes a sync_runs row per client; new clients trigger a backfill from the Klanten page.
+- Review item status changes only via the review_action() RPC — it enforces notes/roles and writes review_events history.
+- Private-bucket media (thumbnails, review-media) uses path clientId/... and is shown via signed URLs; stored IG thumbnails are saved as 'storage:thumbnails/<path>'.
