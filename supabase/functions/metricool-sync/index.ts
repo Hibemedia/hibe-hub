@@ -143,17 +143,17 @@ const dt = (v: any): string | null => {
 };
 /** Generic mapper for Facebook reels / LinkedIn / Threads posts (fields confirmed via logged first item). */
 function mapGeneric(net: string, clientId: string, r: any): Row | null {
-  const id = r.id ?? r.postId ?? r.reelId ?? r.videoId ?? r.urn;
+  const id = r.reelId ?? r.id ?? r.postId ?? r.videoId ?? r.urn;
   if (id == null) return null;
   const n = (x: any) => (x == null ? null : typeof x === "object" ? Number(x.total ?? x.count ?? 0) : Number(x));
   return { client_id: clientId, network: net, external_id: String(id),
     published_at: dt(r.publishedAt ?? r.created ?? r.createdAt ?? r.timestamp ?? r.date),
     title: cleanTitle(r.text ?? r.content ?? r.message ?? r.description ?? r.title),
-    views: n(r.views ?? r.videoViews ?? r.impressions ?? r.plays) ?? 0,
-    likes: n(r.likes ?? r.reactions ?? r.totalReactions) ?? 0, comments: n(r.comments) ?? 0,
+    views: n(r.blueReelsPlayCount ?? r.views ?? r.videoViews ?? r.impressions ?? r.plays) ?? 0,
+    likes: n(r.likes ?? r.reactions ?? r.totalReactions ?? r.postVideoReactions) ?? 0, comments: n(r.comments) ?? 0,
     shares: n(r.shares ?? r.reposts ?? r.reshares) ?? 0, saves: null,
-    url: r.url ?? r.link ?? r.permalink ?? r.permalinkUrl ?? r.publicUrl ?? null,
-    thumbnail_url: r.thumbnailUrl ?? r.picture ?? r.imageUrl ?? r.image ?? null };
+    url: r.reelUrl ?? r.url ?? r.link ?? r.permalink ?? r.permalinkUrl ?? r.publicUrl ?? null,
+    thumbnail_url: null, _image: r.thumbnailUrl ?? r.picture ?? r.imageUrl ?? r.image ?? null };
 }
 
 async function syncVideos(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string, nets: Net[]) {
@@ -217,20 +217,20 @@ async function syncVideos(db: any, client: { id: string; metricool_blog_id: stri
 
 /** Instagram image URLs expire: copy them once into our own storage. Keeps existing thumbnails. */
 async function storeIgThumbnails(db: any, clientId: string, rows: Row[]) {
-  const ig = rows.filter((r) => r.network === "ig");
+  const ig = rows.filter((r) => "_image" in r);
   if (!ig.length) return;
-  const { data: existing } = await db.from("videos").select("external_id,thumbnail_url").eq("network", "ig")
-    .in("external_id", ig.map((r) => r.external_id));
-  const have = new Map((existing ?? []).map((v: any) => [v.external_id, v.thumbnail_url]));
+  const { data: existing } = await db.from("videos").select("network,external_id,thumbnail_url")
+    .in("network", [...new Set(ig.map((r) => r.network))]).in("external_id", ig.map((r) => r.external_id));
+  const have = new Map((existing ?? []).map((v: any) => [`${v.network}|${v.external_id}`, v.thumbnail_url]));
   for (const r of ig) {
     const img = r._image as string | null; delete r._image;
-    const cur = have.get(r.external_id as string);
+    const cur = have.get(`${r.network}|${r.external_id}`);
     if (cur) { r.thumbnail_url = cur; continue; }
     if (!img) continue;
     try {
       const res = await fetch(img);
       if (!res.ok) continue; // expired: keep grey box
-      const path = `${clientId}/${r.external_id}.jpg`;
+      const path = r.network === "ig" ? `${clientId}/${r.external_id}.jpg` : `${clientId}/${r.network}-${r.external_id}.jpg`;
       const { error } = await db.storage.from("thumbnails").upload(path, await res.arrayBuffer(), { contentType: res.headers.get("content-type") ?? "image/jpeg", upsert: true });
       if (!error) r.thumbnail_url = `storage:thumbnails/${path}`;
     } catch { /* keep grey box */ }
