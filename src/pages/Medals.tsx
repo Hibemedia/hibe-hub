@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
@@ -76,7 +77,7 @@ export default function Medals() {
                     </div>
                   </div>
                   <div className="hidden text-right tabular sm:block"><span className="text-2xl font-light">{formatNumber(v.views)}</span> <span className="text-xs text-muted-foreground">weergaven</span></div>
-                  {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-3 top-1/2 h-9 w-9 -translate-y-1/2 bg-card"><span aria-hidden>↗</span></a>}
+                  {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-3 top-1/2 h-9 w-9 -translate-y-1/2 bg-card"><ArrowUpRight className="h-4 w-4" aria-hidden /></a>}
                 </li>
               ))}
             </ol>

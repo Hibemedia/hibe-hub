@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -186,7 +187,7 @@ export function TopVideoList({ videos, limit = 5, className, aside }: { videos: 
               </div>
               {v.url && (
                 <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-3 top-3 h-9 w-9 bg-card">
-                  <span aria-hidden className="text-base leading-none">↗</span>
+                  <ArrowUpRight className="h-4 w-4" aria-hidden />
                 </a>
               )}
             </li>

@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Plus, Upload } from "lucide-react";
@@ -100,7 +101,7 @@ export default function VideoApproval() {
                   </div>
                 </div>
               </button>
-              <span aria-hidden className="round-btn pointer-events-none absolute right-6 top-6">↗</span>
+              <span aria-hidden className="round-btn pointer-events-none absolute right-6 top-6"><ArrowUpRight className="h-4 w-4" /></span>
             </li>
           ))}
         </ul>
