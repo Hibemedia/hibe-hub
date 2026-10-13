@@ -6,8 +6,8 @@ const corsHeaders = {
 };
 
 // Map of supported apiDef values to Metricool API endpoints
-const ENDPOINTS: Record<string, string> = {
-  getBrands: "https://app.metricool.com/api/v2/admin/simpleProfiles",
+const ENDPOINTS: Record<string, (userId: string) => string> = {
+  getBrands: (userId) => `https://app.metricool.com/api/admin/simpleProfiles?userId=${userId}`,
 };
 
 Deno.serve(async (req) => {
@@ -19,8 +19,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const metricoolToken = Deno.env.get("METRICOOL_API_TOKEN");
+    const metricoolUserId = Deno.env.get("METRICOOL_USER_ID");
 
-    if (!metricoolToken) {
+    if (!metricoolToken || !metricoolUserId) {
       return new Response(JSON.stringify({ error: "Metricool is not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -48,13 +49,14 @@ Deno.serve(async (req) => {
     }
 
     const apiDef = req.headers.get("apiDef") || "";
-    const endpoint = ENDPOINTS[apiDef];
-    if (!endpoint) {
+    const buildEndpoint = ENDPOINTS[apiDef];
+    if (!buildEndpoint) {
       return new Response(JSON.stringify({ error: `Unknown apiDef: ${apiDef}` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const endpoint = buildEndpoint(metricoolUserId);
 
     const res = await fetch(endpoint, {
       headers: { "X-Mc-Auth": metricoolToken },
