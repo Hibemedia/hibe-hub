@@ -94,7 +94,7 @@ export const AuthContextProvider = ({ children }) => {
     if (!session || !admin) {
       throw new Error("Not authenticated");
     }
-    const { data, error } = await fetch('https://dhrddccjkzzmgitivjas.supabase.co/functions/v1/deleteUser', {
+    const { data, error } = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deleteUser`, {
       method: 'POST',
       headers:
       {
@@ -118,7 +118,7 @@ export const AuthContextProvider = ({ children }) => {
     if (!session || !admin) {
       throw new Error("Not authenticated");
     }
-    const { data, error } = await fetch('https://dhrddccjkzzmgitivjas.supabase.co/functions/v1/inviteUser', {
+    const { data, error } = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inviteUser`, {
       method: 'POST',
       headers:
       {
