@@ -20,6 +20,7 @@ export type Database = {
           id: string
           logo_url: string | null
           metricool_blog_id: string | null
+          metricool_brand_label: string | null
           name: string
           tiktok_handle: string | null
         }
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           metricool_blog_id?: string | null
+          metricool_brand_label?: string | null
           name: string
           tiktok_handle?: string | null
         }
@@ -36,6 +38,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           metricool_blog_id?: string | null
+          metricool_brand_label?: string | null
           name?: string
           tiktok_handle?: string | null
         }

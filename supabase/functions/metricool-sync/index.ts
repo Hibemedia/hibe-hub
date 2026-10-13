@@ -95,7 +95,7 @@ async function syncStats(db: any, client: { id: string; metricool_blog_id: strin
     for (const [k, row] of rows) if (k.startsWith("yt|")) row.posts = perDay.get(row.date as string) ?? 0;
 
     const list = Array.from(rows.values()).map((r) => {
-      for (const c of ["followers", "posts", "followers_gained", "followers_lost"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
+      for (const c of ["followers", "posts", "followers_gained", "followers_lost", "views", "reach", "interactions"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
       return r;
     });
     if (list.length) {
@@ -202,6 +202,33 @@ async function syncScheduled(db: any, client: { id: string; metricool_blog_id: s
   return items.length;
 }
 
+/** Brand label per blogId from Metricool, as a guard against wrong client↔brand links. */
+async function brandLabels(): Promise<Map<string, string>> {
+  const res = await fetch(`https://app.metricool.com/api/admin/simpleProfiles?userId=${MC_USER}`, { headers: { "X-Mc-Auth": TOKEN } });
+  if (!res.ok) throw new Error(`Metricool simpleProfiles ${res.status}`);
+  const list: any[] = await res.json();
+  return new Map(list.map((b) => [String(b.id), String(b.label ?? b.title ?? b.name ?? b.id)]));
+}
+
+/** Latest followers per network straight from Metricool (for verification). */
+async function latestFollowers(blogId: string) {
+  const t = amsDate(), f = addDays(t, -10);
+  const specs: [string, Record<string, string>][] = [
+    ["ig", { network: "instagram", subject: "account", metric: "followers" }],
+    ["tt", { network: "tiktok", subject: "account", metric: "followers_count" }],
+    ["yt", { network: "youtube", subject: "account", metric: "totalSubscribers" }],
+  ];
+  const out: Record<string, { date: string; value: number } | string> = {};
+  for (const [net, p] of specs) {
+    try {
+      const r = await mc("timelines", blogId, { ...range(f, t), timezone: TZ, ...p });
+      const v = ((r?.data?.[0]?.values ?? []) as any[]).filter((x) => x.value != null).sort((a, b) => b.dateTime.localeCompare(a.dateTime))[0];
+      out[net] = v ? { date: v.dateTime.slice(0, 10), value: v.value } : "geen data";
+    } catch (e) { out[net] = String(e).slice(0, 120); }
+  }
+  return out;
+}
+
 async function run(db: any, mode: Mode, clientId?: string) {
   const today = amsDate();
   const weekday = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "short" }).format(new Date());
@@ -214,7 +241,11 @@ async function run(db: any, mode: Mode, clientId?: string) {
   if (error) throw error;
 
   const report: unknown[] = [];
+  let labels = new Map<string, string>();
+  try { labels = await brandLabels(); } catch (e) { console.error(String(e)); }
   for (const c of clients ?? []) {
+    const label = labels.get(String(c.metricool_blog_id));
+    if (label) await db.from("clients").update({ metricool_brand_label: label }).eq("id", c.id);
     const { data: runRow } = await db.from("sync_runs").insert({ client_id: c.id, mode }).select("id").single();
     let videos = 0, stats = 0;
     try {
@@ -227,7 +258,8 @@ async function run(db: any, mode: Mode, clientId?: string) {
       if (runRow) await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos }).eq("id", runRow.id);
     } catch (e) {
       console.error(`sync failed for ${c.name}:`, String(e));
-      report.push({ client: c.name, error: String(e) });
+      const msg = e instanceof Error ? String(e) : JSON.stringify(e); e = msg;
+      report.push({ client: c.name, error: msg });
       if (runRow) await db.from("sync_runs").update({ status: "fout", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos, error: String(e).slice(0, 1000) }).eq("id", runRow.id);
     }
   }
@@ -257,6 +289,17 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await db.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
   if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
+  if ((body as any).verify) {
+    const labels = await brandLabels();
+    const { data: cs } = await db.from("clients").select("id,name,metricool_blog_id").not("metricool_blog_id", "is", null);
+    const out = [];
+    for (const c of cs ?? []) {
+      const label = labels.get(String(c.metricool_blog_id)) ?? null;
+      if (label) await db.from("clients").update({ metricool_brand_label: label }).eq("id", c.id);
+      out.push({ client: c.name, blogId: c.metricool_blog_id, label, metricool: await latestFollowers(c.metricool_blog_id) });
+    }
+    return json({ brands: Object.fromEntries(labels), clients: out });
+  }
   const mode: Mode = body.mode === "backfill" ? "backfill" : "refresh";
   if (mode === "backfill") {
     EdgeRuntime.waitUntil(run(db, "backfill", body.clientId));
