@@ -5,12 +5,14 @@ import { RefreshCw, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { toast } from "sonner";
+import { useClient } from "@/context/ClientContext";
 
 export function SyncButtons() {
   const { isAdmin } = UserAuth();
   const [admin, setAdmin] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const qc = useQueryClient();
+  const { clientId } = useClient();
 
   useEffect(() => {
     if (typeof isAdmin === "function") Promise.resolve(isAdmin()).then((ok) => setAdmin(!!ok)).catch(() => setAdmin(false));
@@ -19,7 +21,7 @@ export function SyncButtons() {
 
   const run = async (mode: "refresh" | "backfill") => {
     setBusy(mode);
-    const { data, error } = await supabase.functions.invoke("metricool-sync", { body: { mode } });
+    const { data, error } = await supabase.functions.invoke("metricool-sync", { body: { mode, clientId } });
     setBusy(null);
     if (error || data?.error) return toast.error("Verversen mislukt");
     if (mode === "backfill") toast.success("Historie wordt opgehaald — dit duurt een paar minuten.");

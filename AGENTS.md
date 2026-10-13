@@ -2,3 +2,6 @@
 - Frontend calls Metricool only via supabase.functions.invoke('metricool-proxy') — secrets stay server-side.
 - Users map to a client via users.client_id; RLS uses current_client_id() — one source of truth for tenant scoping.
 - metricool-sync runs from a managed schedule at two UTC times and only proceeds at 07:xx Amsterdam — keeps 07:30 local across DST.
+- Selected client lives in ClientContext (admins pick via sidebar, persisted in localStorage; clients use users.client_id); all data pages read clientId from it.
+- Roles: user_roles holds 'admin' (HIBE staff, all clients) or 'client' (own client); RLS uses has_role()/current_client_id().
+- Every metricool-sync run writes a sync_runs row per client; new clients trigger a backfill from the Klanten page.
