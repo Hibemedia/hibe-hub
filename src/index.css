@@ -234,7 +234,7 @@
 }
 
 @layer components {
-  .wordmark { @apply font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-tight md:text-7xl; }
+  .wordmark { @apply break-words font-display text-[2.5rem] sm:text-6xl font-extrabold uppercase leading-[0.9] tracking-tight md:text-7xl; }
   .capsule-dark { @apply inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background; }
   .chip { @apply inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground; }
   .chip-filter { @apply inline-flex h-9 items-center rounded-full border border-border px-4 text-sm text-foreground transition-colors hover:bg-card; }

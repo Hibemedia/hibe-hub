@@ -82,7 +82,7 @@ export default function ContentMoments() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Contentmomenten</h1>
+          <h1 className="wordmark">Contentmomenten</h1>
           <p className="text-muted-foreground mt-1">
             Plan en beheer je content draaidagen
           </p>

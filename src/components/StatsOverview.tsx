@@ -19,12 +19,12 @@ export function EmptyState({ text = "Nog geen data" }: { text?: string }) {
 
 export function Section({ title, aside, children, className }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-lg bg-card", className)}>
-      <header className="flex items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
-        <h2 className="text-base font-semibold">{title}</h2>
+    <section className={cn("rounded-lg bg-card p-5 md:p-7", className)}>
+      <header className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
         {aside}
       </header>
-      <div className="p-4 md:p-5">{children}</div>
+      <div>{children}</div>
     </section>
   );
 }
@@ -33,32 +33,32 @@ const fmtSigned = (n: number) => `${n >= 0 ? "+" : ""}${formatNumber(n)}`;
 
 function Change({ value, suffix }: { value: number | null; suffix?: string }) {
   if (value == null) return <span className="text-muted-foreground">geen vergelijking</span>;
-  return (
-    <span className={value >= 0 ? "text-success" : "text-destructive"}>
-      {suffix != null ? fmtSigned(value) + suffix : `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`}
-    </span>
-  );
+  const label = suffix != null ? formatNumber(Math.abs(value)) + suffix : `${Math.abs(value).toFixed(1)}%`;
+  if (value >= 0) return <span className="growth"><span aria-hidden>↑</span><span className="sr-only">plus </span>{label}</span>;
+  return <span className="inline-flex items-center gap-0.5 rounded-full bg-foreground px-2 py-0.5 text-xs font-semibold text-background"><span aria-hidden>↓</span><span className="sr-only">min </span>{label}</span>;
 }
 
 export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: Range; loading?: boolean }) {
-  if (loading) return <Skeleton className="h-28 rounded-lg" />;
+  if (loading) return <Skeleton className="h-40 rounded-lg" />;
   const cur = totalsFor(stats, range.start, range.end);
   if (!cur.hasData) return <section className="rounded-lg bg-card"><EmptyState /></section>;
   const prev = range.prevStart ? totalsFor(stats, range.prevStart, range.prevEnd) : null;
   const pc = (c: number, p?: number | null) => (prev?.hasData ? pctChange(c, p) : null);
   const items = [
-    { label: "Volgers", value: cur.followers, change: <Change value={cur.followersGrowth} suffix=" deze periode" /> },
+    { label: "Volgers", value: cur.followers, change: <><Change value={cur.followersGrowth} suffix="" /> <span className="text-muted-foreground">deze periode</span></> },
     { label: "Weergaven", value: cur.views, change: <><Change value={pc(cur.views, prev?.views)} /> <span className="text-muted-foreground">vs. vorige</span></> },
     { label: "Interacties", value: cur.interactions, change: <><Change value={pc(cur.interactions, prev?.interactions)} /> <span className="text-muted-foreground">vs. vorige</span></> },
     { label: "Posts", value: cur.posts, change: <><Change value={pc(cur.posts, prev?.posts)} /> <span className="text-muted-foreground">vs. vorige</span></> },
   ];
   return (
-    <section className="grid grid-cols-2 rounded-lg bg-card lg:grid-cols-4">
-      {items.map((it, i) => (
-        <div key={it.label} className={cn("p-4 md:p-5", i % 2 === 1 && "border-l", i >= 2 && "border-t lg:border-t-0", i === 2 && "lg:border-l")}>
-          <div className="text-sm text-muted-foreground">{it.label}</div>
-          <div className="mt-1 font-display text-2xl font-bold tracking-tight md:text-3xl">{formatNumber(it.value)}</div>
-          <div className="mt-1 text-xs tabular">{it.change}</div>
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map((it) => (
+        <div key={it.label} className="rounded-lg bg-card p-5 md:p-6">
+          <div className="flex items-baseline gap-2">
+            <span className="text-[44px] font-light leading-none tracking-tight tabular md:text-[56px]">{formatNumber(it.value)}</span>
+            <span className="text-base text-muted-foreground">{it.label}</span>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs tabular">{it.change}</div>
         </div>
       ))}
     </section>
@@ -82,16 +82,16 @@ export function DailyChart({ stats, range }: { stats: DailyStat[]; range: Range 
   }, [stats, range]);
   const short = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
   const lines = mode === "total"
-    ? [{ key: "views", name: "Weergaven", color: "hsl(var(--foreground))" }, { key: "interactions", name: "Interacties", color: "hsl(var(--primary))" }]
+    ? [{ key: "views", name: "Weergaven", color: "hsl(var(--foreground))" }, { key: "interactions", name: "Interacties", color: "hsl(var(--muted-foreground))" }]
     : nets.map((n) => ({ key: n, name: NETWORK_LABELS[n], color: platformColor(n) }));
   return (
     <Section
       title={mode === "total" ? "Weergaven en interacties per dag" : "Weergaven per kanaal per dag"}
       aside={
-        <div className="flex rounded-md border p-0.5 text-xs" role="group" aria-label="Weergave">
+        <div className="flex gap-1.5" role="group" aria-label="Weergave">
           {([["total", "Totaal"], ["net", "Per kanaal"]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setMode(k)} aria-pressed={mode === k}
-              className={cn("rounded px-2 py-1", mode === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+              className="chip-filter h-8 px-3 text-xs">{l}</button>
           ))}
         </div>
       }
@@ -146,7 +146,7 @@ export function NetworkBreakdown({ stats, range, className }: { stats: DailyStat
           </thead>
           <tbody>
             {networks.map(({ n, t }) => (
-              <tr key={n} className="border-t">
+              <tr key={n} className="border-t border-border/70">
                 <td className="truncate py-3"><span className="flex items-center gap-2"><PlatformDot network={n} />{NETWORK_LABELS[n]}</span></td>
                 <td className="py-3 text-right font-medium">{formatNumber(t.followers)}</td>
                 <td className="py-3 text-right">{t.followersGrowth == null ? "–" : <Change value={t.followersGrowth} suffix="" />}</td>
@@ -166,37 +166,30 @@ export function TopVideoList({ videos, limit = 5, className, aside }: { videos: 
   return (
     <Section title="Best bekeken video's" className={className} aside={aside}>
       {videos.length === 0 ? <EmptyState /> : (
-        <ol className="-my-2 divide-y">
-          {videos.slice(0, limit).map((v) => {
-            const inner = (
-              <>
-                <div className="h-14 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
-                  {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
+        <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {videos.slice(0, limit).map((v) => (
+            <li key={v.id} className="relative flex gap-4 rounded-lg bg-popover p-3">
+              <div className="h-28 w-20 shrink-0 overflow-hidden rounded-[14px] bg-muted">
+                {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col pr-10">
+                <p className="line-clamp-2 text-base font-semibold leading-snug">{v.title || "Zonder titel"}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
+                  {v.published_at && <span className="chip">{new Date(v.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}</span>}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{v.title || "Zonder titel"}</p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <PlatformDot network={v.network} />
-                    {NETWORK_LABELS[v.network as Network] ?? v.network}
-                    {v.published_at && <span>· {new Date(v.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}</span>}
-                  </p>
+                <div className="mt-auto flex items-baseline gap-1.5 pt-2 tabular">
+                  <span className="text-2xl font-light">{formatNumber(v.views)}</span>
+                  <span className="text-xs text-muted-foreground">weergaven</span>
                 </div>
-                <div className="text-right tabular">
-                  <div className="text-sm font-semibold">{formatNumber(v.views)}</div>
-                  <div className="text-xs text-muted-foreground">weergaven</div>
-                </div>
-              </>
-            );
-            return (
-              <li key={v.id}>
-                {v.url ? (
-                  <a href={v.url} target="_blank" rel="noopener noreferrer" className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{inner}</a>
-                ) : (
-                  <div className="flex items-center gap-3 py-2">{inner}</div>
-                )}
-              </li>
-            );
-          })}
+              </div>
+              {v.url && (
+                <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-3 top-3 h-9 w-9 bg-card">
+                  <span aria-hidden className="text-base leading-none">↗</span>
+                </a>
+              )}
+            </li>
+          ))}
         </ol>
       )}
     </Section>

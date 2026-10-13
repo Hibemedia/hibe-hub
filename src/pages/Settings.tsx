@@ -57,7 +57,7 @@ export default function Settings() {
     <div className="p-6 space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Instellingen</h1>
+          <h1 className="wordmark">Instellingen</h1>
           <p className="text-muted-foreground mt-1">Beheer je account en voorkeuren</p>
         </div>
         <Button onClick={save} disabled={saving}><Save className="h-4 w-4 mr-2" />Opslaan</Button>
