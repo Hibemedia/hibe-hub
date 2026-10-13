@@ -7,3 +7,5 @@
 - Every metricool-sync run writes a sync_runs row per client; new clients trigger a backfill from the Klanten page.
 - Review item status changes only via the review_action() RPC — it enforces notes/roles and writes review_events history.
 - Private-bucket media (thumbnails, review-media) uses path clientId/... and is shown via signed URLs; stored IG thumbnails are saved as 'storage:thumbnails/<path>'.
+- Library files live in private bucket 'library' at clientId/category/filename with a library_files row; unique per client+category+name so duplicates are rejected.
+- Medal levels are computed client-side from videos/daily_stats in src/lib/medals.ts (tested); no stored medal data.

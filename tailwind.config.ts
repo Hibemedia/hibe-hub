@@ -19,8 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Urbanist', 'ui-sans-serif', 'system-ui', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"'],
-				display: ['Urbanist', 'ui-sans-serif', 'system-ui'],
+				sans: ['Urbanist', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"', 'ui-sans-serif', 'system-ui', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"'],
+				display: ['Urbanist', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"', 'ui-sans-serif', 'system-ui'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

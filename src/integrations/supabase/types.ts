@@ -44,6 +44,94 @@ export type Database = {
         }
         Relationships: []
       }
+      content_moment_comments: {
+        Row: {
+          created_at: string
+          id: string
+          moment_id: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          moment_id: string
+          text: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          moment_id?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moment_comments_moment_id_fkey"
+            columns: ["moment_id"]
+            isOneToOne: false
+            referencedRelation: "content_moments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_moments: {
+        Row: {
+          attendees: string[]
+          client_id: string
+          created_at: string
+          date: string | null
+          id: string
+          location: string | null
+          notes: string | null
+          requested_by: string | null
+          script: string | null
+          start_time: string | null
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          attendees?: string[]
+          client_id: string
+          created_at?: string
+          date?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          requested_by?: string | null
+          script?: string | null
+          start_time?: string | null
+          status?: string
+          title: string
+          type?: string
+        }
+        Update: {
+          attendees?: string[]
+          client_id?: string
+          created_at?: string
+          date?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          requested_by?: string | null
+          script?: string | null
+          start_time?: string | null
+          status?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_stats: {
         Row: {
           client_id: string
@@ -90,6 +178,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "daily_stats_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      library_files: {
+        Row: {
+          category: string
+          client_id: string
+          created_at: string
+          description: string | null
+          file_name: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category: string
+          client_id: string
+          created_at?: string
+          description?: string | null
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_files_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
