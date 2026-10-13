@@ -1,0 +1,214 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { authenticateCronRequest } from "../_shared/cron-auth.ts";
+
+const BASE = "https://app.metricool.com/api/v2/analytics";
+const TZ = "Europe/Amsterdam";
+const HISTORY_START = "2025-06-01";
+const TOKEN = Deno.env.get("METRICOOL_API_TOKEN")!;
+const MC_USER = Deno.env.get("METRICOOL_USER_ID")!;
+
+type Mode = "daily" | "refresh" | "backfill" | "scheduled";
+const json = (b: unknown, status = 200) =>
+  new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+// ---------- dates ----------
+const amsDate = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d); // YYYY-MM-DD
+const addDays = (iso: string, n: number) => {
+  const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
+};
+function chunks(from: string, to: string, size = 30): [string, string][] {
+  const out: [string, string][] = [];
+  for (let s = from; s <= to; s = addDays(s, size)) {
+    const e = addDays(s, size - 1);
+    out.push([s, e > to ? to : e]);
+  }
+  return out;
+}
+/** Convert a wall-clock time in a time zone to a UTC ISO string. */
+function zonedToUtc(local: string, tz: string): string {
+  const asUtc = new Date(local.slice(0, 19) + "Z");
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(asUtc);
+  const g = (t: string) => Number(parts.find((p) => p.type === t)!.value);
+  const tzAsUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second"));
+  return new Date(asUtc.getTime() - (tzAsUtc - asUtc.getTime())).toISOString();
+}
+const cleanTitle = (s?: string | null) =>
+  (s ?? "").split("\n")[0].replace(/#[^\s#]+/g, "").replace(/\s+/g, " ").trim() || null;
+
+// ---------- metricool ----------
+async function mc(path: string, blogId: string, params: Record<string, string>) {
+  const qs = new URLSearchParams({ userId: MC_USER, blogId, ...params });
+  const res = await fetch(`${BASE}/${path}?${qs}`, { headers: { "X-Mc-Auth": TOKEN } });
+  if (!res.ok) throw new Error(`Metricool ${path} ${params.metric ?? ""} ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  return res.json();
+}
+const range = (s: string, e: string) => ({ from: `${s}T00:00:00+02:00`, to: `${e}T23:59:59+02:00` });
+
+type Row = Record<string, number | string | null>;
+const STAT_SPECS: { net: "ig" | "tt" | "yt"; col: string; params: Record<string, string> }[] = [
+  ...(["followers:followers", "views:views", "reach:reach", "followers_gained:followers_gained", "followers_lost:followers_lost", "postsCount:posts"]
+    .map((m) => { const [metric, col] = m.split(":"); return { net: "ig" as const, col, params: { network: "instagram", subject: "account", metric } }; })),
+  { net: "ig", col: "interactions", params: { network: "instagram", subject: "posts", metric: "interactions" } },
+  { net: "ig", col: "interactions", params: { network: "instagram", subject: "reels", metric: "interactions" } },
+  { net: "tt", col: "followers", params: { network: "tiktok", metric: "followers_count", subject: "account" } },
+  { net: "tt", col: "views", params: { network: "tiktok", metric: "video_views", metricType: "account" } },
+  { net: "tt", col: "reach", params: { network: "tiktok", metric: "reach", subject: "video" } },
+  { net: "tt", col: "interactions", params: { network: "tiktok", metric: "interactions" } },
+  { net: "tt", col: "posts", params: { network: "tiktok", metric: "videos" } },
+  { net: "tt", col: "followers_gained", params: { network: "tiktok", metric: "daily_new_followers", subject: "account" } },
+  { net: "tt", col: "followers_lost", params: { network: "tiktok", metric: "daily_lost_followers", subject: "account" } },
+  { net: "yt", col: "followers", params: { network: "youtube", subject: "account", metric: "totalSubscribers" } },
+  { net: "yt", col: "views", params: { network: "youtube", subject: "account", metric: "views" } },
+  { net: "yt", col: "followers_gained", params: { network: "youtube", subject: "account", metric: "subscribersGained" } },
+  { net: "yt", col: "followers_lost", params: { network: "youtube", subject: "account", metric: "subscribersLost" } },
+];
+const EMPTY: Row = { followers: null, views: null, reach: null, interactions: null, posts: null, followers_gained: null, followers_lost: null };
+
+async function syncStats(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string) {
+  let count = 0;
+  for (const [s, e] of chunks(from, to)) {
+    const rows = new Map<string, Row>();
+    const results = await Promise.all(STAT_SPECS.map(async (spec) => {
+      const r = await mc("timelines", client.metricool_blog_id, { ...range(s, e), timezone: TZ, ...spec.params });
+      return { spec, values: (r?.data?.[0]?.values ?? []) as { dateTime: string; value: number | null }[] };
+    }));
+    for (const { spec, values } of results) {
+      for (const v of values) {
+        const date = v.dateTime.slice(0, 10);
+        if (date < s || date > e) continue;
+        const key = `${spec.net}|${date}`;
+        const row = rows.get(key) ?? { client_id: client.id, network: spec.net, date, ...EMPTY };
+        if (v.value != null) {
+          row[spec.col] = spec.col === "interactions" ? Number(row[spec.col] ?? 0) + v.value : v.value;
+        }
+        rows.set(key, row);
+      }
+    }
+    // YouTube posts = number of videos published that day (from videos table)
+    const { data: ytv } = await db.from("videos").select("published_at").eq("client_id", client.id).eq("network", "yt")
+      .gte("published_at", zonedToUtc(`${s}T00:00:00`, TZ)).lte("published_at", zonedToUtc(`${e}T23:59:59`, TZ));
+    const perDay = new Map<string, number>();
+    for (const v of ytv ?? []) { const d = amsDate(new Date(v.published_at)); perDay.set(d, (perDay.get(d) ?? 0) + 1); }
+    for (const [k, row] of rows) if (k.startsWith("yt|")) row.posts = perDay.get(row.date as string) ?? 0;
+
+    const list = Array.from(rows.values()).map((r) => {
+      for (const c of ["followers", "posts", "followers_gained", "followers_lost"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
+      return r;
+    });
+    if (list.length) {
+      const { error } = await db.from("daily_stats").upsert(list, { onConflict: "client_id,network,date" });
+      if (error) throw error;
+      count += list.length;
+    }
+  }
+  return count;
+}
+
+let ytLogged = false;
+async function syncVideos(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string) {
+  let count = 0;
+  for (const [s, e] of chunks(from, to)) {
+    const blog = client.metricool_blog_id;
+    const [ig, tt, yt] = await Promise.all([
+      mc("reels/instagram", blog, { from: `${s}T00:00:00`, to: `${e}T23:59:59` }),
+      mc("posts/tiktok", blog, range(s, e)),
+      mc("posts/youtube", blog, { ...range(s, e), timezone: TZ, postsType: "publishedInRange" }),
+    ]);
+    const rows: Row[] = [];
+    for (const r of ig?.data ?? []) {
+      const code = /\/reel\/([^/?]+)/.exec(r.url ?? "")?.[1];
+      if (!code) continue;
+      rows.push({ client_id: client.id, network: "ig", external_id: code,
+        published_at: r.publishedAt?.dateTime ? zonedToUtc(r.publishedAt.dateTime, r.publishedAt.timezone || TZ) : null,
+        title: cleanTitle(r.content), views: r.views ?? 0, likes: r.likes ?? 0, comments: r.comments ?? 0,
+        shares: r.shares ?? 0, saves: r.saved ?? 0, url: r.url, thumbnail_url: null });
+    }
+    for (const r of tt?.data ?? []) {
+      if (!r.videoId) continue;
+      let url: string | null = r.shareUrl ?? null;
+      if (url) { const u = new URL(url); [...u.searchParams.keys()].filter((k) => k.startsWith("utm_")).forEach((k) => u.searchParams.delete(k)); url = u.toString().replace(/\?$/, ""); }
+      rows.push({ client_id: client.id, network: "tt", external_id: String(r.videoId),
+        published_at: r.createTime ? new Date(r.createTime.replace(/([+-]\d{2})(\d{2})$/, "$1:$2")).toISOString() : null,
+        title: cleanTitle(r.title), views: r.viewCount ?? 0, likes: r.likeCount ?? 0, comments: r.commentCount ?? 0,
+        shares: r.shareCount ?? 0, saves: null, url, thumbnail_url: r.coverImageUrl ?? null });
+    }
+    for (const r of yt?.data ?? []) {
+      if (!ytLogged) { console.log("YouTube first item:", JSON.stringify(r)); ytLogged = true; }
+      if (!r.videoId) continue;
+      rows.push({ client_id: client.id, network: "yt", external_id: r.videoId,
+        published_at: r.publishedAt?.dateTime ? zonedToUtc(r.publishedAt.dateTime, r.publishedAt.timezone || TZ) : null,
+        title: cleanTitle(r.title), views: r.views ?? 0, likes: r.likes ?? 0, comments: r.comments ?? 0,
+        shares: r.shares ?? 0, saves: null, url: `https://youtu.be/${r.videoId}`, thumbnail_url: r.thumbnailUrl ?? null });
+    }
+    for (const r of rows) for (const c of ["views", "likes", "comments", "shares", "saves"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
+    if (rows.length) {
+      const { error } = await db.from("videos").upsert(rows, { onConflict: "network,external_id" });
+      if (error) throw error;
+      count += rows.length;
+    }
+  }
+  return count;
+}
+
+async function run(db: any, mode: Mode, clientId?: string) {
+  const today = amsDate();
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "short" }).format(new Date());
+  const statsFrom = mode === "backfill" ? HISTORY_START : addDays(today, -13);
+  const videosFrom = mode === "backfill" || (mode === "scheduled" && weekday === "Mon") ? HISTORY_START : addDays(today, -89);
+
+  let q = db.from("clients").select("id,name,metricool_blog_id").not("metricool_blog_id", "is", null);
+  if (clientId) q = q.eq("id", clientId);
+  const { data: clients, error } = await q;
+  if (error) throw error;
+
+  const report: unknown[] = [];
+  for (const c of clients ?? []) {
+    try {
+      const videos = await syncVideos(db, c, videosFrom, today);
+      const stats = await syncStats(db, c, statsFrom, today);
+      report.push({ client: c.name, videos, stats });
+    } catch (e) {
+      console.error(`sync failed for ${c.name}:`, String(e));
+      report.push({ client: c.name, error: String(e) });
+    }
+  }
+  console.log("sync done", mode, JSON.stringify(report));
+  return report;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  let body: { mode?: Mode; clientId?: string } = {};
+  try { body = await req.json(); } catch { /* empty */ }
+
+  const isCron = authenticateCronRequest(req) === null;
+  if (isCron) {
+    // Cron fires at two UTC times; only run when it's 07:xx in Amsterdam (handles DST).
+    const hour = Number(new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "2-digit", hourCycle: "h23" }).format(new Date()));
+    if (hour !== 7) return json({ skipped: true, hour });
+    EdgeRuntime.waitUntil(run(db, "scheduled"));
+    return json({ started: true });
+  }
+
+  // Otherwise: must be a signed-in admin
+  const auth = req.headers.get("Authorization") ?? "";
+  const { data: u } = await db.auth.getUser(auth.replace(/^Bearer /, ""));
+  if (!u?.user) return json({ error: "Unauthorized" }, 401);
+  const { data: isAdmin } = await db.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
+  if (!isAdmin) return json({ error: "Forbidden" }, 403);
+
+  const mode: Mode = body.mode === "backfill" ? "backfill" : "refresh";
+  if (mode === "backfill") {
+    EdgeRuntime.waitUntil(run(db, "backfill", body.clientId));
+    return json({ started: true, mode });
+  }
+  try {
+    return json({ mode, report: await run(db, "refresh", body.clientId) });
+  } catch (e) {
+    return json({ error: String(e) }, 500);
+  }
+});
