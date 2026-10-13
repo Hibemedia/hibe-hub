@@ -147,13 +147,13 @@ function mapGeneric(net: string, clientId: string, r: any): Row | null {
   if (id == null) return null;
   const n = (x: any) => (x == null ? null : typeof x === "object" ? Number(x.total ?? x.count ?? 0) : Number(x));
   return { client_id: clientId, network: net, external_id: String(id),
-    published_at: dt(r.publishedAt ?? r.created ?? r.createdAt ?? r.timestamp ?? r.date),
-    title: cleanTitle(r.text ?? r.content ?? r.message ?? r.description ?? r.title),
+    published_at: dt(r.publishedAt ?? r.publishedDate ?? r.created ?? r.createdAt ?? r.timestamp ?? r.date),
+    title: cleanTitle(r.text ?? r.content ?? r.message ?? r.description ?? r.title ?? (typeof r.comment === "string" ? r.comment : null)),
     views: n(r.blueReelsPlayCount ?? r.views ?? r.videoViews ?? r.impressions ?? r.plays) ?? 0,
-    likes: n(r.likes ?? r.reactions ?? r.totalReactions ?? r.postVideoReactions) ?? 0, comments: n(r.comments) ?? 0,
+    likes: n(r.likes ?? r.reactions ?? r.totalReactions ?? r.postVideoReactions) ?? 0, comments: n(typeof r.comments === "number" ? r.comments : r.replies) ?? 0,
     shares: n(r.shares ?? r.reposts ?? r.reshares) ?? 0, saves: null,
     url: r.reelUrl ?? r.url ?? r.link ?? r.permalink ?? r.permalinkUrl ?? r.publicUrl ?? null,
-    thumbnail_url: null, _image: r.thumbnailUrl ?? r.picture ?? r.imageUrl ?? r.image ?? null };
+    thumbnail_url: null, _image: r.thumbnailUrl ?? r.picture ?? r.imageUrl ?? r.image ?? (r.mediaType && r.mediaType !== "VIDEO" ? r.mediaUrl : null) ?? null };
 }
 
 async function syncVideos(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string, nets: Net[]) {
