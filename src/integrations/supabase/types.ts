@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          logo_url: string | null
           metricool_blog_id: string | null
           name: string
           tiktok_handle: string | null
@@ -25,6 +26,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           metricool_blog_id?: string | null
           name: string
           tiktok_handle?: string | null
@@ -32,6 +34,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           metricool_blog_id?: string | null
           name?: string
           tiktok_handle?: string | null
@@ -84,6 +87,74 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "daily_stats_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles_settings: {
+        Row: {
+          full_name: string | null
+          notify_new_video: boolean
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          full_name?: string | null
+          notify_new_video?: boolean
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          full_name?: string | null
+          notify_new_video?: boolean
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sync_runs: {
+        Row: {
+          client_id: string
+          days_count: number | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          mode: string | null
+          started_at: string
+          status: string
+          videos_count: number | null
+        }
+        Insert: {
+          client_id: string
+          days_count?: number | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          mode?: string | null
+          started_at?: string
+          status?: string
+          videos_count?: number | null
+        }
+        Update: {
+          client_id?: string
+          days_count?: number | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          mode?: string | null
+          started_at?: string
+          status?: string
+          videos_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_runs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
