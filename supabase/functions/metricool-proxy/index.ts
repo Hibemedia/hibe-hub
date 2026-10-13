@@ -49,13 +49,14 @@ Deno.serve(async (req) => {
     }
 
     const apiDef = req.headers.get("apiDef") || "";
-    const endpoint = ENDPOINTS[apiDef];
-    if (!endpoint) {
+    const buildEndpoint = ENDPOINTS[apiDef];
+    if (!buildEndpoint) {
       return new Response(JSON.stringify({ error: `Unknown apiDef: ${apiDef}` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const endpoint = buildEndpoint(metricoolUserId);
 
     const res = await fetch(endpoint, {
       headers: { "X-Mc-Auth": metricoolToken },
