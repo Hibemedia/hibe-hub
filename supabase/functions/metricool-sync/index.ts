@@ -289,6 +289,12 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await db.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
   if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
+  if ((body as any).probe === "brands") {
+    const res = await fetch(`https://app.metricool.com/api/admin/simpleProfiles?userId=${MC_USER}`, { headers: { "X-Mc-Auth": TOKEN } });
+    const list: any[] = await res.json();
+    return json(list.map((b) => ({ id: b.id, label: b.label, keys: Object.keys(b), pic: b.picture ?? b.profilePicture ?? b.logo ?? null,
+      nets: Object.fromEntries(Object.keys(b).filter((k) => k.endsWith("Data")).map((k) => [k, b[k] ? JSON.stringify(b[k]).slice(0, 80) : null])) })));
+  }
   if ((body as any).verify) {
     const labels = await brandLabels();
     const { data: cs } = await db.from("clients").select("id,name,metricool_blog_id").not("metricool_blog_id", "is", null);
