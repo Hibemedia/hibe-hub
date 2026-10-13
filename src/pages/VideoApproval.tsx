@@ -154,9 +154,9 @@ export default function VideoApproval() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return { text: '✅ Goedgekeurd', className: 'bg-success text-success-foreground' };
+        return { text: ' Goedgekeurd', className: 'bg-success text-success-foreground' };
       case 'rejected':
-        return { text: '❌ Afgekeurd', className: 'bg-destructive text-destructive-foreground' };
+        return { text: ' Afgekeurd', className: 'bg-destructive text-destructive-foreground' };
       default:
         return { text: '⏳ Wachtend', className: 'bg-warning text-warning-foreground' };
     }
@@ -515,8 +515,8 @@ export default function VideoApproval() {
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-900 border-neutral-600 text-white shadow-lg z-50">
                     <SelectItem value="pending">⏳ Wachtend</SelectItem>
-                    <SelectItem value="approved">✅ Goedgekeurd</SelectItem>
-                    <SelectItem value="rejected">❌ Afgekeurd</SelectItem>
+                    <SelectItem value="approved"> Goedgekeurd</SelectItem>
+                    <SelectItem value="rejected"> Afgekeurd</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
