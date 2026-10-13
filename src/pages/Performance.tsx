@@ -6,6 +6,7 @@ import { PeriodSelect } from "@/components/PeriodSelect";
 import { KpiGrid, NetworkBreakdown, TopVideoList, EmptyState } from "@/components/StatsOverview";
 import { useClientStats } from "@/hooks/useClientStats";
 import { PeriodKey } from "@/lib/stats";
+import { SyncButtons } from "@/components/SyncButtons";
 
 export default function Performance() {
   const [period, setPeriod] = useState<PeriodKey>("30d");
@@ -33,7 +34,7 @@ export default function Performance() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Performance</h1>
           <p className="text-sm text-muted-foreground">{data?.client?.name ?? "Resultaten per periode en platform"}</p>
         </div>
-        <PeriodSelect value={period} onChange={setPeriod} />
+        <div className="flex flex-wrap items-center gap-2"><SyncButtons /><PeriodSelect value={period} onChange={setPeriod} /></div>
       </div>
 
       {!isLoading && !data?.client ? (
