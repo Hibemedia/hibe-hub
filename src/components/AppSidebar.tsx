@@ -6,7 +6,8 @@ import {
   Archive,
   Settings,
   LogOut,
-  Home
+  Home,
+  Users
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -23,7 +24,8 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { UserAuth } from "@/context/AuthContext.jsx";
 
 const menuItems = [
   {
@@ -62,7 +64,18 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const [isAdmin, setAdmin] = useState(false); 
+  const { isAdmin } = UserAuth();
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (typeof isAdmin === "function") {
+      Promise.resolve(isAdmin()).then((ok) => {
+        if (active) setIsAdminUser(!!ok);
+      });
+    }
+    return () => { active = false; };
+  }, [isAdmin]);
   
  const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -132,6 +145,19 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isAdminUser && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/gebruikersbeheer"
+                      className={getNavClasses("/gebruikersbeheer")}
+                    >
+                      <Users className="h-4 w-4" strokeWidth={1.5} />
+                      {!collapsed && <span className="ml-3">Gebruikers Beheer</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
