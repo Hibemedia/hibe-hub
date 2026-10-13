@@ -1,0 +1,3 @@
+- Dashboard/Performance read only from daily_stats and videos (filled by a server-side sync); never from Metricool directly — keeps pages fast and per-client RLS-scoped.
+- Frontend calls Metricool only via supabase.functions.invoke('metricool-proxy') — secrets stay server-side.
+- Users map to a client via users.client_id; RLS uses current_client_id() — one source of truth for tenant scoping.
