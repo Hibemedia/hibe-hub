@@ -258,7 +258,8 @@ async function run(db: any, mode: Mode, clientId?: string) {
       if (runRow) await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos }).eq("id", runRow.id);
     } catch (e) {
       console.error(`sync failed for ${c.name}:`, String(e));
-      report.push({ client: c.name, error: String(e) });
+      const msg = e instanceof Error ? String(e) : JSON.stringify(e); e = msg;
+      report.push({ client: c.name, error: msg });
       if (runRow) await db.from("sync_runs").update({ status: "fout", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos, error: String(e).slice(0, 1000) }).eq("id", runRow.id);
     }
   }
