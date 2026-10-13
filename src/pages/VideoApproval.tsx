@@ -64,7 +64,7 @@ export default function VideoApproval() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">{client?.name ?? "\u00a0"}</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Video-goedkeuring</h1>
+          <h1 className="wordmark">Video-goedkeuring</h1>
         </div>
         {isAdmin && clientId && <Button onClick={() => setCreating(true)}><Plus /> Nieuw item</Button>}
       </div>
@@ -78,7 +78,7 @@ export default function VideoApproval() {
         ))}
       </div>
 
-      <section className="rounded-lg border bg-card">
+      <section className="rounded-lg bg-card">
         {isLoading ? <EmptyState text="Laden…" /> : list.length === 0 ? (
           <EmptyState text={tab === "open" ? "Er staat niets klaar om te beoordelen." : "Nog niets afgehandeld."} />
         ) : (

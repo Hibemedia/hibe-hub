@@ -16,13 +16,13 @@ export default function Performance() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">{data?.client?.name ?? "\u00a0"}</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Performance</h1>
+          <h1 className="wordmark">Performance</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2"><SyncButtons /><PeriodSelect value={period} onChange={setPeriod} /></div>
       </div>
 
       {!isLoading && !data?.client ? (
-        <section className="rounded-lg border bg-card"><EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." /></section>
+        <section className="rounded-lg bg-card"><EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." /></section>
       ) : (
         <>
           <KpiBand stats={stats} range={range!} loading={isLoading || !range} />

@@ -17,13 +17,13 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">{data?.client?.name ?? "\u00a0"}</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Overzicht</h1>
+          <h1 className="wordmark">Overzicht</h1>
         </div>
         <PeriodSelect value={period} onChange={setPeriod} />
       </div>
 
       {!isLoading && !data?.client ? (
-        <section className="rounded-lg border bg-card"><EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." /></section>
+        <section className="rounded-lg bg-card"><EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." /></section>
       ) : (
         <>
           {range && <PeriodSummary stats={stats} range={range} videos={data?.videos ?? []} />}
@@ -37,7 +37,7 @@ export default function Dashboard() {
               aside={<Link to="/performance" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">Alles <ArrowRight className="h-3.5 w-3.5" /></Link>}
             />
           </div>
-          <Link to="/video-approval" className="flex items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm hover:bg-muted/40 md:px-5">
+          <Link to="/video-approval" className="flex items-center justify-between rounded-lg bg-card px-4 py-3 text-sm hover:bg-muted/40 md:px-5">
             <span>Video's ter goedkeuring bekijken</span>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </Link>

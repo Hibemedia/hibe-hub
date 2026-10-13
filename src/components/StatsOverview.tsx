@@ -19,7 +19,7 @@ export function EmptyState({ text = "Nog geen data" }: { text?: string }) {
 
 export function Section({ title, aside, children, className }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-lg border bg-card", className)}>
+    <section className={cn("rounded-lg bg-card", className)}>
       <header className="flex items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
         <h2 className="text-base font-semibold">{title}</h2>
         {aside}
@@ -43,7 +43,7 @@ function Change({ value, suffix }: { value: number | null; suffix?: string }) {
 export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: Range; loading?: boolean }) {
   if (loading) return <Skeleton className="h-28 rounded-lg" />;
   const cur = totalsFor(stats, range.start, range.end);
-  if (!cur.hasData) return <section className="rounded-lg border bg-card"><EmptyState /></section>;
+  if (!cur.hasData) return <section className="rounded-lg bg-card"><EmptyState /></section>;
   const prev = range.prevStart ? totalsFor(stats, range.prevStart, range.prevEnd) : null;
   const pc = (c: number, p?: number | null) => (prev?.hasData ? pctChange(c, p) : null);
   const items = [
@@ -53,7 +53,7 @@ export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: 
     { label: "Posts", value: cur.posts, change: <><Change value={pc(cur.posts, prev?.posts)} /> <span className="text-muted-foreground">vs. vorige</span></> },
   ];
   return (
-    <section className="grid grid-cols-2 rounded-lg border bg-card lg:grid-cols-4">
+    <section className="grid grid-cols-2 rounded-lg bg-card lg:grid-cols-4">
       {items.map((it, i) => (
         <div key={it.label} className={cn("p-4 md:p-5", i % 2 === 1 && "border-l", i >= 2 && "border-t lg:border-t-0", i === 2 && "lg:border-l")}>
           <div className="text-sm text-muted-foreground">{it.label}</div>
