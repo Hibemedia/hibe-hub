@@ -73,7 +73,12 @@ export default function Klanten() {
         if (upErr) throw upErr;
         await supabase.from("clients").update({ logo_url: path }).eq("id", id);
       }
-      if (!editing.id && id) {
+      const brandChanged = !!editing.id && clients.find((c) => c.id === editing.id)?.metricool_blog_id !== blog;
+      if (brandChanged && id) {
+        // Old numbers were removed by the database; fetch history for the new brand.
+        supabase.functions.invoke("metricool-sync", { body: { mode: "backfill", clientId: id } }).then(() => setTimeout(loadRuns, 3000));
+        toast.success("Merk gewijzigd — oude cijfers verwijderd, historie wordt opnieuw opgehaald");
+      } else if (!editing.id && id) {
         // New client: start history sync from 2025-06-01 automatically.
         supabase.functions.invoke("metricool-sync", { body: { mode: "backfill", clientId: id } })
           .then(() => setTimeout(loadRuns, 3000));
@@ -107,7 +112,8 @@ export default function Klanten() {
                 <TableRow key={c.id}>
                   <TableCell><div className="flex items-center gap-3">
                     {c.logo_url && logos[c.logo_url] ? <img src={logos[c.logo_url]} alt="" className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted" />}
-                    <span className="font-medium">{c.name}</span></div></TableCell>
+                    <span className="font-medium">{c.name}</span>
+                    {c.metricool_brand_label && <span className={c.metricool_brand_label.toLowerCase().includes(c.name.toLowerCase().slice(0, 4)) ? "text-xs text-muted-foreground" : "rounded-md border border-warning/50 bg-warning/10 px-1.5 text-xs"}>Metricool: {c.metricool_brand_label}</span>}</div></TableCell>
                   <TableCell>{brandLabel(c.metricool_blog_id)} <span className="text-xs text-muted-foreground">({c.metricool_blog_id})</span></TableCell>
                   <TableCell>{c.tiktok_handle ? `@${c.tiktok_handle}` : "–"}</TableCell>
                   <TableCell>
