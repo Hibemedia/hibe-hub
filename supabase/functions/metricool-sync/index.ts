@@ -166,13 +166,17 @@ async function run(db: any, mode: Mode, clientId?: string) {
 
   const report: unknown[] = [];
   for (const c of clients ?? []) {
+    const { data: runRow } = await db.from("sync_runs").insert({ client_id: c.id, mode }).select("id").single();
+    let videos = 0, stats = 0;
     try {
-      const videos = await syncVideos(db, c, videosFrom, today);
-      const stats = await syncStats(db, c, statsFrom, today);
+      videos = await syncVideos(db, c, videosFrom, today);
+      stats = await syncStats(db, c, statsFrom, today);
       report.push({ client: c.name, videos, stats });
+      if (runRow) await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos }).eq("id", runRow.id);
     } catch (e) {
       console.error(`sync failed for ${c.name}:`, String(e));
       report.push({ client: c.name, error: String(e) });
+      if (runRow) await db.from("sync_runs").update({ status: "fout", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos, error: String(e).slice(0, 1000) }).eq("id", runRow.id);
     }
   }
   console.log("sync done", mode, JSON.stringify(report));
