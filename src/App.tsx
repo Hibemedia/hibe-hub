@@ -16,6 +16,7 @@ import ContentMoments from "./pages/ContentMoments";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import GebruikersBeheer from "./pages/GebruikersBeheer";
 import ProtectedRoute from "./components/ProtectedRoute";
 // import ProtectedRoute from "./components/ProtectedRoute";
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => {
                           <Route path="/medals" element={<ProtectedRoute><Medals /></ProtectedRoute>} />
                           <Route path="/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
                           <Route path="/content-moments" element={<ProtectedRoute><ContentMoments /></ProtectedRoute>} />
+                          <Route path="/gebruikersbeheer" element={<ProtectedRoute><GebruikersBeheer /></ProtectedRoute>} />
 
                           <Route path="/settings" element={<Settings />} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
