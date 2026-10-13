@@ -257,6 +257,13 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await db.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
   if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
+  if ((body as any).probe === "scheduler" && body.clientId) {
+    const { data: c } = await db.from("clients").select("metricool_blog_id").eq("id", body.clientId).single();
+    const t = amsDate();
+    const r = await fetch(`https://app.metricool.com/api/v2/scheduler/posts?${new URLSearchParams({ userId: MC_USER, blogId: c.metricool_blog_id, start: `${addDays(t, -30)}T00:00:00`, end: `${addDays(t, 60)}T23:59:59`, timezone: TZ })}`, { headers: { "X-Mc-Auth": TOKEN } });
+    const txt = await r.text();
+    return json({ status: r.status, body: txt.slice(0, 4000) });
+  }
   const mode: Mode = body.mode === "backfill" ? "backfill" : "refresh";
   if (mode === "backfill") {
     EdgeRuntime.waitUntil(run(db, "backfill", body.clientId));
