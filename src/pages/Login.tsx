@@ -6,6 +6,8 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { UserAuth } from "@/context/AuthContext.jsx";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Login = () => {
   const {user, signInUser} = UserAuth();
@@ -13,21 +15,33 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     try {
       const result = await signInUser(email,password);
       if(result.success){
         navigate('/home');
+      } else {
+        setError("E-mailadres of wachtwoord klopt niet.");
       }
     } catch (error) {
       console.log(error);
     } finally {
       setIsLoading(false);
     }
-};
+  };
+  const handleForgot = async () => {
+    if (!email) { toast.error("Vul eerst je e-mailadres in"); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) toast.error(error.message);
+    else toast.success("Als dit adres bij ons bekend is, ontvang je een e-mail met een resetlink.");
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -104,10 +118,11 @@ const Login = () => {
             </div>
         
             <div className="flex items-center justify-between">
-            <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                Forgot password?
-            </a>
+            <button type="button" onClick={handleForgot} className="text-sm text-primary hover:text-primary/80 transition-colors">
+                Wachtwoord vergeten?
+            </button>
             </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <Button 
               type="submit" 

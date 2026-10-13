@@ -18,7 +18,10 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import GebruikersBeheer from "./pages/GebruikersBeheer";
 import ProtectedRoute from "./components/ProtectedRoute";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import ResetPassword from "./pages/ResetPassword";
+import Klanten from "./pages/Klanten";
+import { ClientProvider } from "@/context/ClientContext";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -27,12 +30,14 @@ const App = () => {
 
     <QueryClientProvider client={queryClient}>
       <AuthContextProvider>
+      <ClientProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="/*"
                 element={
@@ -58,11 +63,12 @@ const App = () => {
                           <Route path="/medals" element={<ProtectedRoute><Medals /></ProtectedRoute>} />
                           <Route path="/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
                           <Route path="/content-moments" element={<ProtectedRoute><ContentMoments /></ProtectedRoute>} />
-                          <Route path="/gebruikersbeheer" element={<ProtectedRoute><GebruikersBeheer /></ProtectedRoute>} />
+                          <Route path="/gebruikersbeheer" element={<ProtectedRoute><AdminRoute><GebruikersBeheer /></AdminRoute></ProtectedRoute>} />
+                          <Route path="/klanten" element={<ProtectedRoute><AdminRoute><Klanten /></AdminRoute></ProtectedRoute>} />
 
-                          <Route path="/settings" element={<Settings />} />
+                          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                          <Route path="*" element={<NotFound />} />
+                          <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
                         </Routes>
                       </main>
                     </div>
@@ -72,6 +78,7 @@ const App = () => {
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+      </ClientProvider>
       </AuthContextProvider>
 
     </QueryClientProvider>

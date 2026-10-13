@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DailyStat, PeriodKey, periodRange } from "@/lib/stats";
+import { useClient } from "@/context/ClientContext";
 
 export interface VideoRow {
   id: string;
@@ -18,16 +19,12 @@ export interface VideoRow {
 const PAGE = 1000; // Data API caps selects at 1000 rows — paginate.
 
 export function useClientStats(period: PeriodKey) {
+  const { clientId, client, ready } = useClient();
   return useQuery({
-    queryKey: ["client-stats", period],
+    queryKey: ["client-stats", period, clientId],
+    enabled: ready,
     queryFn: async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) throw new Error("Niet ingelogd");
-      const { data: me } = await supabase.from("users").select("client_id").eq("id", auth.user.id).maybeSingle();
-      const clientId = me?.client_id ?? null;
       if (!clientId) return { client: null, stats: [] as DailyStat[], videos: [] as VideoRow[], range: periodRange(period) };
-
-      const { data: client } = await supabase.from("clients").select("id,name").eq("id", clientId).maybeSingle();
 
       // Period ends on the last date that has real data (usually yesterday), not today.
       const { data: last } = await supabase
@@ -40,7 +37,6 @@ export function useClientStats(period: PeriodKey) {
         .maybeSingle();
       const range = periodRange(period, last?.date ? new Date(last.date + "T00:00:00Z") : new Date());
 
-      // Only fetch current + previous period (previous holds the "followers before period" value).
       const stats: DailyStat[] = [];
       for (let from = 0; ; from += PAGE) {
         let q = supabase
@@ -67,7 +63,7 @@ export function useClientStats(period: PeriodKey) {
       const { data: videos, error: vErr } = await vq;
       if (vErr) throw vErr;
 
-      return { client, stats, videos: (videos ?? []) as VideoRow[], range };
+      return { client: client ? { id: client.id, name: client.name } : null, stats, videos: (videos ?? []) as VideoRow[], range };
     },
   });
 }
