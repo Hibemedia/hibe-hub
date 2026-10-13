@@ -19,8 +19,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const metricoolToken = Deno.env.get("METRICOOL_API_TOKEN");
+    const metricoolUserId = Deno.env.get("METRICOOL_USER_ID");
 
-    if (!metricoolToken) {
+    if (!metricoolToken || !metricoolUserId) {
       return new Response(JSON.stringify({ error: "Metricool is not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
