@@ -162,7 +162,9 @@ export type Database = {
           published_at: string | null
           saves: number | null
           shares: number | null
+          thumbnail_url: string | null
           title: string | null
+          url: string | null
           views: number | null
         }
         Insert: {
@@ -176,7 +178,9 @@ export type Database = {
           published_at?: string | null
           saves?: number | null
           shares?: number | null
+          thumbnail_url?: string | null
           title?: string | null
+          url?: string | null
           views?: number | null
         }
         Update: {
@@ -190,7 +194,9 @@ export type Database = {
           published_at?: string | null
           saves?: number | null
           shares?: number | null
+          thumbnail_url?: string | null
           title?: string | null
+          url?: string | null
           views?: number | null
         }
         Relationships: [
