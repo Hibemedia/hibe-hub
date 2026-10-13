@@ -1,4 +1,4 @@
-export type Network = "ig" | "tt" | "yt" | "fb";
+export type Network = "ig" | "tt" | "yt" | "fb" | "li" | "th";
 export type PeriodKey = "7d" | "30d" | "90d" | "12m" | "all";
 
 export const PERIODS: { key: PeriodKey; label: string }[] = [
@@ -14,6 +14,8 @@ export const NETWORK_LABELS: Record<Network, string> = {
   tt: "TikTok",
   yt: "YouTube",
   fb: "Facebook",
+  li: "LinkedIn",
+  th: "Threads",
 };
 
 export interface DailyStat {

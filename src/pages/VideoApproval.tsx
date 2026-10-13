@@ -25,6 +25,8 @@ const NETWORKS = [
   { key: "tiktok", label: "TikTok", dot: "tt" },
   { key: "youtube", label: "YouTube", dot: "yt" },
   { key: "facebook", label: "Facebook", dot: "fb" },
+  { key: "linkedin", label: "LinkedIn", dot: "li" },
+  { key: "threads", label: "Threads", dot: "th" },
 ];
 const netInfo = (n: string) => NETWORKS.find((x) => x.key === n) ?? { key: n, label: n, dot: n };
 const fmtDate = (d: string | null, time = true) =>
