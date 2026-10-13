@@ -300,7 +300,7 @@ async function run(db: any, mode: Mode, clientId?: string) {
   const statsFrom = mode === "backfill" ? HISTORY_START : addDays(today, -13);
   const videosFrom = mode === "backfill" || (mode === "scheduled" && weekday === "Mon") ? HISTORY_START : addDays(today, -89);
 
-  let q = db.from("clients").select("id,name,metricool_blog_id").not("metricool_blog_id", "is", null);
+  let q = db.from("clients").select("id,name,metricool_blog_id,logo_url").not("metricool_blog_id", "is", null);
   if (clientId) q = q.eq("id", clientId);
   const { data: clients, error } = await q;
   if (error) throw error;
@@ -312,6 +312,16 @@ async function run(db: any, mode: Mode, clientId?: string) {
     const brand = brands.get(String(c.metricool_blog_id));
     const nets = netsOf(brand);
     const label = brand?.label ?? null;
+    if (brand?.picture && !c.logo_url) {
+      try {
+        const res = await fetch(brand.picture);
+        if (res.ok) {
+          const path = `${c.id}/metricool-brand.jpg`;
+          const { error: upErr } = await db.storage.from("client-logos").upload(path, await res.arrayBuffer(), { contentType: res.headers.get("content-type") ?? "image/jpeg", upsert: true });
+          if (!upErr) await db.from("clients").update({ logo_url: path }).eq("id", c.id);
+        }
+      } catch { /* logo is optional */ }
+    }
     if (label) await db.from("clients").update({ metricool_brand_label: label }).eq("id", c.id);
     const { data: runRow } = await db.from("sync_runs").insert({ client_id: c.id, mode }).select("id").single();
     let videos = 0, stats = 0;
