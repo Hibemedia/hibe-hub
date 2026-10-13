@@ -1,0 +1,1 @@
+CREATE POLICY "Signed-in read client logos" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'client-logos');
