@@ -93,11 +93,18 @@ const EMPTY: Row = { followers: null, views: null, reach: null, interactions: nu
 
 async function syncStats(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string, nets: Net[]) {
   const specs = STAT_SPECS.filter((x) => nets.includes(x.net as Net));
+  const skipped = new Set<string>();
   let count = 0;
   for (const [s, e] of chunks(from, to)) {
     const rows = new Map<string, Row>();
     const results = await Promise.all(specs.map(async (spec) => {
-      const r = await mc("timelines", client.metricool_blog_id, { ...range(s, e), timezone: TZ, ...spec.params });
+      let r: any = null;
+      try { r = await mc("timelines", client.metricool_blog_id, { ...range(s, e), timezone: TZ, ...spec.params }); }
+      catch (err) {
+        // Newer channels: some metrics don't exist for every account type (e.g. LinkedIn personal profiles). Skip that metric.
+        if (["fb", "li", "th"].includes(spec.net) && /\b400\b/.test(String(err))) { skipped.add(`${spec.net}:${spec.params.metric}`); return { spec, values: [] }; }
+        throw err;
+      }
       return { spec, values: (r?.data?.[0]?.values ?? []) as { dateTime: string; value: number | null }[] };
     }));
     for (const { spec, values } of results) {
