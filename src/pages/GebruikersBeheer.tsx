@@ -70,7 +70,7 @@ export default function GebruikersBeheer() {
   return (
     <div className="p-6 space-y-6 max-w-6xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2"><Users className="h-7 w-7" />Gebruikers</h1>
+        <h1 className="wordmark flex items-center gap-3"><Users className="h-7 w-7" />Gebruikers</h1>
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-2" />Gebruiker uitnodigen</Button>
       </div>
       <Card><CardContent className="p-0">

@@ -96,7 +96,7 @@ export default function Klanten() {
   return (
     <div className="p-6 space-y-6 max-w-6xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2"><Building2 className="h-7 w-7" />Klanten</h1>
+        <h1 className="wordmark flex items-center gap-3"><Building2 className="h-7 w-7" />Klanten</h1>
         <Button onClick={() => { setEditing({}); setLogoFile(null); }}><Plus className="h-4 w-4 mr-2" />Klant toevoegen</Button>
       </div>
       <Card><CardContent className="p-0">

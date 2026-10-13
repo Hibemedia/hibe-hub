@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthContextProvider } from "@/context/AuthContext.jsx"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { TopBar } from "@/components/TopBar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Dashboard";
 import Performance from "./pages/Performance";
@@ -41,19 +41,10 @@ const App = () => {
 
               <Route path="/*"
                 element={
-                  <SidebarProvider>
-                    <div className="min-h-screen flex w-full">
+                  <div className="flex min-h-screen w-full">
                       <AppSidebar />
-                      <main className="flex-1 overflow-auto">
-                        <header className="h-14 border-b border-border bg-background sticky top-0 z-50">
-                          <div className="flex items-center h-full px-4 md:px-6">
-                            <SidebarTrigger className="mr-4" />
-                            <div className="flex items-center gap-2">
-                              <span className="font-display text-base font-extrabold tracking-tight text-foreground">HIBE</span>
-                              <span className="text-sm text-muted-foreground">Klantportaal</span>
-                            </div>
-                          </div>
-                        </header>
+                      <main className="min-w-0 flex-1 pb-24 md:pb-0">
+                        <TopBar />
                         <Routes>
                           <Route path="/home" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                           <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
@@ -69,8 +60,7 @@ const App = () => {
                           <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
                         </Routes>
                       </main>
-                    </div>
-                  </SidebarProvider>
+                  </div>
                 }
               />
             </Routes>

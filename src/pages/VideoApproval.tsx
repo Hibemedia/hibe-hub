@@ -33,13 +33,13 @@ const fmtDate = (d: string | null, time = true) =>
   d ? new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", ...(time ? { hour: "2-digit", minute: "2-digit" } : {}) }) : "Geen datum";
 
 const STATUS_STYLE: Record<ReviewStatus, string> = {
-  pending: "border-warning/50 bg-warning/10 text-foreground",
-  approved: "border-success/30 bg-success/10 text-success",
-  rejected: "border-destructive/30 bg-destructive/10 text-destructive",
-  changes_requested: "border-border bg-muted text-foreground",
+  pending: "bg-lime text-lime-foreground",
+  approved: "bg-foreground text-background",
+  rejected: "bg-popover text-destructive",
+  changes_requested: "bg-muted text-foreground",
 };
 export function StatusLabel({ status }: { status: ReviewStatus }) {
-  return <span className={cn("inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-xs font-medium", STATUS_STYLE[status])}>{REVIEW_STATUS_LABEL[status]}</span>;
+  return <span className={cn("inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{REVIEW_STATUS_LABEL[status]}</span>;
 }
 
 function useInvalidate() {
@@ -60,50 +60,70 @@ export default function VideoApproval() {
   const selected = items.find((i) => i.id === openId) ?? null;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
+    <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm text-muted-foreground">{client?.name ?? "\u00a0"}</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Video-goedkeuring</h1>
+                    <h1 className="wordmark">Video-goedkeuring</h1>
         </div>
-        {isAdmin && clientId && <Button onClick={() => setCreating(true)}><Plus /> Nieuw item</Button>}
+        {isAdmin && clientId && (
+          <button onClick={() => setCreating(true)} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>
+            Video klaarzetten
+          </button>
+        )}
       </div>
 
-      <div className="flex gap-1 border-b" role="tablist">
+      <div className="flex flex-wrap gap-2" role="tablist">
         {([["open", `Te beoordelen`, open.length], ["done", "Afgehandeld", done.length]] as const).map(([k, label, n]) => (
           <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cn("-mb-px border-b-2 px-3 py-2 text-sm font-medium", tab === k ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
+            className="chip-filter gap-2">
             {label} <span className="tabular text-muted-foreground">{n}</span>
           </button>
         ))}
       </div>
 
-      <section className="rounded-lg border bg-card">
-        {isLoading ? <EmptyState text="Laden…" /> : list.length === 0 ? (
-          <EmptyState text={tab === "open" ? "Er staat niets klaar om te beoordelen." : "Nog niets afgehandeld."} />
-        ) : (
-          <ul className="divide-y">
-            {list.map((i) => (
-              <li key={i.id}>
-                <button onClick={() => setOpenId(i.id)} className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-muted/40 md:px-5">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{i.title}</p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span>{fmtDate(i.planned_date)}</span>
-                      {i.networks.map((n) => <span key={n} className="flex items-center gap-1"><PlatformDot network={netInfo(n).dot} />{netInfo(n).label}</span>)}
-                      {i.source === "metricool" && <span>Uit Metricool</span>}
-                    </p>
+      {isLoading ? <section className="rounded-lg bg-card"><EmptyState text="Laden…" /></section> : list.length === 0 ? (
+        <section className="rounded-lg bg-card"><EmptyState text={tab === "open" ? "Er staat niets klaar om te beoordelen." : "Nog niets afgehandeld."} /></section>
+      ) : (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {list.map((i) => (
+            <li key={i.id} className="relative">
+              <button onClick={() => setOpenId(i.id)} className="flex w-full flex-col gap-4 rounded-lg bg-card p-3 text-left transition-colors hover:bg-popover">
+                <ItemThumb item={i} />
+                <div className="px-2 pb-2">
+                  <div className="mb-2"><StatusLabel status={i.status} /></div>
+                  <p className="line-clamp-2 text-xl font-semibold leading-snug">{i.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{fmtDate(i.planned_date)}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {i.networks.map((n) => <span key={n} className="chip">{netInfo(n).label}</span>)}
+                    {i.source === "metricool" && <span className="chip">Uit Metricool</span>}
                   </div>
-                  <StatusLabel status={i.status} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                </div>
+              </button>
+              <span aria-hidden className="round-btn pointer-events-none absolute right-6 top-6">↗</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {selected && <ReviewDialog item={selected} onClose={() => setOpenId(null)} />}
       {creating && clientId && <CreateDialog clientId={clientId} onClose={() => setCreating(false)} />}
+    </div>
+  );
+}
+
+function ItemThumb({ item }: { item: ReviewItem }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!item.storage_path) return;
+    supabase.storage.from("review-media").createSignedUrl(item.storage_path, 3600).then(({ data }) => setUrl(data?.signedUrl ?? null));
+  }, [item.storage_path]);
+  const path = (item.storage_path ?? "").toLowerCase();
+  return (
+    <div className="aspect-[4/3] w-full overflow-hidden rounded-[16px] bg-muted">
+      {url && /\.(mp4|mov)$/.test(path) && <video src={url + "#t=0.5"} preload="metadata" muted playsInline className="h-full w-full object-cover" />}
+      {url && /\.(jpe?g|png|webp)$/.test(path) && <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" />}
+      {!url && <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{item.external_link ? "Link" : "Geen media"}</div>}
     </div>
   );
 }
