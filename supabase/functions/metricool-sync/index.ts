@@ -64,15 +64,47 @@ const STAT_SPECS: { net: "ig" | "tt" | "yt"; col: string; params: Record<string,
   { net: "yt", col: "views", params: { network: "youtube", subject: "account", metric: "views" } },
   { net: "yt", col: "followers_gained", params: { network: "youtube", subject: "account", metric: "subscribersGained" } },
   { net: "yt", col: "followers_lost", params: { network: "youtube", subject: "account", metric: "subscribersLost" } },
+  { net: "fb", col: "followers", params: { network: "facebook", subject: "account", metric: "pageFollows" } },
+  { net: "fb", col: "views", params: { network: "facebook", subject: "account", metric: "page_media_view" } },
+  { net: "fb", col: "followers_gained", params: { network: "facebook", subject: "account", metric: "page_daily_follows_unique" } },
+  { net: "fb", col: "followers_lost", params: { network: "facebook", subject: "account", metric: "page_daily_unfollows_unique" } },
+  { net: "fb", col: "posts", params: { network: "facebook", subject: "account", metric: "postsCount" } },
+  { net: "fb", col: "interactions", params: { network: "facebook", subject: "posts", metric: "interactions" } },
+  { net: "li", col: "followers", params: { network: "linkedin", metricType: "account", metric: "Followers" } },
+  { net: "li", col: "views", params: { network: "linkedin", metricType: "account", metric: "impression" } },
+  { net: "li", col: "followers_gained", params: { network: "linkedin", metricType: "account", metric: "DeltaFollowers" } },
+  { net: "li", col: "posts", params: { network: "linkedin", metricType: "posts", metric: "count" } },
+  { net: "li", col: "interactions", params: { network: "linkedin", metricType: "posts", metric: "interactions" } },
+  { net: "th", col: "followers", params: { network: "threads", subject: "account", metric: "followers_count" } },
+  { net: "th", col: "views", params: { network: "threads", subject: "account", metric: "views" } },
+  { net: "th", col: "followers_gained", params: { network: "threads", subject: "account", metric: "delta_followers" } },
+  { net: "th", col: "posts", params: { network: "threads", subject: "posts", metric: "count" } },
+  { net: "th", col: "interactions", params: { network: "threads", subject: "posts", metric: "interactions" } },
 ];
+type Net = "ig" | "tt" | "yt" | "fb" | "li" | "th";
+const ALL_NETS: Net[] = ["ig", "tt", "yt", "fb", "li", "th"];
+/** Networks connected to a Metricool brand (simpleProfiles fields). */
+function netsOf(b: any): Net[] {
+  if (!b) return ["ig", "tt", "yt"];
+  const m: Record<Net, unknown> = { ig: b.instagram, tt: b.tiktok, yt: b.youtube, fb: b.facebook ?? b.facebookPageId, li: b.linkedinCompany, th: b.threads };
+  return ALL_NETS.filter((n) => !!m[n]);
+}
 const EMPTY: Row = { followers: null, views: null, reach: null, interactions: null, posts: null, followers_gained: null, followers_lost: null };
 
-async function syncStats(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string) {
+async function syncStats(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string, nets: Net[]) {
+  const specs = STAT_SPECS.filter((x) => nets.includes(x.net as Net));
+  const skipped = new Set<string>();
   let count = 0;
   for (const [s, e] of chunks(from, to)) {
     const rows = new Map<string, Row>();
-    const results = await Promise.all(STAT_SPECS.map(async (spec) => {
-      const r = await mc("timelines", client.metricool_blog_id, { ...range(s, e), timezone: TZ, ...spec.params });
+    const results = await Promise.all(specs.map(async (spec) => {
+      let r: any = null;
+      try { r = await mc("timelines", client.metricool_blog_id, { ...range(s, e), timezone: TZ, ...spec.params }); }
+      catch (err) {
+        // Newer channels: some metrics don't exist for every account type (e.g. LinkedIn personal profiles). Skip that metric.
+        if (["fb", "li", "th"].includes(spec.net) && /\b(400|404|500)\b/.test(String(err))) { skipped.add(`${spec.net}:${spec.params.metric}`); return { spec, values: [] }; }
+        throw err;
+      }
       return { spec, values: (r?.data?.[0]?.values ?? []) as { dateTime: string; value: number | null }[] };
     }));
     for (const { spec, values } of results) {
@@ -108,16 +140,50 @@ async function syncStats(db: any, client: { id: string; metricool_blog_id: strin
 }
 
 let ytLogged = false;
-async function syncVideos(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string) {
+const logged = new Set<string>();
+const VIDEO_PATHS: Record<"fb" | "li" | "th", string> = { fb: "reels/facebook", li: "posts/linkedin", th: "posts/threads" };
+const dt = (v: any): string | null => {
+  if (!v) return null;
+  if (typeof v === "object" && v.dateTime) return zonedToUtc(v.dateTime, v.timezone || TZ);
+  if (typeof v === "number") return new Date(v).toISOString();
+  const d = new Date(String(v).replace(/([+-]\d{2})(\d{2})$/, "$1:$2")); return isNaN(+d) ? null : d.toISOString();
+};
+/** Generic mapper for Facebook reels / LinkedIn / Threads posts (fields confirmed via logged first item). */
+function mapGeneric(net: string, clientId: string, r: any): Row | null {
+  const id = r.reelId ?? r.id ?? r.postId ?? r.videoId ?? r.urn;
+  if (id == null) return null;
+  const n = (x: any) => (x == null ? null : typeof x === "object" ? Number(x.total ?? x.count ?? 0) : Number(x));
+  return { client_id: clientId, network: net, external_id: String(id),
+    published_at: dt(r.publishedAt ?? r.publishedDate ?? r.created ?? r.createdAt ?? r.timestamp ?? r.date),
+    title: cleanTitle(r.text ?? r.content ?? r.message ?? r.description ?? r.title ?? (typeof r.comment === "string" ? r.comment : null)),
+    views: n(r.blueReelsPlayCount ?? r.views ?? r.videoViews ?? r.impressions ?? r.plays) ?? 0,
+    likes: n(r.likes ?? r.reactions ?? r.totalReactions ?? r.postVideoReactions) ?? 0, comments: n(typeof r.comments === "number" ? r.comments : r.replies) ?? 0,
+    shares: n(r.shares ?? r.reposts ?? r.reshares) ?? 0, saves: null,
+    url: r.reelUrl ?? r.url ?? r.link ?? r.permalink ?? r.permalinkUrl ?? r.publicUrl ?? null,
+    thumbnail_url: null, _image: r.thumbnailUrl ?? r.picture ?? r.imageUrl ?? r.image ?? (r.mediaType && r.mediaType !== "VIDEO" ? r.mediaUrl : null) ?? null };
+}
+
+async function syncVideos(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string, nets: Net[]) {
   let count = 0;
   for (const [s, e] of chunks(from, to)) {
     const blog = client.metricool_blog_id;
+    const none = Promise.resolve(null);
     const [ig, tt, yt] = await Promise.all([
-      mc("reels/instagram", blog, { from: `${s}T00:00:00`, to: `${e}T23:59:59` }),
-      mc("posts/tiktok", blog, range(s, e)),
-      mc("posts/youtube", blog, { ...range(s, e), timezone: TZ, postsType: "publishedInRange" }),
+      nets.includes("ig") ? mc("reels/instagram", blog, { from: `${s}T00:00:00`, to: `${e}T23:59:59` }) : none,
+      nets.includes("tt") ? mc("posts/tiktok", blog, range(s, e)) : none,
+      nets.includes("yt") ? mc("posts/youtube", blog, { ...range(s, e), timezone: TZ, postsType: "publishedInRange" }) : none,
     ]);
-    const rows: Row[] = [];
+    const extra: Row[] = [];
+    for (const net of ["fb", "li", "th"] as const) {
+      if (!nets.includes(net)) continue;
+      try {
+        const r = await mc(VIDEO_PATHS[net], blog, { from: `${s}T00:00:00`, to: `${e}T23:59:59`, timezone: TZ });
+        const list: any[] = Array.isArray(r) ? r : (r?.data ?? []);
+        if (list.length && !logged.has(net)) { console.log(`${net} first item:`, JSON.stringify(list[0]).slice(0, 2500)); logged.add(net); }
+        for (const it of list) { const row = mapGeneric(net, client.id, it); if (row) extra.push(row); }
+      } catch (err) { console.error(`${net} posts failed:`, String(err).slice(0, 300)); }
+    }
+    const rows: Row[] = [...extra];
     for (const r of ig?.data ?? []) {
       const code = /\/reel\/([^/?]+)/.exec(r.url ?? "")?.[1];
       if (!code) continue;
@@ -144,6 +210,8 @@ async function syncVideos(db: any, client: { id: string; metricool_blog_id: stri
         shares: r.shares ?? 0, saves: null, url: `https://youtu.be/${r.videoId}`, thumbnail_url: r.thumbnailUrl ?? null });
     }
     await storeIgThumbnails(db, client.id, rows);
+    // de-dupe within batch (same id can appear twice in one response)
+    const uniq = new Map(rows.map((r) => [`${r.network}|${r.external_id}`, r])); rows.length = 0; rows.push(...uniq.values());
     for (const r of rows) for (const c of ["views", "likes", "comments", "shares", "saves"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
     if (rows.length) {
       const { error } = await db.from("videos").upsert(rows, { onConflict: "network,external_id" });
@@ -156,20 +224,20 @@ async function syncVideos(db: any, client: { id: string; metricool_blog_id: stri
 
 /** Instagram image URLs expire: copy them once into our own storage. Keeps existing thumbnails. */
 async function storeIgThumbnails(db: any, clientId: string, rows: Row[]) {
-  const ig = rows.filter((r) => r.network === "ig");
+  const ig = rows.filter((r) => "_image" in r);
   if (!ig.length) return;
-  const { data: existing } = await db.from("videos").select("external_id,thumbnail_url").eq("network", "ig")
-    .in("external_id", ig.map((r) => r.external_id));
-  const have = new Map((existing ?? []).map((v: any) => [v.external_id, v.thumbnail_url]));
+  const { data: existing } = await db.from("videos").select("network,external_id,thumbnail_url")
+    .in("network", [...new Set(ig.map((r) => r.network))]).in("external_id", ig.map((r) => r.external_id));
+  const have = new Map((existing ?? []).map((v: any) => [`${v.network}|${v.external_id}`, v.thumbnail_url]));
   for (const r of ig) {
     const img = r._image as string | null; delete r._image;
-    const cur = have.get(r.external_id as string);
+    const cur = have.get(`${r.network}|${r.external_id}`);
     if (cur) { r.thumbnail_url = cur; continue; }
     if (!img) continue;
     try {
       const res = await fetch(img);
       if (!res.ok) continue; // expired: keep grey box
-      const path = `${clientId}/${r.external_id}.jpg`;
+      const path = r.network === "ig" ? `${clientId}/${r.external_id}.jpg` : `${clientId}/${r.network}-${r.external_id}.jpg`;
       const { error } = await db.storage.from("thumbnails").upload(path, await res.arrayBuffer(), { contentType: res.headers.get("content-type") ?? "image/jpeg", upsert: true });
       if (!error) r.thumbnail_url = `storage:thumbnails/${path}`;
     } catch { /* keep grey box */ }
@@ -203,11 +271,15 @@ async function syncScheduled(db: any, client: { id: string; metricool_blog_id: s
 }
 
 /** Brand label per blogId from Metricool, as a guard against wrong client↔brand links. */
-async function brandLabels(): Promise<Map<string, string>> {
+async function brandMap(): Promise<Map<string, any>> {
   const res = await fetch(`https://app.metricool.com/api/admin/simpleProfiles?userId=${MC_USER}`, { headers: { "X-Mc-Auth": TOKEN } });
   if (!res.ok) throw new Error(`Metricool simpleProfiles ${res.status}`);
   const list: any[] = await res.json();
-  return new Map(list.map((b) => [String(b.id), String(b.label ?? b.title ?? b.name ?? b.id)]));
+  return new Map(list.map((b) => [String(b.id), b]));
+}
+async function brandLabels(): Promise<Map<string, string>> {
+  const m = await brandMap();
+  return new Map([...m].map(([k, b]) => [k, String(b.label ?? b.title ?? k)]));
 }
 
 /** Latest followers per network straight from Metricool (for verification). */
@@ -235,26 +307,38 @@ async function run(db: any, mode: Mode, clientId?: string) {
   const statsFrom = mode === "backfill" ? HISTORY_START : addDays(today, -13);
   const videosFrom = mode === "backfill" || (mode === "scheduled" && weekday === "Mon") ? HISTORY_START : addDays(today, -89);
 
-  let q = db.from("clients").select("id,name,metricool_blog_id").not("metricool_blog_id", "is", null);
+  let q = db.from("clients").select("id,name,metricool_blog_id,logo_url").not("metricool_blog_id", "is", null);
   if (clientId) q = q.eq("id", clientId);
   const { data: clients, error } = await q;
   if (error) throw error;
 
   const report: unknown[] = [];
-  let labels = new Map<string, string>();
-  try { labels = await brandLabels(); } catch (e) { console.error(String(e)); }
+  let brands = new Map<string, any>();
+  try { brands = await brandMap(); } catch (e) { console.error(String(e)); }
   for (const c of clients ?? []) {
-    const label = labels.get(String(c.metricool_blog_id));
+    const brand = brands.get(String(c.metricool_blog_id));
+    const nets = netsOf(brand);
+    const label = brand?.label ?? null;
+    if (brand?.picture && !c.logo_url) {
+      try {
+        const res = await fetch(brand.picture);
+        if (res.ok) {
+          const path = `${c.id}/metricool-brand.jpg`;
+          const { error: upErr } = await db.storage.from("client-logos").upload(path, await res.arrayBuffer(), { contentType: res.headers.get("content-type") ?? "image/jpeg", upsert: true });
+          if (!upErr) await db.from("clients").update({ logo_url: path }).eq("id", c.id);
+        }
+      } catch { /* logo is optional */ }
+    }
     if (label) await db.from("clients").update({ metricool_brand_label: label }).eq("id", c.id);
     const { data: runRow } = await db.from("sync_runs").insert({ client_id: c.id, mode }).select("id").single();
     let videos = 0, stats = 0;
     try {
-      videos = await syncVideos(db, c, videosFrom, today);
-      stats = await syncStats(db, c, statsFrom, today);
+      videos = await syncVideos(db, c, videosFrom, today, nets);
+      stats = await syncStats(db, c, statsFrom, today, nets);
       let scheduled: number | string = 0;
       try { scheduled = await syncScheduled(db, c, today, addDays(today, 60)); }
       catch (e) { scheduled = String(e).slice(0, 300); console.error(`scheduler failed for ${c.name}:`, String(e)); }
-      report.push({ client: c.name, videos, stats, scheduled });
+      report.push({ client: c.name, nets, videos, stats, scheduled });
       if (runRow) await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos }).eq("id", runRow.id);
     } catch (e) {
       console.error(`sync failed for ${c.name}:`, String(e));
@@ -289,6 +373,22 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await db.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
   if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
+  if ((body as any).probe === "posts" && body.clientId) {
+    const { data: c } = await db.from("clients").select("metricool_blog_id").eq("id", body.clientId).single();
+    const t = amsDate(), f = addDays(t, -29), out: Record<string, unknown> = {};
+    for (const [net, p] of Object.entries(VIDEO_PATHS)) {
+      try { const r = await mc(p, c.metricool_blog_id, { from: `${f}T00:00:00`, to: `${t}T23:59:59`, timezone: TZ });
+        const l = Array.isArray(r) ? r : (r?.data ?? []); out[net] = { n: l.length, first: l[0] ?? null }; }
+      catch (e) { out[net] = String(e).slice(0, 300); }
+    }
+    return json(out);
+  }
+  if ((body as any).probe === "brands") {
+    const res = await fetch(`https://app.metricool.com/api/admin/simpleProfiles?userId=${MC_USER}`, { headers: { "X-Mc-Auth": TOKEN } });
+    const list: any[] = await res.json();
+    return json(list.map((b) => ({ id: b.id, label: b.label, keys: Object.keys(b), pic: b.picture ?? b.profilePicture ?? b.logo ?? null,
+      nets: Object.fromEntries(Object.keys(b).filter((k) => k.endsWith("Data")).map((k) => [k, b[k] ? JSON.stringify(b[k]).slice(0, 80) : null])) })));
+  }
   if ((body as any).verify) {
     const labels = await brandLabels();
     const { data: cs } = await db.from("clients").select("id,name,metricool_blog_id").not("metricool_blog_id", "is", null);

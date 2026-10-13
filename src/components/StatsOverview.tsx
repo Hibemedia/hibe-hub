@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DailyStat, NETWORK_LABELS, Network, formatNumber, pctChange, totalsFor } from "@/lib/stats";
@@ -66,45 +66,54 @@ export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: 
 }
 
 export function DailyChart({ stats, range }: { stats: DailyStat[]; range: Range }) {
+  const [mode, setMode] = useState<"total" | "net">("total");
+  const nets = useMemo(() => (Object.keys(NETWORK_LABELS) as Network[]).filter((n) => stats.some((r) => r.network === n && (r.views ?? 0) > 0 && (!range.start || r.date >= range.start))), [stats, range]);
   const daily = useMemo(() => {
-    const map = new Map<string, { date: string; views: number; interactions: number }>();
+    const map = new Map<string, Record<string, number | string>>();
     for (const r of stats) {
       if (range.start && r.date < range.start) continue;
       const e = map.get(r.date) ?? { date: r.date, views: 0, interactions: 0 };
-      e.views += r.views ?? 0;
-      e.interactions += r.interactions ?? 0;
+      e.views = Number(e.views) + (r.views ?? 0);
+      e.interactions = Number(e.interactions) + (r.interactions ?? 0);
+      e[r.network] = Number(e[r.network] ?? 0) + (r.views ?? 0);
       map.set(r.date, e);
     }
-    return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
+    return Array.from(map.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
   }, [stats, range]);
   const short = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+  const lines = mode === "total"
+    ? [{ key: "views", name: "Weergaven", color: "hsl(var(--foreground))" }, { key: "interactions", name: "Interacties", color: "hsl(var(--primary))" }]
+    : nets.map((n) => ({ key: n, name: NETWORK_LABELS[n], color: platformColor(n) }));
   return (
     <Section
-      title="Weergaven en interacties per dag"
+      title={mode === "total" ? "Weergaven en interacties per dag" : "Weergaven per kanaal per dag"}
       aside={
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-foreground" />Weergaven</span>
-          <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-primary" />Interacties</span>
+        <div className="flex rounded-md border p-0.5 text-xs" role="group" aria-label="Weergave">
+          {([["total", "Totaal"], ["net", "Per kanaal"]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setMode(k)} aria-pressed={mode === k}
+              className={cn("rounded px-2 py-1", mode === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+          ))}
         </div>
       }
     >
       {daily.length === 0 ? <EmptyState /> : (
-        <div className="h-64 md:h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={daily} margin={{ left: -12, right: 4, top: 4 }}>
-              <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tickFormatter={short} fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" minTickGap={24} />
-              <YAxis fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => formatNumber(v)} />
-              <Tooltip
-                labelFormatter={(d) => short(String(d))}
-                formatter={(v: number) => formatNumber(v)}
-                contentStyle={{ borderRadius: 6, border: "1px solid hsl(var(--border))", fontSize: 12 }}
-              />
-              <Line type="monotone" dataKey="views" name="Weergaven" stroke="hsl(var(--foreground))" strokeWidth={1.75} dot={false} />
-              <Line type="monotone" dataKey="interactions" name="Interacties" stroke="hsl(var(--primary))" strokeWidth={1.75} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <>
+          <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            {lines.map((l) => <span key={l.key} className="flex items-center gap-1.5"><span className="h-0.5 w-4" style={{ background: l.color }} />{l.name}</span>)}
+          </div>
+          <div className="h-64 md:h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={daily} margin={{ left: -12, right: 4, top: 4 }}>
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="date" tickFormatter={short} fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" minTickGap={24} />
+                <YAxis fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => formatNumber(v)} />
+                <Tooltip labelFormatter={(d) => short(String(d))} formatter={(v: number) => formatNumber(v)}
+                  contentStyle={{ borderRadius: 6, border: "1px solid hsl(var(--border))", fontSize: 12 }} />
+                {lines.map((l) => <Line key={l.key} type="monotone" dataKey={l.key} name={l.name} stroke={l.color} strokeWidth={1.75} dot={false} />)}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       )}
     </Section>
   );
