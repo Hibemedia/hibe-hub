@@ -19,8 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['"Instrument Sans"', 'ui-sans-serif', 'system-ui', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"'],
-				display: ['Archivo', 'ui-sans-serif', 'system-ui'],
+				sans: ['Urbanist', 'ui-sans-serif', 'system-ui', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"'],
+				display: ['Urbanist', 'ui-sans-serif', 'system-ui'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -49,6 +49,10 @@ export default {
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))'
+				},
+				lime: {
+					DEFAULT: 'hsl(var(--lime))',
+					foreground: 'hsl(var(--lime-foreground))'
 				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',
@@ -90,8 +94,8 @@ export default {
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				md: '0.875rem',
+				sm: '0.625rem'
 			},
 			keyframes: {
 				'accordion-down': {

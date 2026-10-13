@@ -5,89 +5,50 @@
 /* HIBE Media — black/white with one warm accent */
 @layer base {
   :root {
-    /* Base - Clean white palette */
-    --background: 60 9% 95%;
-    --foreground: 0 0% 7%;
-
-    /* Cards and surfaces */
-    --card: 0 0% 100%;
+    /* HIBE — light grey canvas, lighter cards, black + one lime accent */
+    --background: 60 4% 91%;        /* #E9E9E7 */
+    --foreground: 0 0% 7%;          /* #111 */
+    --card: 60 6% 95%;              /* #F3F3F1 */
     --card-foreground: 0 0% 7%;
-
-    /* Popover */
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 7%;
-
-    /* Primary - Neon Orange (#FF5C00) */
-    --primary: 22 100% 50%;
+    --primary: 0 0% 7%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 22 100% 95%;
-    --primary-dark: 22 100% 40%;
-
-    /* Secondary - Dark gray */
-    --secondary: 40 8% 90%;
+    --primary-light: 60 6% 95%;
+    --primary-dark: 0 0% 0%;
+    --lime: 76 87% 58%;             /* #C8F135 */
+    --lime-foreground: 0 0% 7%;
+    --secondary: 60 3% 86%;
     --secondary-foreground: 0 0% 7%;
-
-    /* Muted colors */
-    --muted: 45 8% 92%;
-    --muted-foreground: 30 4% 38%;
-
-    /* Accent - Light gray */
-    --accent: 45 8% 92%;
+    --muted: 60 3% 87%;
+    --muted-foreground: 40 3% 36%;
+    --accent: 60 3% 87%;
     --accent-foreground: 0 0% 7%;
-
-    /* Success */
-    --success: 142 71% 45%;
+    --success: 142 60% 30%;
     --success-foreground: 0 0% 100%;
-
-    /* Warning */
-    --warning: 38 92% 50%;
+    --warning: 38 92% 45%;
     --warning-foreground: 0 0% 5%;
-
-    /* Destructive */
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
-
-    /* Borders and inputs */
-    --border: 40 6% 86%;
-    --input: 40 6% 82%;
-    --ring: 22 100% 50%;
-
-    /* Radius - Extra round, crypto-style */
-    --radius: 0.5rem;
-
-    /* Platform colours — charts and dots only */
+    --border: 60 3% 80%;
+    --input: 60 3% 78%;
+    --ring: 0 0% 7%;
+    --radius: 1.375rem;
     --platform-ig: 330 70% 52%;
     --platform-tt: 180 60% 38%;
     --platform-yt: 0 78% 50%;
     --platform-fb: 214 80% 50%;
     --platform-li: 201 100% 35%;
     --platform-th: 0 0% 20%;
-    
-    /* Pastel Colors */
-    --pastel-pink: 330 60% 95%;
-    --pastel-lavender: 270 50% 95%;
-    --pastel-mint: 150 40% 95%;
-    --pastel-yellow: 50 60% 95%;
-    --pastel-blue: 210 50% 95%;
-    --pastel-peach: 20 60% 95%;
-
-    /* Sidebar */
-    --sidebar-background: 0 0% 100%;
+    --sidebar-background: 60 4% 91%;
     --sidebar-foreground: 0 0% 7%;
-    --sidebar-primary: 22 100% 50%;
+    --sidebar-primary: 0 0% 7%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 8% 94%;
+    --sidebar-accent: 60 3% 87%;
     --sidebar-accent-foreground: 0 0% 7%;
-    --sidebar-border: 40 6% 88%;
-    --sidebar-ring: 22 100% 50%;
-
-    /* Shadows - Soft and elegant */
-    --shadow-sm: 0 2px 8px 0 rgb(0 0 0 / 0.04);
-    --shadow: 0 4px 12px 0 rgb(0 0 0 / 0.06);
-    --shadow-md: 0 8px 16px 0 rgb(0 0 0 / 0.08);
-    --shadow-lg: 0 12px 24px 0 rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 32px 0 rgb(0 0 0 / 0.12);
-    --shadow-primary: 0 8px 20px 0 rgb(255 92 0 / 0.15);
+    --sidebar-border: 60 3% 85%;
+    --sidebar-ring: 0 0% 7%;
+    --shadow-sm: none; --shadow: none; --shadow-md: none; --shadow-lg: none; --shadow-xl: none; --shadow-primary: none;
   }
 
   .dark {
@@ -129,14 +90,14 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
+    font-family: 'Urbanist', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
-    font-family: 'Archivo', ui-sans-serif, sans-serif;
-    letter-spacing: -0.015em;
+    font-family: 'Urbanist', ui-sans-serif, sans-serif;
+    letter-spacing: -0.01em;
   }
 
   .tabular, .font-display {
@@ -171,8 +132,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
-    animation: shimmer 2s infinite;
+    display:none;
   }
 
   /* Premium Web3 card */
@@ -271,4 +231,14 @@
   .glow-primary {
     box-shadow: none;
   }
+}
+
+@layer components {
+  .wordmark { @apply font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-tight md:text-7xl; }
+  .capsule-dark { @apply inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background; }
+  .chip { @apply inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground; }
+  .chip-filter { @apply inline-flex h-9 items-center rounded-full border border-border px-4 text-sm text-foreground transition-colors hover:bg-card; }
+  .chip-filter[aria-pressed="true"], .chip-filter[aria-selected="true"] { @apply border-transparent bg-popover font-medium; }
+  .growth { @apply inline-flex items-center gap-0.5 rounded-full bg-lime px-2 py-0.5 text-xs font-semibold text-lime-foreground; }
+  .round-btn { @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-popover text-foreground transition-colors hover:bg-foreground hover:text-background; }
 }
