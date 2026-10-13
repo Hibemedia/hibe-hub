@@ -1,656 +1,302 @@
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ExternalLink, Plus, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useClient } from "@/context/ClientContext";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Play, 
-  CheckCircle, 
-  XCircle, 
-  MessageCircle, 
-  Calendar,
-  Clock,
-  User,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Pause,
-  Send,
-  Save,
-  Filter,
-  Edit2,
-  Trash2
-} from "lucide-react";
-import videoApproval1 from "@/assets/video-approval-1.jpg";
-import videoApproval2 from "@/assets/video-approval-2.jpg";
-import videoApproval3 from "@/assets/video-approval-3.jpg";
-import videoApproval5 from "@/assets/video-approval-5.jpg";
-import videoApproval6 from "@/assets/video-approval-6.jpg";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EmptyState, PlatformDot } from "@/components/StatsOverview";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  ReviewItem, ReviewStatus, REVIEW_ACTION_LABEL, REVIEW_STATUS_LABEL,
+  uploadReviewMedia, useReviewEvents, useReviewItems,
+} from "@/hooks/useReviews";
 
-const videos = [
-  {
-    id: 1,
-    title: "Beste kniptechnieken voor krullend haar",
-    filename: "barbershop_curly_hair_techniques.mp4",
-    uploadDate: "2024-01-15",
-    duration: "2:45",
-    durationSeconds: 165,
-    status: "pending",
-    thumbnail: videoApproval1,
-    comments: [
-      { id: 1, timestamp: 15, comment: "Goede opening, duidelijke uitleg!", author: "Sarah M.", time: "14:30", editable: false },
-      { id: 2, timestamp: 45, comment: "Misschien iets langzamer hier?", author: "Mike J.", time: "14:32", editable: false }
-    ]
-  },
-  {
-    id: 2,
-    title: "Barbershop morning routine",
-    filename: "morning_routine_barbershop.mp4",
-    uploadDate: "2024-01-14",
-    duration: "1:23",
-    durationSeconds: 83,
-    status: "approved",
-    thumbnail: videoApproval2,
-    comments: [
-      { id: 1, timestamp: 10, comment: "Perfecte opening!", author: "Hibe Team", time: "09:15", editable: false },
-      { id: 2, timestamp: 35, comment: "Mooie close-up shots", author: "Sarah M.", time: "09:18", editable: false }
-    ]
-  },
-  {
-    id: 3,
-    title: "Fade tutorial voor beginners",
-    filename: "fade_tutorial_beginners.mp4",
-    uploadDate: "2024-01-13",
-    duration: "3:10",
-    durationSeconds: 190,
-    status: "rejected",
-    thumbnail: videoApproval3,
-    comments: [
-      { id: 1, timestamp: 25, comment: "Heel goed uitgelegd!", author: "Mike J.", time: "11:20", editable: false },
-      { id: 2, timestamp: 90, comment: "Deze overgang is perfect", author: "Sarah M.", time: "11:22", editable: false },
-      { id: 3, timestamp: 150, comment: "Geluidskwaliteit is niet optimaal", author: "Hibe Team", time: "11:25", editable: false }
-    ]
-  },
-  {
-    id: 4,
-    title: "Trending kapsel deze week",
-    filename: "trending_hairstyle_week.mp4",
-    uploadDate: "2024-01-12",
-    duration: "1:58",
-    durationSeconds: 118,
-    status: "pending",
-    thumbnail: videoApproval5,
-    comments: []
-  },
-  {
-    id: 5,
-    title: "Grooming tips voor mannen",
-    filename: "mens_grooming_tips.mp4",
-    uploadDate: "2024-01-11",
-    duration: "2:20",
-    durationSeconds: 140,
-    status: "approved",
-    thumbnail: videoApproval6,
-    comments: [
-      { id: 1, timestamp: 30, comment: "Hele goede tips!", author: "Sarah M.", time: "16:45", editable: false }
-    ]
-  }
+const MAX_BYTES = 500 * 1024 * 1024;
+const ACCEPT = "video/mp4,video/quicktime,.mp4,.mov,image/jpeg,image/png,image/webp";
+const NETWORKS = [
+  { key: "instagram", label: "Instagram", dot: "ig" },
+  { key: "tiktok", label: "TikTok", dot: "tt" },
+  { key: "youtube", label: "YouTube", dot: "yt" },
+  { key: "facebook", label: "Facebook", dot: "fb" },
 ];
+const netInfo = (n: string) => NETWORKS.find((x) => x.key === n) ?? { key: n, label: n, dot: n };
+const fmtDate = (d: string | null, time = true) =>
+  d ? new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", ...(time ? { hour: "2-digit", minute: "2-digit" } : {}) }) : "Geen datum";
 
-const reviewer = {
-  name: "Sarah Martinez",
-  role: "Senior Content Reviewer",
-  avatar: "SM"
+const STATUS_STYLE: Record<ReviewStatus, string> = {
+  pending: "border-warning/50 bg-warning/10 text-foreground",
+  approved: "border-success/30 bg-success/10 text-success",
+  rejected: "border-destructive/30 bg-destructive/10 text-destructive",
+  changes_requested: "border-border bg-muted text-foreground",
 };
+export function StatusLabel({ status }: { status: ReviewStatus }) {
+  return <span className={cn("inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-xs font-medium", STATUS_STYLE[status])}>{REVIEW_STATUS_LABEL[status]}</span>;
+}
 
-const statusFilters = [
-  { value: "pending", label: "Wachtend", count: 2 },
-  { value: "approved", label: "Goedgekeurd", count: 2 },
-  { value: "rejected", label: "Afgekeurd", count: 1 }
-];
+function useInvalidate() {
+  const qc = useQueryClient();
+  return () => { qc.invalidateQueries({ queryKey: ["review-items"] }); qc.invalidateQueries({ queryKey: ["review-events"] }); };
+}
 
 export default function VideoApproval() {
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [newComment, setNewComment] = useState("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const [videoStatus, setVideoStatus] = useState("");
-  const [editingComment, setEditingComment] = useState(null);
-  const [videoDuration, setVideoDuration] = useState(0);
-  const videoRef = useRef(null);
+  const { client, clientId, isAdmin } = useClient();
+  const { data: items = [], isLoading } = useReviewItems();
+  const [tab, setTab] = useState<"open" | "done">("open");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  const filteredVideos = videos.filter(video => {
-    return video.status === statusFilter;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-success';
-      case 'rejected':
-        return 'bg-destructive';
-      default:
-        return 'bg-warning';
-    }
-  };
-
-  const getStatusBorder = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'border-border';
-      case 'rejected':
-        return 'border-border';
-      default:
-        return 'border-border';
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return { text: 'Goedgekeurd', className: 'border border-success/30 bg-success/10 text-success' };
-      case 'rejected':
-        return { text: 'Afgekeurd', className: 'border border-destructive/30 bg-destructive/10 text-destructive' };
-      default:
-        return { text: 'Te beoordelen', className: 'border border-warning/40 bg-warning/10 text-foreground' };
-    }
-  };
-
-  const openVideoReview = (video) => {
-    setSelectedVideo(video);
-    setIsFullscreen(true);
-    setCurrentTime(0);
-    setVideoStatus(video.status);
-    setVideoDuration(video.durationSeconds);
-  };
-
-  const closeVideoReview = () => {
-    setIsFullscreen(false);
-    setSelectedVideo(null);
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setNewComment("");
-    setEditingComment(null);
-    setVideoStatus("");
-  };
-
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleVideoClick = () => {
-    if (isPlaying) {
-      togglePlayPause();
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const jumpToTimestamp = (timestamp) => {
-    setCurrentTime(timestamp);
-    if (videoRef.current) {
-      videoRef.current.currentTime = timestamp;
-    }
-  };
-
-  const updateVideoStatus = (newStatus) => {
-    setVideoStatus(newStatus);
-    // In real app, update in database
-    console.log('Updating video status:', selectedVideo.id, newStatus);
-  };
-
-  const addComment = () => {
-    if (newComment.trim() && selectedVideo) {
-      const comment = {
-        id: Date.now(),
-        timestamp: Math.floor(currentTime),
-        comment: newComment.trim(),
-        author: reviewer.name,
-        time: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }),
-        editable: true
-      };
-      
-      // In real app, this would update the database
-      console.log('Adding comment:', comment);
-      setNewComment("");
-    }
-  };
-
-  const editComment = (commentId, newText) => {
-    console.log('Editing comment:', commentId, newText);
-    setEditingComment(null);
-  };
-
-  const deleteComment = (commentId) => {
-    console.log('Deleting comment:', commentId);
-  };
-
-  const navigateVideo = (direction) => {
-    if (!selectedVideo) return;
-    
-    const currentIndex = videos.findIndex(v => v.id === selectedVideo.id);
-    let newIndex;
-    
-    if (direction === 'next') {
-      newIndex = currentIndex < videos.length - 1 ? currentIndex + 1 : 0;
-    } else {
-      newIndex = currentIndex > 0 ? currentIndex - 1 : videos.length - 1;
-    }
-    
-    setSelectedVideo(videos[newIndex]);
-    setCurrentTime(0);
-    setIsPlaying(false);
-  };
-
-  const approveVideo = () => {
-    if (selectedVideo) {
-      console.log('Approving video:', selectedVideo.id);
-      // In real app, update status in database
-      closeVideoReview();
-    }
-  };
-
-  const currentVideoIndex = selectedVideo ? videos.findIndex(v => v.id === selectedVideo.id) : -1;
+  const open = items.filter((i) => i.status === "pending" || i.status === "changes_requested");
+  const done = items.filter((i) => i.status === "approved" || i.status === "rejected");
+  const list = tab === "open" ? open : done;
+  const selected = items.find((i) => i.id === openId) ?? null;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="p-6 border-b border-border bg-card">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Video Goedkeuring</h1>
-            <p className="text-muted-foreground mt-1">
-              Bekijk en geef feedback op je video's
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-warning rounded-full"></div>
-              <span className="text-sm text-muted-foreground">
-                {videos.filter(v => v.status === 'pending').length} wacht op goedkeuring
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-success rounded-full"></div>
-              <span className="text-sm text-muted-foreground">
-                {videos.filter(v => v.status === 'approved').length} goedgekeurd
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-destructive rounded-full"></div>
-              <span className="text-sm text-muted-foreground">
-                {videos.filter(v => v.status === 'rejected').length} afgekeurd
-              </span>
-            </div>
-          </div>
+    <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm text-muted-foreground">{client?.name ?? "\u00a0"}</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Video-goedkeuring</h1>
         </div>
+        {isAdmin && clientId && <Button onClick={() => setCreating(true)}><Plus /> Nieuw item</Button>}
       </div>
 
-      {/* Filter Buttons */}
-      <div className="px-6 pb-4">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground mr-2">Filter:</span>
-          {statusFilters.map((filter) => (
-            <Button
-              key={filter.value}
-              variant={statusFilter === filter.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter(filter.value)}
-              className="h-8"
-            >
-              {filter.label} ({filter.count})
-            </Button>
-          ))}
-        </div>
+      <div className="flex gap-1 border-b" role="tablist">
+        {([["open", `Te beoordelen`, open.length], ["done", "Afgehandeld", done.length]] as const).map(([k, label, n]) => (
+          <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+            className={cn("-mb-px border-b-2 px-3 py-2 text-sm font-medium", tab === k ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
+            {label} <span className="tabular text-muted-foreground">{n}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Video Grid */}
-      <div className="px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVideos.map((video) => (
-            <motion.div
-              key={video.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group cursor-pointer"
-              onClick={() => openVideoReview(video)}
-            >
-              <Card className={`overflow-hidden border-2 ${getStatusBorder(video.status)} hover:border-primary/50 transition-colors`}>
-                <div className="relative">
-                  <div className="aspect-video bg-black">
-                    <img 
-                      src={video.thumbnail} 
-                      alt={video.title}
-                      className="w-full h-full object-cover"
-                    />
+      <section className="rounded-lg border bg-card">
+        {isLoading ? <EmptyState text="Laden…" /> : list.length === 0 ? (
+          <EmptyState text={tab === "open" ? "Er staat niets klaar om te beoordelen." : "Nog niets afgehandeld."} />
+        ) : (
+          <ul className="divide-y">
+            {list.map((i) => (
+              <li key={i.id}>
+                <button onClick={() => setOpenId(i.id)} className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-muted/40 md:px-5">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{i.title}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span>{fmtDate(i.planned_date)}</span>
+                      {i.networks.map((n) => <span key={n} className="flex items-center gap-1"><PlatformDot network={netInfo(n).dot} />{netInfo(n).label}</span>)}
+                      {i.source === "metricool" && <span>Uit Metricool</span>}
+                    </p>
                   </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="bg-white/90 rounded-full p-3">
-                      <Play className="h-6 w-6 text-neutral-800" />
-                    </div>
-                  </div>
-                  <div className="absolute top-2 left-2">
-                    <Badge className={getStatusBadge(video.status).className}>
-                      {getStatusBadge(video.status).text}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                    {video.duration}
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-medium text-sm mb-2 line-clamp-2">{video.title}</h3>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                    <span>{video.filename}</span>
-                    <span>{new Date(video.uploadDate).toLocaleDateString('nl-NL')}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-xs">
-                      {video.status === 'approved' ? 'Goedgekeurd' : 
-                       video.status === 'rejected' ? 'Afgekeurd' : 'Wachtend'}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MessageCircle className="h-3 w-3" />
-                      {video.comments.length}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Fullscreen Review Modal */}
-      <AnimatePresence>
-        {isFullscreen && selectedVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-neutral-900 z-50 flex"
-          >
-            {/* Header */}
-            <div className="absolute top-0 left-0 right-0 bg-neutral-800/95 backdrop-blur-sm p-6 flex items-center justify-between z-10 border-b border-neutral-700">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={closeVideoReview}
-                  className="text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <div className="text-white">
-                  <h2 className="font-medium text-lg">{selectedVideo.filename}</h2>
-                  <p className="text-sm text-neutral-400">
-                    {currentVideoIndex + 1} van {videos.length}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateVideo('prev')}
-                  className="text-white hover:bg-neutral-700"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateVideo('next')}
-                  className="text-white hover:bg-neutral-700"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-neutral-700"
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={approveVideo}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Goedgekeurd
-                </Button>
-              </div>
-            </div>
-
-            {/* Video Player */}
-            <div className="flex-1 flex items-center justify-center p-20">
-              <div className="relative max-w-4xl w-full aspect-video bg-black rounded-lg overflow-hidden">
-                <img 
-                  src={selectedVideo.thumbnail} 
-                  alt={selectedVideo.title}
-                  className="w-full h-full object-cover cursor-pointer"
-                  onClick={handleVideoClick}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={togglePlayPause}
-                    className="bg-black/50 hover:bg-black/70 text-white rounded-full"
-                  >
-                    {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
-                  </Button>
-                </div>
-                
-                {/* Timeline with markers */}
-                <div className="absolute bottom-0 left-0 right-0 bg-black/90 p-4">
-                  <div className="relative">
-                    <div className="w-full h-1 bg-neutral-600 rounded-full mb-2">
-                      <div 
-                        className="h-full bg-orange-500 rounded-full transition-all duration-100"
-                        style={{ width: `${(currentTime / videoDuration) * 100}%` }}
-                      />
-                      {/* Comment markers */}
-                      {selectedVideo.comments.map((comment) => (
-                        <div
-                          key={comment.id}
-                          className="absolute top-0 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2 cursor-pointer hover:scale-125 transition-transform"
-                          style={{ left: `${(comment.timestamp / videoDuration) * 100}%` }}
-                          onClick={() => jumpToTimestamp(comment.timestamp)}
-                          title={`${formatTime(comment.timestamp)}: ${comment.comment}`}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex justify-between text-neutral-300 text-sm">
-                      <span>{formatTime(currentTime)}</span>
-                      <span>{selectedVideo.duration}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Side Panel */}
-            <motion.div
-              initial={{ x: 400 }}
-              animate={{ x: 0 }}
-              exit={{ x: 400 }}
-              className="w-80 bg-neutral-800 border-l border-neutral-700 flex flex-col h-full"
-            >
-              {/* Status Badge - More space at top */}
-              <div className="p-6 pt-24 border-b border-neutral-700">
-                <div className="flex items-center justify-center mb-4">
-                  <Badge className={`${getStatusBadge(videoStatus).className} text-sm px-4 py-2 text-center`}>
-                    {getStatusBadge(videoStatus).text}
-                  </Badge>
-                </div>
-                <Select value={videoStatus} onValueChange={updateVideoStatus}>
-                  <SelectTrigger className="w-full bg-neutral-900 border-neutral-600 text-white">
-                    <SelectValue placeholder="Status wijzigen" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-neutral-900 border-neutral-600 text-white shadow-lg z-50">
-                    <SelectItem value="pending">⏳ Wachtend</SelectItem>
-                    <SelectItem value="approved"> Goedgekeurd</SelectItem>
-                    <SelectItem value="rejected"> Afgekeurd</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Reviewer Profile */}
-              <div className="p-6 border-b border-neutral-700">
-                <div className="flex items-center gap-3">
-                  <Avatar className="bg-neutral-700">
-                    <AvatarFallback className="bg-neutral-700 text-white">{reviewer.avatar}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium text-white">{reviewer.name}</div>
-                    <div className="text-sm text-neutral-400">{reviewer.role}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comment Input */}
-              <div className="p-6 border-b border-neutral-700">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-neutral-300">
-                    <Clock className="h-4 w-4" />
-                    <span>Timestamp: {formatTime(currentTime)}</span>
-                  </div>
-                  <Textarea
-                    placeholder="Voeg je commentaar toe..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[80px] resize-none bg-neutral-900 border-neutral-600 text-white placeholder-neutral-400"
-                  />
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={addComment}
-                      disabled={!newComment.trim()}
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Opslaan
-                    </Button>
-                    <Button variant="outline" onClick={() => setNewComment("")} className="border-neutral-600 text-neutral-300 hover:bg-neutral-700">
-                      Annuleren
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comments List */}
-              <div className="flex-1 overflow-y-auto p-6">
-                <div className="space-y-4">
-                  {selectedVideo.comments.map((comment) => (
-                    <motion.div 
-                      key={comment.id} 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-2"
-                    >
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => jumpToTimestamp(comment.timestamp)}
-                          className="h-auto p-1 hover:bg-neutral-700 text-orange-500"
-                        >
-                          <Clock className="h-3 w-3 text-orange-500 mr-1" />
-                          <span className="font-medium text-orange-500">{formatTime(comment.timestamp)}</span>
-                        </Button>
-                        <span className="text-neutral-400">•</span>
-                        <span className="text-neutral-300">{comment.author}</span>
-                        <span className="text-neutral-400 ml-auto">{comment.time}</span>
-                      </div>
-                      <div className="bg-neutral-900 p-3 rounded-lg group">
-                        {editingComment === comment.id ? (
-                          <div className="space-y-2">
-                            <Textarea
-                              defaultValue={comment.comment}
-                              className="min-h-[60px] resize-none bg-neutral-800 border-neutral-600 text-white"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && e.ctrlKey) {
-                                  editComment(comment.id, (e.target as HTMLTextAreaElement).value);
-                                } else if (e.key === 'Escape') {
-                                  setEditingComment(null);
-                                }
-                              }}
-                            />
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => editComment(comment.id, "")} className="bg-orange-500 hover:bg-orange-600">
-                                <Save className="h-3 w-3 mr-1" />
-                                Opslaan
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => setEditingComment(null)} className="border-neutral-600 text-neutral-300 hover:bg-neutral-700">
-                                Annuleren
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-start justify-between">
-                            <p className="text-sm flex-1 text-neutral-100">{comment.comment}</p>
-                            {comment.editable && (
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditingComment(comment.id)}
-                                  className="h-6 w-6 p-0 hover:bg-neutral-700 text-neutral-300"
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => deleteComment(comment.id)}
-                                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-neutral-700"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                  {selectedVideo.comments.length === 0 && (
-                    <div className="text-center py-8 text-neutral-300">
-                      <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Nog geen commentaren</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+                  <StatusLabel status={i.status} />
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
-      </AnimatePresence>
+      </section>
+
+      {selected && <ReviewDialog item={selected} onClose={() => setOpenId(null)} />}
+      {creating && clientId && <CreateDialog clientId={clientId} onClose={() => setCreating(false)} />}
     </div>
+  );
+}
+
+function MediaPreview({ item }: { item: ReviewItem }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setUrl(null);
+    if (!item.storage_path) return;
+    supabase.storage.from("review-media").createSignedUrl(item.storage_path, 3600).then(({ data }) => setUrl(data?.signedUrl ?? null));
+  }, [item.storage_path]);
+  const src = url ?? item.external_link;
+  if (!src) return <div className="flex aspect-video items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">Geen media</div>;
+  const path = (item.storage_path ?? item.external_link ?? "").toLowerCase().split("?")[0];
+  if (/\.(mp4|mov)$/.test(path)) return <video src={src} controls playsInline className="max-h-[60vh] w-full rounded-md bg-foreground" />;
+  if (/\.(jpe?g|png|webp)$/.test(path)) return <img src={src} alt="" className="max-h-[60vh] w-full rounded-md object-contain bg-muted" />;
+  return <a href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/40"><ExternalLink className="h-4 w-4" /> Open de link</a>;
+}
+
+function ReviewDialog({ item, onClose }: { item: ReviewItem; onClose: () => void }) {
+  const { isAdmin, client } = useClient();
+  const { data: events = [] } = useReviewEvents(item.id);
+  const invalidate = useInvalidate();
+  const [mode, setMode] = useState<null | "changes_requested" | "rejected">(null);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [names, setNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const ids = [...new Set(events.map((e) => e.user_id).filter(Boolean))] as string[];
+    if (!ids.length) return;
+    supabase.from("users").select("id,email,full_name").in("id", ids).then(({ data }) =>
+      setNames(Object.fromEntries((data ?? []).map((u) => [u.id, u.full_name || u.email]))));
+  }, [events]);
+
+  const act = async (action: string, extra: { _note?: string; _storage_path?: string } = {}) => {
+    setBusy(true);
+    const { error } = await supabase.rpc("review_action", { _item_id: item.id, _action: action, ...extra });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(action === "new_version" ? "Nieuwe versie staat klaar" : `Opgeslagen: ${REVIEW_ACTION_LABEL[action].toLowerCase()}`);
+    setMode(null); setNote("");
+    invalidate();
+  };
+
+  const newVersion = async (file: File) => {
+    if (file.size > MAX_BYTES) return toast.error("Bestand is groter dan 500 MB");
+    try {
+      setProgress(0);
+      const path = await uploadReviewMedia(item.client_id, file, setProgress);
+      await act("new_version", { _storage_path: path });
+    } catch (e) { toast.error(String((e as Error).message)); }
+    setProgress(null);
+  };
+
+  const metricoolLink = client?.metricool_blog_id ? `https://app.metricool.com/planner?blogId=${client.metricool_blog_id}` : "https://app.metricool.com/planner";
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-start justify-between gap-3 pr-6">
+            <DialogTitle className="text-lg leading-snug">{item.title}</DialogTitle>
+            <StatusLabel status={item.status} />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {fmtDate(item.planned_date)}{item.networks.length > 0 && " · " + item.networks.map((n) => netInfo(n).label).join(", ")}
+          </p>
+        </DialogHeader>
+
+        {isAdmin && item.source === "metricool" && item.status === "rejected" && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
+            <p className="font-medium">Zet deze post in Metricool op concept.</p>
+            <a href={metricoolLink} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 underline">Open in Metricool <ExternalLink className="h-3.5 w-3.5" /></a>
+          </div>
+        )}
+
+        <MediaPreview item={item} />
+        {item.caption && <p className="whitespace-pre-line text-sm text-foreground/80">{item.caption}</p>}
+
+        {item.status === "pending" && (
+          <div className="space-y-3 border-t pt-4">
+            {mode ? (
+              <>
+                <Label htmlFor="note">{mode === "rejected" ? "Reden van afkeuren" : "Wat moet er anders?"}</Label>
+                <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} rows={3} autoFocus />
+                <div className="flex flex-wrap gap-2">
+                  <Button disabled={busy || !note.trim()} variant={mode === "rejected" ? "destructive" : "default"} onClick={() => act(mode, { _note: note })}>
+                    {mode === "rejected" ? "Afkeuren" : "Wijziging vragen"}
+                  </Button>
+                  <Button variant="ghost" onClick={() => { setMode(null); setNote(""); }}>Annuleren</Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <Button disabled={busy} onClick={() => act("approved")}>Goedkeuren</Button>
+                <Button variant="outline" onClick={() => setMode("changes_requested")}>Wijziging vragen</Button>
+                <Button variant="outline" onClick={() => setMode("rejected")}>Afkeuren</Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {isAdmin && item.status === "changes_requested" && (
+          <div className="space-y-2 border-t pt-4">
+            <Label htmlFor="newv">Nieuwe versie uploaden</Label>
+            <Input id="newv" type="file" accept={ACCEPT} disabled={progress != null} onChange={(e) => e.target.files?.[0] && newVersion(e.target.files[0])} />
+            {progress != null && <Progress value={progress} />}
+          </div>
+        )}
+
+        <div className="border-t pt-4">
+          <h3 className="mb-2 text-sm font-semibold">Historie</h3>
+          <ol className="space-y-2 text-sm">
+            {events.map((e) => (
+              <li key={e.id} className="flex flex-col gap-0.5">
+                <span><span className="font-medium">{REVIEW_ACTION_LABEL[e.action] ?? e.action}</span>
+                  <span className="text-muted-foreground"> · {fmtDate(e.created_at)} · {e.user_id ? names[e.user_id] ?? "HIBE" : "Metricool"}</span></span>
+                {e.note && <span className="text-foreground/80">“{e.note}”</span>}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CreateDialog({ clientId, onClose }: { clientId: string; onClose: () => void }) {
+  const invalidate = useInvalidate();
+  const [title, setTitle] = useState("");
+  const [caption, setCaption] = useState("");
+  const [date, setDate] = useState("");
+  const [nets, setNets] = useState<string[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [link, setLink] = useState("");
+  const [progress, setProgress] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const valid = useMemo(() => title.trim() && (file || /^https?:\/\//.test(link.trim())), [title, file, link]);
+
+  const save = async () => {
+    if (file && file.size > MAX_BYTES) return toast.error("Bestand is groter dan 500 MB");
+    setBusy(true);
+    try {
+      let storage_path: string | null = null;
+      if (file) { setProgress(0); storage_path = await uploadReviewMedia(clientId, file, setProgress); }
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("review_items").insert({
+        client_id: clientId, title: title.trim(), caption: caption.trim() || null,
+        planned_date: date ? new Date(date).toISOString() : null, networks: nets, source: "hibe",
+        storage_path, external_link: file ? null : link.trim(), created_by: user?.id,
+      });
+      if (error) throw error;
+      toast.success("Item staat klaar voor de klant");
+      invalidate();
+      onClose();
+    } catch (e) { toast.error(String((e as Error).message)); }
+    setBusy(false); setProgress(null);
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && !busy && onClose()}>
+      <DialogContent className="max-h-[92vh] max-w-lg overflow-y-auto">
+        <DialogHeader><DialogTitle>Nieuw item ter goedkeuring</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5"><Label htmlFor="t">Titel</Label><Input id="t" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label htmlFor="c">Caption</Label><Textarea id="c" rows={3} value={caption} onChange={(e) => setCaption(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label htmlFor="d">Geplande datum</Label><Input id="d" type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} /></div>
+          <fieldset className="space-y-1.5">
+            <legend className="text-sm font-medium">Kanalen</legend>
+            <div className="flex flex-wrap gap-4">
+              {NETWORKS.map((n) => (
+                <label key={n.key} className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={nets.includes(n.key)} onCheckedChange={(c) => setNets((s) => c ? [...s, n.key] : s.filter((x) => x !== n.key))} />
+                  {n.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div className="space-y-1.5">
+            <Label htmlFor="f">Bestand (mp4, mov of afbeelding, max 500 MB)</Label>
+            <Input id="f" type="file" accept={ACCEPT} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          </div>
+          {!file && (
+            <div className="space-y-1.5"><Label htmlFor="l">Of plak een link</Label><Input id="l" placeholder="https://" value={link} onChange={(e) => setLink(e.target.value)} /></div>
+          )}
+          {progress != null && <div className="space-y-1"><Progress value={progress} /><p className="text-xs tabular text-muted-foreground">{progress}% geüpload</p></div>}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={onClose} disabled={busy}>Annuleren</Button>
+            <Button onClick={save} disabled={!valid || busy}><Upload /> Klaarzetten</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
