@@ -15,6 +15,8 @@ export interface VideoRow {
   saves: number | null;
 }
 
+const PAGE = 1000; // Data API caps selects at 1000 rows — paginate.
+
 export function useClientStats(period: PeriodKey) {
   return useQuery({
     queryKey: ["client-stats", period],
@@ -25,18 +27,35 @@ export function useClientStats(period: PeriodKey) {
       const clientId = me?.client_id ?? null;
       if (!clientId) return { client: null, stats: [] as DailyStat[], videos: [] as VideoRow[], range: periodRange(period) };
 
-      const range = periodRange(period);
       const { data: client } = await supabase.from("clients").select("id,name").eq("id", clientId).maybeSingle();
 
-      // All rows up to period end: needed for "last followers before period".
-      const { data: stats, error } = await supabase
+      // Period ends on the last date that has real data (usually yesterday), not today.
+      const { data: last } = await supabase
         .from("daily_stats")
-        .select("network,date,followers,views,interactions,posts,reach")
+        .select("date")
         .eq("client_id", clientId)
-        .lte("date", range.end)
-        .order("date", { ascending: true })
-        .limit(10000);
-      if (error) throw error;
+        .or("followers.not.is.null,views.not.is.null")
+        .order("date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const range = periodRange(period, last?.date ? new Date(last.date + "T00:00:00Z") : new Date());
+
+      // Only fetch current + previous period (previous holds the "followers before period" value).
+      const stats: DailyStat[] = [];
+      for (let from = 0; ; from += PAGE) {
+        let q = supabase
+          .from("daily_stats")
+          .select("network,date,followers,views,interactions,posts,reach")
+          .eq("client_id", clientId)
+          .lte("date", range.end)
+          .order("date", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (range.prevStart) q = q.gte("date", range.prevStart);
+        const { data, error } = await q;
+        if (error) throw error;
+        stats.push(...((data ?? []) as DailyStat[]));
+        if (!data || data.length < PAGE) break;
+      }
 
       let vq = supabase
         .from("videos")
@@ -48,7 +67,7 @@ export function useClientStats(period: PeriodKey) {
       const { data: videos, error: vErr } = await vq;
       if (vErr) throw vErr;
 
-      return { client, stats: (stats ?? []) as DailyStat[], videos: (videos ?? []) as VideoRow[], range };
+      return { client, stats, videos: (videos ?? []) as VideoRow[], range };
     },
   });
 }
