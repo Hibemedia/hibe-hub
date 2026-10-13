@@ -73,7 +73,7 @@ export function MedaillesWidget() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base font-bold">
-          🏆 Medailles
+          Medailles
           <Badge variant="outline" className="ml-auto border-0 bg-primary/10 text-primary font-bold">
             {achievedMedals.length}/{medals.length}
           </Badge>

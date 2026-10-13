@@ -14,6 +14,8 @@ export interface VideoRow {
   comments: number | null;
   shares: number | null;
   saves: number | null;
+  url: string | null;
+  thumbnail_url: string | null;
 }
 
 const PAGE = 1000; // Data API caps selects at 1000 rows — paginate.
@@ -55,7 +57,7 @@ export function useClientStats(period: PeriodKey) {
 
       let vq = supabase
         .from("videos")
-        .select("id,network,external_id,published_at,title,views,likes,comments,shares,saves")
+        .select("id,network,external_id,published_at,title,views,likes,comments,shares,saves,url,thumbnail_url")
         .eq("client_id", clientId)
         .order("views", { ascending: false })
         .limit(10);
