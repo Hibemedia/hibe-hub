@@ -45,14 +45,12 @@ const App = () => {
                     <div className="min-h-screen flex w-full">
                       <AppSidebar />
                       <main className="flex-1 overflow-auto">
-                        <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-                          <div className="flex items-center h-full px-6">
+                        <header className="h-14 border-b border-border bg-background sticky top-0 z-50">
+                          <div className="flex items-center h-full px-4 md:px-6">
                             <SidebarTrigger className="mr-4" />
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 bg-gradient-primary rounded-md flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">H</span>
-                              </div>
-                              <span className="font-semibold text-foreground">Hibe Media Portal</span>
+                              <span className="font-display text-base font-extrabold tracking-tight text-foreground">HIBE</span>
+                              <span className="text-sm text-muted-foreground">Klantportaal</span>
                             </div>
                           </div>
                         </header>

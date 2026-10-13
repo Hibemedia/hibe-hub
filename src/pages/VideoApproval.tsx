@@ -143,22 +143,22 @@ export default function VideoApproval() {
   const getStatusBorder = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'border-success';
+        return 'border-border';
       case 'rejected':
-        return 'border-destructive';
+        return 'border-border';
       default:
-        return 'border-warning';
+        return 'border-border';
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return { text: ' Goedgekeurd', className: 'bg-success text-success-foreground' };
+        return { text: 'Goedgekeurd', className: 'border border-success/30 bg-success/10 text-success' };
       case 'rejected':
-        return { text: ' Afgekeurd', className: 'bg-destructive text-destructive-foreground' };
+        return { text: 'Afgekeurd', className: 'border border-destructive/30 bg-destructive/10 text-destructive' };
       default:
-        return { text: '⏳ Wachtend', className: 'bg-warning text-warning-foreground' };
+        return { text: 'Te beoordelen', className: 'border border-warning/40 bg-warning/10 text-foreground' };
     }
   };
 

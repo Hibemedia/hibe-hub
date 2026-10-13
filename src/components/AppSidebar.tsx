@@ -79,7 +79,7 @@ export function AppSidebar() {
   const getNavClasses = (url: string) => {
     const isActive = location.pathname === url;
     return cn(
-      "transition-colors duration-200 rounded-lg text-sm font-medium",
+      "transition-colors duration-200 rounded-md text-sm font-medium",
       {
         "bg-primary text-primary-foreground": isActive,
         "text-foreground hover:bg-muted": !isActive,
@@ -92,13 +92,13 @@ export function AppSidebar() {
     <Sidebar className="border-r border-border bg-card">
       <SidebarHeader className="border-b border-border p-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-semibold text-sm">H</span>
+          <div className="w-8 h-8 bg-foreground rounded-md flex items-center justify-center">
+            <span className="font-display text-background font-extrabold text-sm">H</span>
           </div>
           {!collapsed && (
             <div>
               <h2 className="text-base font-semibold text-foreground">
-                Hibe Media
+                HIBE Media
               </h2>
               <p className="text-xs text-muted-foreground">
                 Klantportaal
@@ -121,9 +121,7 @@ export function AppSidebar() {
 
       <SidebarContent className="p-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground mb-2 px-3">
-            Navigatie
-          </SidebarGroupLabel>
+          
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {menuItems.map((item) => (

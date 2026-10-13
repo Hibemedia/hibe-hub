@@ -19,8 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Poppins', 'ui-sans-serif', 'system-ui'],
-				bold: ['Poppins', 'sans-serif'],
+				sans: ['"Instrument Sans"', 'ui-sans-serif', 'system-ui'],
+				display: ['Archivo', 'ui-sans-serif', 'system-ui'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

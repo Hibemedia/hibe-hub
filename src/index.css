@@ -2,20 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Pastel Crypto-Inspired B2B Portal */
+/* HIBE Media — black/white with one warm accent */
 @layer base {
   :root {
     /* Base - Clean white palette */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 5%;
+    --background: 60 9% 95%;
+    --foreground: 0 0% 7%;
 
     /* Cards and surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
+    --card-foreground: 0 0% 7%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
+    --popover-foreground: 0 0% 7%;
 
     /* Primary - Neon Orange (#FF5C00) */
     --primary: 22 100% 50%;
@@ -24,16 +24,16 @@
     --primary-dark: 22 100% 40%;
 
     /* Secondary - Dark gray */
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 40 8% 90%;
+    --secondary-foreground: 0 0% 7%;
 
     /* Muted colors */
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 45 8% 92%;
+    --muted-foreground: 30 4% 38%;
 
     /* Accent - Light gray */
-    --accent: 0 0% 92%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 45 8% 92%;
+    --accent-foreground: 0 0% 7%;
 
     /* Success */
     --success: 142 71% 45%;
@@ -48,12 +48,18 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Borders and inputs */
-    --border: 0 0% 88%;
-    --input: 0 0% 90%;
+    --border: 40 6% 86%;
+    --input: 40 6% 82%;
     --ring: 22 100% 50%;
 
     /* Radius - Extra round, crypto-style */
-    --radius: 1.5rem;
+    --radius: 0.5rem;
+
+    /* Platform colours — charts and dots only */
+    --platform-ig: 330 70% 52%;
+    --platform-tt: 180 60% 38%;
+    --platform-yt: 0 78% 50%;
+    --platform-fb: 214 80% 50%;
     
     /* Pastel Colors */
     --pastel-pink: 330 60% 95%;
@@ -65,12 +71,12 @@
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 5%;
+    --sidebar-foreground: 0 0% 7%;
     --sidebar-primary: 22 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 5%;
-    --sidebar-border: 0 0% 90%;
+    --sidebar-accent: 45 8% 94%;
+    --sidebar-accent-foreground: 0 0% 7%;
+    --sidebar-border: 40 6% 88%;
     --sidebar-ring: 22 100% 50%;
 
     /* Shadows - Soft and elegant */
@@ -121,14 +127,18 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
-    font-family: 'Poppins', sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Archivo', ui-sans-serif, sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  .tabular, .font-display {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -139,7 +149,7 @@
   }
   
   .hover-card:hover {
-    @apply shadow-lg -translate-y-1;
+    @apply bg-muted/40;
   }
 
   /* Minimal button styles */
@@ -165,7 +175,7 @@
 
   /* Premium Web3 card */
   .card-web3 {
-    @apply bg-card border-2 border-border rounded-xl shadow-md hover-card backdrop-blur-sm;
+    @apply bg-card border border-border rounded-lg;
   }
 
   /* Bold badge */
@@ -186,7 +196,7 @@
     inset: -2px;
     border-radius: var(--radius);
     padding: 2px;
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.3));
+    background: none;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -257,6 +267,6 @@
 
   /* Glow effect */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+    box-shadow: none;
   }
 }
