@@ -18,6 +18,7 @@
     --primary-dark: 0 0% 0%;
     --lime: 76 87% 58%;             /* #C8F135 */
     --lime-foreground: 0 0% 7%;
+    --interactions: 0 0% 38%;
     --secondary: 60 3% 86%;
     --secondary-foreground: 0 0% 7%;
     --muted: 60 3% 87%;
@@ -90,13 +91,13 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Urbanist', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
+    font-family: 'Urbanist', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
-    font-family: 'Urbanist', ui-sans-serif, sans-serif;
+    font-family: 'Urbanist', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', ui-sans-serif, sans-serif;
     letter-spacing: -0.01em;
   }
 
