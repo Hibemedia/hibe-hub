@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          metricool_blog_id: string | null
+          name: string
+          tiktok_handle: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metricool_blog_id?: string | null
+          name: string
+          tiktok_handle?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metricool_blog_id?: string | null
+          name?: string
+          tiktok_handle?: string | null
+        }
+        Relationships: []
+      }
+      daily_stats: {
+        Row: {
+          client_id: string
+          created_at: string
+          date: string
+          followers: number | null
+          followers_gained: number | null
+          followers_lost: number | null
+          id: string
+          interactions: number | null
+          network: string
+          posts: number | null
+          reach: number | null
+          views: number | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          date: string
+          followers?: number | null
+          followers_gained?: number | null
+          followers_lost?: number | null
+          id?: string
+          interactions?: number | null
+          network: string
+          posts?: number | null
+          reach?: number | null
+          views?: number | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          date?: string
+          followers?: number | null
+          followers_gained?: number | null
+          followers_lost?: number | null
+          id?: string
+          interactions?: number | null
+          network?: string
+          posts?: number | null
+          reach?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_stats_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -39,6 +116,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           brandid: string | null
+          client_id: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -47,6 +125,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           brandid?: string | null
+          client_id?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -55,18 +134,81 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           brandid?: string | null
+          client_id?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          client_id: string
+          comments: number | null
+          created_at: string
+          external_id: string
+          id: string
+          likes: number | null
+          network: string
+          published_at: string | null
+          saves: number | null
+          shares: number | null
+          title: string | null
+          views: number | null
+        }
+        Insert: {
+          client_id: string
+          comments?: number | null
+          created_at?: string
+          external_id: string
+          id?: string
+          likes?: number | null
+          network: string
+          published_at?: string | null
+          saves?: number | null
+          shares?: number | null
+          title?: string | null
+          views?: number | null
+        }
+        Update: {
+          client_id?: string
+          comments?: number | null
+          created_at?: string
+          external_id?: string
+          id?: string
+          likes?: number | null
+          network?: string
+          published_at?: string | null
+          saves?: number | null
+          shares?: number | null
+          title?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      current_client_id: { Args: never; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
