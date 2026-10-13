@@ -64,6 +64,13 @@ export function useClientStats(period: PeriodKey) {
       if (range.start) vq = vq.gte("published_at", range.start);
       const { data: videos, error: vErr } = await vq;
       if (vErr) throw vErr;
+      // Stored Instagram thumbnails live in a private bucket: sign them.
+      const stored = (videos ?? []).filter((v) => v.thumbnail_url?.startsWith("storage:thumbnails/"));
+      if (stored.length) {
+        const paths = stored.map((v) => v.thumbnail_url!.slice("storage:thumbnails/".length));
+        const { data: signed } = await supabase.storage.from("thumbnails").createSignedUrls(paths, 3600);
+        stored.forEach((v, i) => { v.thumbnail_url = signed?.[i]?.signedUrl ?? null; });
+      }
 
       return { client: client ? { id: client.id, name: client.name } : null, stats, videos: (videos ?? []) as VideoRow[], range };
     },

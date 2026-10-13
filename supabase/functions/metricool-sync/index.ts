@@ -39,9 +39,9 @@ const cleanTitle = (s?: string | null) =>
   (s ?? "").split("\n")[0].replace(/#[^\s#]+/g, "").replace(/\s+/g, " ").trim() || null;
 
 // ---------- metricool ----------
-async function mc(path: string, blogId: string, params: Record<string, string>) {
+async function mc(path: string, blogId: string, params: Record<string, string>, base = BASE) {
   const qs = new URLSearchParams({ userId: MC_USER, blogId, ...params });
-  const res = await fetch(`${BASE}/${path}?${qs}`, { headers: { "X-Mc-Auth": TOKEN } });
+  const res = await fetch(`${base}/${path}?${qs}`, { headers: { "X-Mc-Auth": TOKEN } });
   if (!res.ok) throw new Error(`Metricool ${path} ${params.metric ?? ""} ${res.status}: ${(await res.text()).slice(0, 200)}`);
   return res.json();
 }
@@ -124,7 +124,7 @@ async function syncVideos(db: any, client: { id: string; metricool_blog_id: stri
       rows.push({ client_id: client.id, network: "ig", external_id: code,
         published_at: r.publishedAt?.dateTime ? zonedToUtc(r.publishedAt.dateTime, r.publishedAt.timezone || TZ) : null,
         title: cleanTitle(r.content), views: r.views ?? 0, likes: r.likes ?? 0, comments: r.comments ?? 0,
-        shares: r.shares ?? 0, saves: r.saved ?? 0, url: r.url, thumbnail_url: null });
+        shares: r.shares ?? 0, saves: r.saved ?? 0, url: r.url, thumbnail_url: null, _image: r.imageUrl ?? null });
     }
     for (const r of tt?.data ?? []) {
       if (!r.videoId) continue;
@@ -143,6 +143,7 @@ async function syncVideos(db: any, client: { id: string; metricool_blog_id: stri
         title: cleanTitle(r.title), views: r.views ?? 0, likes: r.likes ?? 0, comments: r.comments ?? 0,
         shares: r.shares ?? 0, saves: null, url: `https://youtu.be/${r.videoId}`, thumbnail_url: r.thumbnailUrl ?? null });
     }
+    await storeIgThumbnails(db, client.id, rows);
     for (const r of rows) for (const c of ["views", "likes", "comments", "shares", "saves"]) if (r[c] != null) r[c] = Math.round(Number(r[c]));
     if (rows.length) {
       const { error } = await db.from("videos").upsert(rows, { onConflict: "network,external_id" });
@@ -151,6 +152,54 @@ async function syncVideos(db: any, client: { id: string; metricool_blog_id: stri
     }
   }
   return count;
+}
+
+/** Instagram image URLs expire: copy them once into our own storage. Keeps existing thumbnails. */
+async function storeIgThumbnails(db: any, clientId: string, rows: Row[]) {
+  const ig = rows.filter((r) => r.network === "ig");
+  if (!ig.length) return;
+  const { data: existing } = await db.from("videos").select("external_id,thumbnail_url").eq("network", "ig")
+    .in("external_id", ig.map((r) => r.external_id));
+  const have = new Map((existing ?? []).map((v: any) => [v.external_id, v.thumbnail_url]));
+  for (const r of ig) {
+    const img = r._image as string | null; delete r._image;
+    const cur = have.get(r.external_id as string);
+    if (cur) { r.thumbnail_url = cur; continue; }
+    if (!img) continue;
+    try {
+      const res = await fetch(img);
+      if (!res.ok) continue; // expired: keep grey box
+      const path = `${clientId}/${r.external_id}.jpg`;
+      const { error } = await db.storage.from("thumbnails").upload(path, await res.arrayBuffer(), { contentType: res.headers.get("content-type") ?? "image/jpeg", upsert: true });
+      if (!error) r.thumbnail_url = `storage:thumbnails/${path}`;
+    } catch { /* keep grey box */ }
+  }
+}
+
+let schedLogged = false;
+/** Scheduled Metricool posts become review items (source 'metricool'). Existing items keep their status. */
+async function syncScheduled(db: any, client: { id: string; metricool_blog_id: string }, from: string, to: string) {
+  const r = await mc("scheduler/posts", client.metricool_blog_id,
+    { start: `${from}T00:00:00`, end: `${to}T23:59:59`, timezone: TZ }, "https://app.metricool.com/api/v2");
+  const list: any[] = Array.isArray(r) ? r : (r?.data ?? []);
+  if (!schedLogged) { console.log("Scheduler first item:", JSON.stringify(list[0] ?? r).slice(0, 3000)); schedLogged = true; }
+  const items = list.filter((p) => p?.id != null && !p.draft && (p.providers ?? []).some((x: any) => x.status !== "PUBLISHED")).map((p) => {
+    const nets = (p.providers ?? []).map((x: any) => String(x.network ?? x).toLowerCase()).filter(Boolean);
+    const media = (p.media ?? [])[0];
+    const text: string = p.text ?? "";
+    const dt = p.publicationDate?.dateTime ?? null;
+    return {
+      client_id: client.id, source: "metricool", metricool_post_id: String(p.id), metricool_post_uuid: p.uuid ?? null,
+      title: cleanTitle(text) ?? "Ingeplande post", caption: text || null,
+      planned_date: dt ? zonedToUtc(dt, p.publicationDate?.timezone || TZ) : null,
+      networks: nets, external_link: typeof media === "string" ? media : (media?.url ?? null),
+    };
+  });
+  if (items.length) {
+    const { error } = await db.from("review_items").upsert(items, { onConflict: "client_id,metricool_post_id", ignoreDuplicates: true });
+    if (error) throw error;
+  }
+  return items.length;
 }
 
 async function run(db: any, mode: Mode, clientId?: string) {
@@ -171,7 +220,10 @@ async function run(db: any, mode: Mode, clientId?: string) {
     try {
       videos = await syncVideos(db, c, videosFrom, today);
       stats = await syncStats(db, c, statsFrom, today);
-      report.push({ client: c.name, videos, stats });
+      let scheduled: number | string = 0;
+      try { scheduled = await syncScheduled(db, c, today, addDays(today, 60)); }
+      catch (e) { scheduled = String(e).slice(0, 300); console.error(`scheduler failed for ${c.name}:`, String(e)); }
+      report.push({ client: c.name, videos, stats, scheduled });
       if (runRow) await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos }).eq("id", runRow.id);
     } catch (e) {
       console.error(`sync failed for ${c.name}:`, String(e));

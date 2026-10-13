@@ -117,28 +117,37 @@ export function NetworkBreakdown({ stats, range, className }: { stats: DailyStat
   return (
     <Section title="Per platform" className={className}>
       {networks.length === 0 ? <EmptyState /> : (
-        <table className="w-full text-sm tabular">
+        <div className="-mx-4 overflow-x-auto px-4 md:-mx-5 md:px-5">
+        <table className="w-full min-w-[520px] table-fixed text-sm tabular">
+          <colgroup>
+            <col />
+            <col className="w-[96px]" />
+            <col className="w-[88px]" />
+            <col className="w-[104px]" />
+            <col className="w-[64px]" />
+          </colgroup>
           <thead>
-            <tr className="text-left text-xs text-muted-foreground">
-              <th className="pb-2 font-normal">Platform</th>
+            <tr className="text-xs text-muted-foreground">
+              <th className="pb-2 text-left font-normal">Platform</th>
               <th className="pb-2 text-right font-normal">Volgers</th>
               <th className="pb-2 text-right font-normal">Groei</th>
-              <th className="hidden pb-2 text-right font-normal sm:table-cell">Weergaven</th>
-              <th className="hidden pb-2 text-right font-normal sm:table-cell">Posts</th>
+              <th className="pb-2 text-right font-normal">Weergaven</th>
+              <th className="pb-2 text-right font-normal">Posts</th>
             </tr>
           </thead>
           <tbody>
             {networks.map(({ n, t }) => (
               <tr key={n} className="border-t">
-                <td className="py-3"><span className="flex items-center gap-2"><PlatformDot network={n} />{NETWORK_LABELS[n]}</span></td>
+                <td className="truncate py-3"><span className="flex items-center gap-2"><PlatformDot network={n} />{NETWORK_LABELS[n]}</span></td>
                 <td className="py-3 text-right font-medium">{formatNumber(t.followers)}</td>
                 <td className="py-3 text-right">{t.followersGrowth == null ? "–" : <Change value={t.followersGrowth} suffix="" />}</td>
-                <td className="hidden py-3 text-right sm:table-cell">{formatNumber(t.views)}</td>
-                <td className="hidden py-3 text-right sm:table-cell">{formatNumber(t.posts)}</td>
+                <td className="py-3 text-right">{formatNumber(t.views)}</td>
+                <td className="py-3 text-right">{formatNumber(t.posts)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </Section>
   );

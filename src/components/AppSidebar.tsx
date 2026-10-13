@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { usePendingReviewCount } from "@/hooks/useReviews";
 import { UserAuth } from "@/context/AuthContext.jsx";
 
 const menuItems = [
@@ -68,6 +69,7 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { isAdmin: isAdminUser, clients, clientId, setClientId, client } = useClient();
+  const { data: pending = 0 } = usePendingReviewCount();
   
  const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -133,8 +135,11 @@ export function AppSidebar() {
                     >
                       <item.icon className="h-4 w-4" strokeWidth={1.5} />
                       {!collapsed && (
-                        <span className="ml-3 flex items-center gap-2">
+                        <span className="ml-3 flex flex-1 items-center justify-between gap-2">
                           {item.title}
+                          {item.url === "/video-approval" && pending > 0 && (
+                            <span className="min-w-5 rounded-md bg-foreground px-1.5 text-center text-xs font-semibold tabular text-background" aria-label={`${pending} te beoordelen`}>{pending}</span>
+                          )}
                         </span>
                       )}
                     </NavLink>
