@@ -1,258 +1,170 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Download, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useClient } from "@/context/ClientContext";
+import { UserAuth } from "@/context/AuthContext.jsx";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Archive, 
-  Download, 
-  Search, 
-  Filter,
-  Calendar,
-  Play,
-  Image,
-  FileText,
-  Palette,
-  Eye
-} from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmptyState } from "@/components/StatsOverview";
+import { toast } from "sonner";
 
-const brandingFiles = [
-  {
-    id: 1,
-    name: "Logo Package",
-    type: "logo",
-    size: "2.4 MB",
-    lastModified: "2024-01-10",
-    format: "ZIP"
-  },
-  {
-    id: 2,
-    name: "Brand Guidelines",
-    type: "document",
-    size: "1.2 MB",
-    lastModified: "2024-01-08",
-    format: "PDF"
-  },
-  {
-    id: 3,
-    name: "Color Palette",
-    type: "colors",
-    size: "145 KB",
-    lastModified: "2024-01-05",
-    format: "ASE"
-  },
-  {
-    id: 4,
-    name: "Font Files",
-    type: "fonts",
-    size: "892 KB",
-    lastModified: "2024-01-03",
-    format: "OTF"
-  }
-];
+const CATS = { logos: "Logo's", brandbook: "Brandbook", fotos: "Foto's", videos: "Video's", overig: "Overig" } as const;
+type Cat = keyof typeof CATS;
+type LibFile = { id: string; client_id: string; category: Cat; file_name: string; storage_path: string; description: string | null; mime_type: string | null; size_bytes: number | null; created_at: string };
 
-const archivedVideos = [
-  {
-    id: 1,
-    title: "Beste kniptechnieken voor krullend haar",
-    platform: "TikTok",
-    publishDate: "2024-01-15",
-    views: "125K",
-    status: "published",
-    thumbnail: "🎬"
-  },
-  {
-    id: 2,
-    title: "Barbershop morning routine",
-    platform: "Instagram",
-    publishDate: "2024-01-14",
-    views: "89K",
-    status: "published",
-    thumbnail: "🎬"
-  },
-  {
-    id: 3,
-    title: "Fade tutorial voor beginners",
-    platform: "YouTube",
-    publishDate: "2024-01-13",
-    views: "67K",
-    status: "published",
-    thumbnail: "🎬"
-  },
-  {
-    id: 4,
-    title: "Trending kapsel deze week",
-    platform: "TikTok",
-    publishDate: "2024-01-12",
-    views: "45K",
-    status: "scheduled",
-    thumbnail: "🎬"
-  }
-];
+const fmtSize = (b: number | null) => (b == null ? "" : b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1e3))} kB`);
+const isImg = (f: LibFile) => (f.mime_type ?? "").startsWith("image/");
+const isPdf = (f: LibFile) => f.mime_type === "application/pdf";
 
 export default function Branding() {
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'logo':
-        return Image;
-      case 'document':
-        return FileText;
-      case 'colors':
-        return Palette;
-      case 'fonts':
-        return FileText;
-      default:
-        return Archive;
-    }
-  };
+  const { clientId, isAdmin, ready } = useClient();
+  const [cat, setCat] = useState<Cat | "all">("all");
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<{ f: LibFile; url: string } | null>(null);
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["library", clientId], enabled: ready && !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("library_files").select("*").eq("client_id", clientId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      const files = (data ?? []) as LibFile[];
+      const thumbs = files.filter(isImg);
+      const urls: Record<string, string> = {};
+      if (thumbs.length) {
+        const { data: s } = await supabase.storage.from("library").createSignedUrls(thumbs.map((f) => f.storage_path), 3600);
+        thumbs.forEach((f, i) => { if (s?.[i]?.signedUrl) urls[f.id] = s[i].signedUrl; });
+      }
+      return { files, urls };
+    },
+  });
+  const files = data?.files ?? [];
+  const shown = cat === "all" ? files : files.filter((f) => f.category === cat);
 
-  const getPlatformColor = (platform: string) => {
-    switch (platform) {
-      case 'TikTok':
-        return 'bg-black text-white';
-      case 'Instagram':
-        return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white';
-      case 'YouTube':
-        return 'bg-red-500 text-white';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
+  const open = async (f: LibFile) => {
+    const { data } = await supabase.storage.from("library").createSignedUrl(f.storage_path, 3600);
+    if (data?.signedUrl) setPreview({ f, url: data.signedUrl });
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-success text-success-foreground';
-      case 'scheduled':
-        return 'bg-warning text-warning-foreground';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
+  const download = async (f: LibFile) => {
+    const { data, error } = await supabase.storage.from("library").createSignedUrl(f.storage_path, 300, { download: f.file_name });
+    if (error || !data) return toast.error("Downloaden lukt niet");
+    window.location.href = data.signedUrl;
+  };
+  const remove = async (f: LibFile) => {
+    if (!confirm(`"${f.file_name}" verwijderen?`)) return;
+    await supabase.storage.from("library").remove([f.storage_path]);
+    const { error } = await supabase.from("library_files").delete().eq("id", f.id);
+    if (error) return toast.error(error.message);
+    toast.success("Bestand verwijderd");
+    qc.invalidateQueries({ queryKey: ["library"] });
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="wordmark">Branding & Archief</h1>
-          <p className="text-muted-foreground mt-1">
-            Jouw merkdocumenten en contentarchief
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button className="bg-gradient-primary hover:bg-gradient-to-r hover:from-primary-dark hover:to-primary shadow-primary">
-            <Download className="h-4 w-4 mr-2" />
-            Download Alles
-          </Button>
-        </div>
+    <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="wordmark">Branding</h1>
+        {isAdmin && clientId && (
+          <button onClick={() => setUploading(true)} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>Bestand uploaden
+          </button>
+        )}
       </div>
 
-      {/* Branding Files */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary" />
-            Branding Materiaal
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {brandingFiles.map((file) => {
-              const IconComponent = getFileIcon(file.type);
-              return (
-                <div key={file.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <IconComponent className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{file.name}</h3>
-                      <p className="text-sm text-muted-foreground">{file.format} • {file.size}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(file.lastModified).toLocaleDateString('nl-NL')}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                        <Download className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Categorie">
+        <button aria-pressed={cat === "all"} onClick={() => setCat("all")} className="chip-filter shrink-0">Alles <span className="ml-1.5 text-muted-foreground tabular">{files.length}</span></button>
+        {(Object.keys(CATS) as Cat[]).map((k) => (
+          <button key={k} aria-pressed={cat === k} onClick={() => setCat(k)} className="chip-filter shrink-0">{CATS[k]} <span className="ml-1.5 text-muted-foreground tabular">{files.filter((f) => f.category === k).length}</span></button>
+        ))}
+      </div>
 
-      {/* Content Archive */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Archive className="h-5 w-5 text-primary" />
-              Content Archief
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Zoek video's..."
-                  className="pl-10 w-64"
-                />
+      {!clientId && ready ? <section className="rounded-lg bg-card"><EmptyState text="Je account is nog niet aan een klant gekoppeld." /></section>
+        : isLoading ? <section className="rounded-lg bg-card"><EmptyState text="Laden…" /></section>
+        : shown.length === 0 ? (
+          <section className="rounded-lg bg-card px-6 py-12 text-center">
+            <p className="text-lg font-semibold">Nog geen bestanden</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">Hier vind je straks je logo's, brandbook, foto's en video's. HIBE zet ze klaar; je kunt ze hier bekijken en downloaden.</p>
+          </section>
+        ) : (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {shown.map((f) => (
+            <li key={f.id} className="flex flex-col gap-3 rounded-lg bg-card p-3">
+              <button onClick={() => (isImg(f) || isPdf(f) ? open(f) : download(f))} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[16px] bg-muted text-sm font-semibold uppercase text-muted-foreground" aria-label={`Bekijk ${f.file_name}`}>
+                {data?.urls[f.id] ? <img src={data.urls[f.id]} alt="" loading="lazy" className="h-full w-full object-cover" /> : (f.file_name.split(".").pop() ?? "bestand")}
+              </button>
+              <div className="px-1">
+                <p className="truncate font-semibold" title={f.file_name}>{f.file_name}</p>
+                {f.description && <p className="line-clamp-2 text-sm text-muted-foreground">{f.description}</p>}
+                <div className="mt-2 flex flex-wrap gap-1.5"><span className="chip">{CATS[f.category]}</span>{f.size_bytes != null && <span className="chip">{fmtSize(f.size_bytes)}</span>}</div>
               </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {archivedVideos.map((video) => (
-              <div key={video.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center text-2xl">
-                  {video.thumbnail}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-foreground">{video.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={getPlatformColor(video.platform)}>
-                      {video.platform}
-                    </Badge>
-                    <Badge className={getStatusColor(video.status)}>
-                      {video.status === 'published' ? 'Gepubliceerd' : 'Ingepland'}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-foreground">{video.views} views</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(video.publishDate).toLocaleDateString('nl-NL')}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    <Play className="h-4 w-4 mr-2" />
-                    Bekijk
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
-                </div>
+              <div className="mt-auto flex gap-2 px-1 pb-1">
+                <Button size="sm" onClick={() => download(f)}><Download className="h-4 w-4" /> Download</Button>
+                {isAdmin && <Button size="sm" variant="ghost" aria-label={`Verwijder ${f.file_name}`} onClick={() => remove(f)}><Trash2 className="h-4 w-4" /></Button>}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {preview && (
+        <Dialog open onOpenChange={(o) => !o && setPreview(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader><DialogTitle className="truncate pr-6">{preview.f.file_name}</DialogTitle></DialogHeader>
+            {isPdf(preview.f)
+              ? <iframe src={preview.url} title={preview.f.file_name} className="h-[70vh] w-full rounded-2xl bg-popover" />
+              : <img src={preview.url} alt={preview.f.file_name} className="max-h-[70vh] w-full rounded-2xl bg-popover object-contain" />}
+            <Button onClick={() => download(preview.f)} className="w-fit"><Download className="h-4 w-4" /> Download</Button>
+          </DialogContent>
+        </Dialog>
+      )}
+      {uploading && clientId && <UploadDialog clientId={clientId} existing={files} onClose={() => setUploading(false)} />}
     </div>
+  );
+}
+
+function UploadDialog({ clientId, existing, onClose }: { clientId: string; existing: LibFile[]; onClose: () => void }) {
+  const { user } = UserAuth();
+  const qc = useQueryClient();
+  const [file, setFile] = useState<File | null>(null);
+  const [category, setCategory] = useState<Cat>("logos");
+  const [description, setDescription] = useState("");
+  const [busy, setBusy] = useState(false);
+  const dup = !!file && existing.some((f) => f.category === category && f.file_name === file.name);
+  useEffect(() => { if (dup) toast.error(`"${file!.name}" bestaat al in ${CATS[category]}`); }, [dup]); // eslint-disable-line
+
+  const save = async () => {
+    if (!file || dup) return;
+    setBusy(true);
+    const path = `${clientId}/${category}/${file.name}`;
+    const { error: upErr } = await supabase.storage.from("library").upload(path, file, { contentType: file.type || undefined });
+    if (upErr) { setBusy(false); return toast.error(/exist|duplicate/i.test(upErr.message) ? "Er bestaat al een bestand met deze naam" : upErr.message); }
+    const { error } = await supabase.from("library_files").insert({
+      client_id: clientId, category, file_name: file.name, storage_path: path, description: description.trim() || null,
+      mime_type: file.type || null, size_bytes: file.size, uploaded_by: user?.id,
+    });
+    setBusy(false);
+    if (error) { await supabase.storage.from("library").remove([path]); return toast.error(error.code === "23505" ? "Er bestaat al een bestand met deze naam" : error.message); }
+    toast.success("Bestand geüpload");
+    qc.invalidateQueries({ queryKey: ["library"] });
+    onClose();
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader><DialogTitle>Bestand uploaden</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          <div><Label htmlFor="file">Bestand</Label><Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
+          {dup && <p className="text-sm text-destructive">Er staat al een bestand met deze naam in {CATS[category]}. Geef het bestand een andere naam.</p>}
+          <div><Label>Categorie</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as Cat)}><SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{(Object.keys(CATS) as Cat[]).map((k) => <SelectItem key={k} value={k}>{CATS[k]}</SelectItem>)}</SelectContent></Select></div>
+          <div><Label htmlFor="desc">Omschrijving</Label><Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+          <Button disabled={!file || dup || busy} onClick={save}>{busy ? "Uploaden…" : "Uploaden"}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
