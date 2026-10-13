@@ -1,70 +1,48 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { DashboardWelcome } from "@/components/DashboardWelcome";
-import { MedaillesWidget } from "@/components/MedaillesWidget";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlayCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { PeriodSelect } from "@/components/PeriodSelect";
-import { KpiGrid, NetworkBreakdown, TopVideoList, EmptyState } from "@/components/StatsOverview";
+import { KpiBand, DailyChart, NetworkBreakdown, TopVideoList, EmptyState, PeriodSummary } from "@/components/StatsOverview";
 import { useClientStats } from "@/hooks/useClientStats";
-import { PeriodKey, formatNumber, totalsFor } from "@/lib/stats";
+import { PeriodKey } from "@/lib/stats";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const [period, setPeriod] = useState<PeriodKey>("30d");
   const { data, isLoading } = useClientStats(period);
   const stats = data?.stats ?? [];
   const range = data?.range;
-  const t = range ? totalsFor(stats, range.start, range.end) : null;
 
   return (
-    <div className="p-4 md:p-6 space-y-5 max-w-7xl mx-auto animate-fade-in-up">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">DASHBOARD</h1>
-          <p className="text-sm text-muted-foreground">{data?.client?.name ?? "Jouw prestaties in één oogopslag"}</p>
+        <div>
+          <p className="text-sm text-muted-foreground">{data?.client?.name ?? "\u00a0"}</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">Overzicht</h1>
         </div>
         <PeriodSelect value={period} onChange={setPeriod} />
       </div>
 
-      {data?.client && t?.hasData && (
-        <DashboardWelcome
-          customerName={data.client.name}
-          metrics={{
-            totalViews: formatNumber(t.views),
-            engagementRate: formatNumber(t.interactions),
-            ctr: formatNumber(t.posts),
-            organicImpressions: formatNumber(t.followers),
-          }}
-        />
-      )}
-
       {!isLoading && !data?.client ? (
-        <Card><EmptyState text="Nog geen data — je account is nog niet aan een klant gekoppeld." /></Card>
+        <section className="rounded-lg border bg-card"><EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." /></section>
       ) : (
         <>
-          <KpiGrid stats={stats} range={range!} loading={isLoading || !range} />
-          {range && <NetworkBreakdown stats={stats} range={range} />}
+          {range && <PeriodSummary stats={stats} range={range} videos={data?.videos ?? []} />}
+          <KpiBand stats={stats} range={range!} loading={isLoading || !range} />
+          {range && <DailyChart stats={stats} range={range} />}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            {range && <NetworkBreakdown stats={stats} range={range} className="lg:col-span-2" />}
+            <TopVideoList
+              videos={data?.videos ?? []}
+              className="lg:col-span-3"
+              aside={<Link to="/performance" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">Alles <ArrowRight className="h-3.5 w-3.5" /></Link>}
+            />
+          </div>
+          <Link to="/video-approval" className="flex items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm hover:bg-muted/40 md:px-5">
+            <span>Video's ter goedkeuring bekijken</span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
         </>
       )}
-
-      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate("/video-approval")}>
-        <CardHeader className="flex flex-row items-center justify-between py-4">
-          <CardTitle className="flex items-center gap-2 text-sm font-bold">
-            <PlayCircle className="h-4 w-4 text-primary" /> Video-goedkeuring
-          </CardTitle>
-          <Button size="sm" variant="ghost">Bekijk video's</Button>
-        </CardHeader>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <MedaillesWidget />
-        <div className="space-y-2">
-          <TopVideoList videos={data?.videos ?? []} />
-          <Button variant="ghost" size="sm" onClick={() => navigate("/performance")}>Bekijk alles</Button>
-        </div>
-      </div>
     </div>
   );
 }
