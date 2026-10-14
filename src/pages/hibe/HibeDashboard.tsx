@@ -209,7 +209,7 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
                 {g.items.slice(0, 5).map((i) => (
                   <li key={i.key} className="flex items-center justify-between gap-2 rounded-full bg-popover px-4 py-2 text-sm">
                     <span className="truncate">{i.text}</span>
-                    {"badge" in i && i.badge && <span className="growth shrink-0">{i.badge}</span>}
+                    {(i as { badge?: string }).badge && <span className="growth shrink-0">{(i as { badge?: string }).badge}</span>}
                   </li>
                 ))}
                 {g.items.length > 5 && <li className="px-4 text-xs text-muted-foreground">en nog {g.items.length - 5}</li>}
