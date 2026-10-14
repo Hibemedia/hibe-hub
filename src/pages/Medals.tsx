@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/StatsOverview";
 import { Button } from "@/components/ui/button";
 import { MedalBadge, MedalCelebration, fireMedalConfetti } from "@/components/MedalCelebration";
-import { almostThereRemaining, canCelebrate, celebrationKey } from "@/lib/medal-celebrations";
+import { MEDAL_TIER_LABELS, almostThereRemaining, canCelebrate, celebrationKey, medalMaterial } from "@/lib/medal-celebrations";
 
 const PAGE = 1000;
 async function fetchAll<T>(table: "videos" | "daily_stats", cols: string, clientId: string): Promise<T[]> {
@@ -122,14 +122,19 @@ function MedalCard({ m, clientId, onCelebrate }: { m: Medal; clientId: string; o
           <p className="text-sm text-muted-foreground">{meta.desc}</p>
         </div>
         {m.levelIndex >= 0
-          ? <MedalBadge levelIndex={m.levelIndex} />
+          ? <MedalBadge levelIndex={m.levelIndex} category={m.key} />
           : <span className="chip shrink-0">Nog geen niveau</span>}
       </div>
       <div className="mt-5 text-[44px] font-light leading-none tabular">{formatNumber(m.value)}</div>
       <p className="mt-1 text-sm text-muted-foreground">{m.reached != null ? `Behaald: ${meta.unit(m.reached)}` : "Eerste niveau nog niet behaald"}</p>
       <div className="mt-5">
-        <Progress value={progress} aria-valuenow={m.progress} className={`medal-progress ${remaining != null ? "medal-progress-near" : ""}`} aria-label={`Voortgang ${meta.title}`} />
-        <p className="mt-2 text-xs text-muted-foreground">{m.next != null ? `Volgende: ${meta.unit(m.next)}` : "Hoogste niveau behaald"}</p>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <Progress value={progress} aria-valuenow={m.progress} className={`medal-progress ${remaining != null ? "medal-progress-near" : ""}`} aria-label={`Voortgang ${meta.title}`} />
+            <p className="mt-2 text-xs text-muted-foreground">{m.next != null ? `Volgende: ${MEDAL_TIER_LABELS[medalMaterial(m.levelIndex + 1)]} · niveau ${m.levelIndex + 2} · ${meta.unit(m.next)}` : "Hoogste niveau behaald"}</p>
+          </div>
+          {m.next != null && <MedalBadge levelIndex={m.levelIndex + 1} category={m.key} locked />}
+        </div>
         {remaining != null && <p className="medal-near-label mt-3 inline-flex max-w-full rounded-full px-3 py-1.5 text-xs font-semibold">🔥 Bijna behaald! Nog {meta.unit(remaining)} te gaan</p>}
       </div>
       {m.levelIndex >= 0 && <div className="mt-auto pt-5">

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import confetti from "canvas-confetti";
-import { Copy, PartyPopper, RotateCcw, Star } from "lucide-react";
+import { Copy, Eye, Flame, LockKeyhole, PartyPopper, Play, Rocket, RotateCcw, Sparkle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Medal } from "@/lib/medals";
-import { medalMaterial } from "@/lib/medal-celebrations";
+import { MEDAL_TIER_LABELS, medalMaterial } from "@/lib/medal-celebrations";
 
 export function fireMedalConfetti() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -21,10 +21,19 @@ export function fireMedalConfetti() {
   void confetti({ ...options, angle: 120, origin: { x: 0.9, y: 0.65 } });
 }
 
-export function MedalBadge({ levelIndex, large = false }: { levelIndex: number; large?: boolean }) {
+const CATEGORY_ICONS = { biggestVideo: Play, totalFollowers: Users, totalViews: Eye, videosOver10k: Rocket, streakWeeks: Flame };
+
+export function MedalBadge({ levelIndex, category, large = false, locked = false }: { levelIndex: number; category: Medal["key"]; large?: boolean; locked?: boolean }) {
+  const material = medalMaterial(levelIndex);
+  const CategoryIcon = CATEGORY_ICONS[category];
   return (
-    <div className={`medal-badge medal-${medalMaterial(levelIndex)} ${large ? "medal-badge-large" : ""}`} role="img" aria-label={`Medaille niveau ${levelIndex + 1}`}>
-      <div className="medal-badge-inner"><Star aria-hidden className={large ? "h-12 w-12" : "h-5 w-5"} /><span className="font-bold tabular">{levelIndex + 1}</span></div>
+    <div className={`medal-collectible medal-${material} ${large ? "medal-collectible-large" : ""} ${locked ? "medal-collectible-locked" : ""}`} role="img" aria-label={`${MEDAL_TIER_LABELS[material]} medaille niveau ${levelIndex + 1}${locked ? ", nog te behalen" : ""}`}>
+      <div className={`medal-badge ${large ? "medal-badge-large" : ""}`}>
+        <div className="medal-badge-inner"><CategoryIcon aria-hidden className="medal-category-icon" strokeWidth={1.7} /><span className="medal-level tabular">{levelIndex + 1}</span></div>
+        {material === "diamond" && <><Sparkle aria-hidden className="medal-sparkle medal-sparkle-top" /><Sparkle aria-hidden className="medal-sparkle medal-sparkle-bottom" /></>}
+        {locked && <LockKeyhole aria-hidden className="medal-lock" />}
+      </div>
+      {!locked && <span className="medal-tier-ribbon">{MEDAL_TIER_LABELS[material]}</span>}
     </div>
   );
 }
@@ -46,7 +55,7 @@ export function MedalCelebration({ medal, title, metric, date, onClose }: { meda
     <Dialog open={!!medal} onOpenChange={(open) => { if (!open) { setShareState("idle"); onClose(); } }}>
       <DialogContent className="medal-celebration max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto text-center sm:max-w-md">
         {medal && <>
-          <div className="mx-auto pb-2 pt-5"><MedalBadge levelIndex={medal.levelIndex} large /></div>
+          <div className="mx-auto pb-2 pt-5"><MedalBadge levelIndex={medal.levelIndex} category={medal.key} large /></div>
           <span className="mx-auto growth">Niveau {medal.levelIndex + 1} behaald</span>
           <DialogTitle className="text-3xl leading-tight">{title}</DialogTitle>
           <DialogDescription className="text-base">Een prestatie om trots op te zijn.</DialogDescription>

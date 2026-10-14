@@ -2,11 +2,14 @@ import type { Medal } from "./medals";
 
 export function medalMaterial(levelIndex: number) {
   const level = levelIndex + 1;
-  if (level >= 5) return "diamond";
-  if (level === 4) return "gold";
-  if (level === 3) return "silver";
+  if (level >= 8) return "diamond";
+  if (level === 7) return "platinum";
+  if (level >= 5) return "gold";
+  if (level >= 3) return "silver";
   return "bronze";
 }
+
+export const MEDAL_TIER_LABELS = { bronze: "Brons", silver: "Zilver", gold: "Goud", platinum: "Platina", diamond: "Diamant" };
 
 export function almostThereRemaining(medal: Pick<Medal, "value" | "next">): number | null {
   if (medal.next == null || medal.next <= 0 || medal.value >= medal.next) return null;
