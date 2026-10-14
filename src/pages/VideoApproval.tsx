@@ -144,8 +144,9 @@ function MediaPreview({ item }: { item: ReviewItem }) {
   return <a href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/40"><ExternalLink className="h-4 w-4" /> Open de link</a>;
 }
 
-function ReviewDialog({ item, onClose }: { item: ReviewItem; onClose: () => void }) {
-  const { isAdmin, client } = useClient();
+export function ReviewDialog({ item, onClose }: { item: ReviewItem; onClose: () => void }) {
+  const { isAdmin, clients } = useClient();
+  const client = clients.find((c) => c.id === item.client_id) ?? null;
   const { data: events = [] } = useReviewEvents(item.id);
   const invalidate = useInvalidate();
   const [mode, setMode] = useState<null | "changes_requested" | "rejected">(null);
@@ -254,7 +255,7 @@ function ReviewDialog({ item, onClose }: { item: ReviewItem; onClose: () => void
   );
 }
 
-function CreateDialog({ clientId, onClose }: { clientId: string; onClose: () => void }) {
+export function CreateDialog({ clientId, onClose }: { clientId: string; onClose: () => void }) {
   const invalidate = useInvalidate();
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");

@@ -32,7 +32,7 @@ export function Section({ title, aside, children, className }: { title: string; 
 
 const fmtSigned = (n: number) => `${n >= 0 ? "+" : ""}${formatNumber(n)}`;
 
-function Change({ value, suffix }: { value: number | null; suffix?: string }) {
+export function Change({ value, suffix }: { value: number | null; suffix?: string }) {
   if (value == null) return <span className="text-muted-foreground">geen vergelijking</span>;
   const label = suffix != null ? formatNumber(Math.abs(value)) + suffix : `${Math.abs(value).toFixed(1)}%`;
   if (value >= 0) return <span className="growth"><span aria-hidden>↑</span><span className="sr-only">plus </span>{label}</span>;

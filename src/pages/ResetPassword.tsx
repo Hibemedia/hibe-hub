@@ -30,7 +30,7 @@ export default function ResetPassword() {
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Je nieuwe wachtwoord is opgeslagen");
-    navigate("/home");
+    navigate("/");
   };
 
   return (
