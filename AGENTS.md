@@ -10,5 +10,6 @@
 - Library files live in private bucket 'library' at clientId/category/filename with a library_files row; unique per client+category+name so duplicates are rejected.
 - Medal levels are computed client-side from videos/daily_stats in src/lib/medals.ts (tested); no stored medal data.
 - Medal celebration acknowledgements live in browser storage scoped by client, medal and reached threshold; presentation helpers do not alter metric calculations or existing levels.
+- Achievement PNGs are prepared client-side from a fixed-size token-themed composition before download; reuse the existing medal badge and local HIBE logo to keep artwork consistent and avoid private-media requests.
 - Two environments: client users use "/" (ClientEnv), admins use "/hibe" (HibeEnv); /hibe/klant/:id reuses the client pages by setting ClientContext.clientId, and in-page links use useBase().
 - The client overview composes existing statistics with read-only client-scoped review counts and upcoming content moments; overview selection helpers are tested separately so the Performance calculations and sync remain unchanged.

@@ -317,6 +317,31 @@
 @keyframes medal-float { 0%, 100% { transform: perspective(500px) rotateY(-8deg) translateY(0); } 50% { transform: perspective(500px) rotateY(8deg) translateY(-5px); } }
 @keyframes medal-shine { 0%, 20% { background-position: 150% 0; } 75%, 100% { background-position: -50% 0; } }
 @keyframes medal-sparkle { 0%, 100% { opacity: 0.5; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.12); } }
+/* Fixed artwork sizes yield 1080px exports at 2x; no viewport-scaled type. */
+.success-card-render { position: fixed; top: 0; left: -10000px; pointer-events: none; }
+.success-card { width: 540px; height: 540px; padding: 34px 40px 28px; display: flex; flex-direction: column; align-items: center; color: hsl(var(--foreground)); background: hsl(var(--background)); font-family: Urbanist, sans-serif; text-align: center; letter-spacing: 0; }
+.success-card-story { height: 960px; padding: 72px 48px 90px; }
+.success-card-header { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 20px; font-size: 10px; font-weight: 700; }
+.success-card-logo { width: 90px; height: 58px; background: hsl(var(--medal-ink)); border-radius: 12px; padding: 10px; }
+.success-card-logo img { width: 100%; height: 100%; object-fit: contain; }
+.success-card-client { max-width: 100%; font-size: 17px; font-weight: 600; margin-top: 20px; overflow-wrap: anywhere; }
+.success-card-badge { margin: 18px 0; }
+.success-card-badge .medal-badge, .success-card-badge .medal-badge::after, .success-card-badge .medal-sparkle { animation: none !important; transform: none !important; }
+.success-card-badge .medal-badge::after { display: none; }
+.success-card-level { display: inline-block; background: hsl(var(--medal-lime)); color: hsl(var(--medal-ink)); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700; }
+.success-card-copy { width: 100%; }
+.success-card-copy h2 { margin: 14px 0 8px; font-size: 34px; line-height: 1.1; letter-spacing: 0; overflow-wrap: anywhere; }
+.success-card-metric { font-size: 27px; font-weight: 500; line-height: 1.2; overflow-wrap: anywhere; }
+.success-card footer { display: flex; justify-content: space-between; gap: 16px; margin-top: auto; padding-top: 20px; width: 100%; font-size: 9px; color: hsl(var(--muted-foreground)); }
+.success-card-story .success-card-client { margin-top: 66px; font-size: 23px; }
+.success-card-story .success-card-badge { margin: 48px 0; }
+.success-card-story .medal-badge-large { width: 210px; height: 210px; }
+.success-card-story .medal-category-icon { width: 70px; height: 70px; }
+.success-card-story .medal-level { font-size: 30px; }
+.success-card-story .medal-collectible-large { width: 220px; }
+.success-card-story .success-card-copy h2 { margin-top: 28px; font-size: 44px; }
+.success-card-story .success-card-metric { margin-top: 20px; font-size: 34px; }
+.success-card-story footer { flex-direction: column; gap: 14px; font-size: 11px; }
 @keyframes medal-progress-shine { 0%, 20% { transform: translateX(-100%); } 80%, 100% { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) {
   .medal-card, .medal-badge, .medal-progress > div { transition: none; }

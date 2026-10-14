@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Medal } from "@/lib/medals";
 import { MEDAL_TIER_LABELS, medalMaterial } from "@/lib/medal-celebrations";
+import { MedalSuccessCard } from "@/components/MedalSuccessCard";
+import { useClient } from "@/context/ClientContext";
 
 export function fireMedalConfetti() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -39,6 +41,7 @@ export function MedalBadge({ levelIndex, category, large = false, locked = false
 }
 
 export function MedalCelebration({ medal, title, metric, date, onClose }: { medal: Medal | null; title: string; metric: string; date: string | null; onClose: () => void }) {
+  const { client } = useClient();
   const [shareState, setShareState] = useState<"idle" | "copied" | "manual">("idle");
   const text = medal ? `🎉 Een mijlpaal om te vieren! ${title}: niveau ${medal.levelIndex + 1} behaald met ${metric}.${date && !medal.achievedVideo ? ` Mijlpaal: ${date}.` : ""} Op naar het volgende succes! #HIBE #Mijlpaal` : "";
 
@@ -70,6 +73,7 @@ export function MedalCelebration({ medal, title, metric, date, onClose }: { meda
             <p className="text-sm text-muted-foreground">{shareState === "copied" ? "De tekst staat klaar voor je LinkedIn-post of Instagram Story." : "Kopiëren lukt hier niet. Selecteer de tekst hieronder."}</p>
             <textarea aria-label="Deeltekst" readOnly value={text} onFocus={(event) => event.target.select()} className="min-h-28 w-full resize-none rounded-md bg-muted p-3 text-sm text-foreground" />
           </div>}
+          <MedalSuccessCard key={`${medal.key}:${medal.levelIndex}`} title={title} metric={metric} date={date} clientName={client?.name ?? ""} level={medal.levelIndex + 1} badge={<MedalBadge levelIndex={medal.levelIndex} category={medal.key} large />} />
           <PartyPopper className="mx-auto h-5 w-5 text-muted-foreground" aria-hidden />
         </>}
       </DialogContent>
