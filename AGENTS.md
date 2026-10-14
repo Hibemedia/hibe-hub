@@ -1,4 +1,4 @@
-- Dashboard/Performance read only from daily_stats and videos (filled by a server-side sync); never from Metricool directly — keeps pages fast and per-client RLS-scoped.
+- Dashboard/Performance statistics read only from daily_stats and videos (filled by a server-side sync); never from Metricool directly — keeps pages fast and per-client RLS-scoped.
 - Frontend calls Metricool only via supabase.functions.invoke('metricool-proxy') — secrets stay server-side.
 - Users map to a client via users.client_id; RLS uses current_client_id() — one source of truth for tenant scoping.
 - metricool-sync runs from a managed schedule at two UTC times and only proceeds at 07:xx Amsterdam — keeps 07:30 local across DST.
@@ -10,3 +10,4 @@
 - Library files live in private bucket 'library' at clientId/category/filename with a library_files row; unique per client+category+name so duplicates are rejected.
 - Medal levels are computed client-side from videos/daily_stats in src/lib/medals.ts (tested); no stored medal data.
 - Two environments: client users use "/" (ClientEnv), admins use "/hibe" (HibeEnv); /hibe/klant/:id reuses the client pages by setting ClientContext.clientId, and in-page links use useBase().
+- The client overview composes existing statistics with read-only client-scoped review counts and upcoming content moments; overview selection helpers are tested separately so the Performance calculations and sync remain unchanged.
