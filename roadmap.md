@@ -13,3 +13,8 @@
 - [x] Ontwerp vijf metaalgraden met categorie-iconen, niveaunummers en lintlabels.
 - [x] Toon een vergrendelde volgende medaille en dezelfde grotere badge in het feestvenster; behoud alle werking.
 - [x] Test de graadindeling en bekijk desktop en mobiel.
+
+# Downloadbare succeskaart
+- [ ] Voeg LinkedIn- en Story-formaat toe met echte medaille, klantnaam en bestaand HIBE-logo.
+- [ ] Genereer een PNG met voorbeeld en downloadknop in het feestvenster.
+- [ ] Download en inspecteer beide afbeeldingen; controleer mobiel.
