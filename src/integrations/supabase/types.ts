@@ -239,6 +239,9 @@ export type Database = {
           phone: string | null
           updated_at: string
           user_id: string
+          weather_lat: number
+          weather_location: string
+          weather_lon: number
         }
         Insert: {
           full_name?: string | null
@@ -246,6 +249,9 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id: string
+          weather_lat?: number
+          weather_location?: string
+          weather_lon?: number
         }
         Update: {
           full_name?: string | null
@@ -253,6 +259,9 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+          weather_lat?: number
+          weather_location?: string
+          weather_lon?: number
         }
         Relationships: []
       }
