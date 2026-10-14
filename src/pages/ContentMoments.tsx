@@ -17,11 +17,13 @@ import { cn } from "@/lib/utils";
 const TYPES = { shoot: "Shoot", post: "Post", evenement: "Evenement", actie: "Actie", idee: "Idee" } as const;
 const STATUS = { aangevraagd: "Aangevraagd", bevestigd: "Bevestigd", gepland: "Gepland", afgerond: "Afgerond", geannuleerd: "Geannuleerd" } as const;
 type Status = keyof typeof STATUS;
-type Moment = {
+export type Moment = {
   id: string; client_id: string; title: string; type: keyof typeof TYPES; date: string | null; start_time: string | null;
   location: string | null; script: string | null; notes: string | null; attendees: string[]; status: Status; requested_by: string | null; created_at: string;
 };
-const STATUS_STYLE: Record<Status, string> = {
+export const MOMENT_STATUS = STATUS;
+export const MOMENT_TYPES = TYPES;
+export const STATUS_STYLE: Record<Status, string> = {
   aangevraagd: "bg-lime text-lime-foreground", bevestigd: "bg-foreground text-background", gepland: "bg-popover text-foreground",
   afgerond: "bg-muted text-foreground", geannuleerd: "bg-muted text-muted-foreground line-through",
 };
@@ -100,7 +102,7 @@ export default function ContentMoments() {
   );
 }
 
-function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () => void; onEdit: () => void }) {
+export function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () => void; onEdit: () => void }) {
   const { isAdmin } = useClient();
   const qc = useQueryClient();
   const [text, setText] = useState("");
@@ -168,7 +170,7 @@ function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () => void; 
   );
 }
 
-function EditDialog({ clientId, moment, onClose }: { clientId: string; moment: Moment | null; onClose: () => void }) {
+export function EditDialog({ clientId, moment, onClose }: { clientId: string; moment: Moment | null; onClose: () => void }) {
   const { isAdmin } = useClient();
   const { user } = UserAuth();
   const qc = useQueryClient();

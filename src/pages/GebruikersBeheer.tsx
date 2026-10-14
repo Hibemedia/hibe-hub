@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, Plus, Trash2, KeyRound } from "lucide-react";
+import { Plus, Trash2, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { UserAuth } from "@/context/AuthContext.jsx";
@@ -24,6 +24,7 @@ export default function GebruikersBeheer() {
   const [form, setForm] = useState({ email: "", full_name: "", role: "client", client_id: "" });
   const [busy, setBusy] = useState(false);
   const [toDelete, setToDelete] = useState<Row | null>(null);
+  const [filter, setFilter] = useState("all");
 
   const load = async () => {
     const [{ data: users }, { data: roles }] = await Promise.all([
@@ -61,23 +62,34 @@ export default function GebruikersBeheer() {
     if (!toDelete) return;
     const { data, error } = await supabase.functions.invoke("deleteUser", { body: { user_id: toDelete.id } });
     if (error || data?.error) toast.error(data?.error ?? "Verwijderen mislukt");
-    else { toast.success("Gebruiker verwijderd"); load(); }
+    else { toast.success("Toegang ingetrokken"); load(); }
     setToDelete(null);
   };
 
   const clientName = (id: string | null) => clients.find((c) => c.id === id)?.name ?? "–";
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <h1 className="wordmark flex items-center gap-3"><Users className="h-7 w-7" />Gebruikers</h1>
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-2" />Gebruiker uitnodigen</Button>
+    <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="wordmark">Gebruikers</h1>
+        <button onClick={() => { setForm({ ...form, client_id: filter !== "all" && filter !== "admin" ? filter : "" }); setOpen(true); }} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>Gebruiker uitnodigen
+        </button>
       </div>
+      <Select value={filter} onValueChange={setFilter}>
+        <SelectTrigger aria-label="Filter op klant" className="h-9 w-auto min-w-48"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Alle gebruikers</SelectItem>
+          <SelectItem value="admin">HIBE-medewerkers</SelectItem>
+          {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name} ({rows.filter((r) => r.role === "client" && r.client_id === c.id).length})</SelectItem>)}
+        </SelectContent>
+      </Select>
       <Card><CardContent className="p-0">
         <Table>
           <TableHeader><TableRow><TableHead>Gebruiker</TableHead><TableHead>Rol</TableHead><TableHead>Klant</TableHead><TableHead>Aangemaakt</TableHead><TableHead className="w-28" /></TableRow></TableHeader>
           <TableBody>
-            {rows.map((r) => (
+            {rows.filter((r) => filter === "all" || (filter === "admin" ? r.role === "admin" : r.role === "client" && r.client_id === filter))
+              .sort((a, b) => (a.role + clientName(a.client_id)).localeCompare(b.role + clientName(b.client_id))).map((r) => (
               <TableRow key={r.id}>
                 <TableCell><div className="font-medium">{r.full_name || r.email}</div>{r.full_name && <div className="text-xs text-muted-foreground">{r.email}</div>}</TableCell>
                 <TableCell><Badge variant={r.role === "admin" ? "default" : "secondary"}>{r.role === "admin" ? "HIBE (admin)" : "Klant"}</Badge></TableCell>
@@ -85,7 +97,7 @@ export default function GebruikersBeheer() {
                 <TableCell>{new Date(r.created_at).toLocaleDateString("nl-NL")}</TableCell>
                 <TableCell className="flex gap-1">
                   <Button variant="ghost" size="icon" aria-label="Resetmail sturen" title="Resetmail sturen" onClick={() => sendReset(r)}><KeyRound className="h-4 w-4" /></Button>
-                  {r.id !== user?.id && <Button variant="ghost" size="icon" aria-label="Verwijderen" title="Verwijderen" onClick={() => setToDelete(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                  {r.id !== user?.id && <Button variant="ghost" size="icon" aria-label="Toegang intrekken" title="Toegang intrekken" onClick={() => setToDelete(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </TableCell>
               </TableRow>
             ))}
@@ -120,9 +132,9 @@ export default function GebruikersBeheer() {
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Gebruiker verwijderen?</AlertDialogTitle>
+          <AlertDialogHeader><AlertDialogTitle>Toegang intrekken?</AlertDialogTitle>
             <AlertDialogDescription>{toDelete?.email} verliest direct toegang tot het portaal.</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Annuleren</AlertDialogCancel><AlertDialogAction onClick={remove}>Verwijderen</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter><AlertDialogCancel>Annuleren</AlertDialogCancel><AlertDialogAction onClick={remove}>Toegang intrekken</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

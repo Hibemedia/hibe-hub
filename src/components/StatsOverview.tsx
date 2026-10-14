@@ -32,7 +32,7 @@ export function Section({ title, aside, children, className }: { title: string; 
 
 const fmtSigned = (n: number) => `${n >= 0 ? "+" : ""}${formatNumber(n)}`;
 
-function Change({ value, suffix }: { value: number | null; suffix?: string }) {
+export function Change({ value, suffix }: { value: number | null; suffix?: string }) {
   if (value == null) return <span className="text-muted-foreground">geen vergelijking</span>;
   const label = suffix != null ? formatNumber(Math.abs(value)) + suffix : `${Math.abs(value).toFixed(1)}%`;
   if (value >= 0) return <span className="growth"><span aria-hidden>↑</span><span className="sr-only">plus </span>{label}</span>;
@@ -55,8 +55,8 @@ export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: 
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((it) => (
         <div key={it.label} className="rounded-lg bg-card p-5 md:p-6">
-          <div className="flex items-baseline gap-2">
-            <span className="text-[44px] font-light leading-none tracking-tight tabular md:text-[56px]">{formatNumber(it.value)}</span>
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[44px] font-light leading-none tracking-tight tabular xl:text-[56px]">{formatNumber(it.value)}</span>
             <span className="text-base text-muted-foreground">{it.label}</span>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs tabular">{it.change}</div>

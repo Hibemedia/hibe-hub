@@ -50,8 +50,12 @@ export const AuthContextProvider = ({ children }) => {
 
     // Listen to auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSessionAndUser(session);
+        // Reset links can land on any page (e.g. the site root): always open the new-password form.
+        if (event === "PASSWORD_RECOVERY" && window.location.pathname !== "/reset-password") {
+          window.location.replace("/reset-password");
+        }
       }
     );
 
