@@ -8,3 +8,8 @@
 - [x] Voeg visuele badges, feestvenster, confetti en deeltekst toe.
 - [x] Markeer voortgang boven 85% en animeer kaarten en balken met respect voor minder beweging.
 - [x] Test regels en controleer de echte klantpagina en feestactie.
+
+# Verzamelbare medailles
+- [ ] Ontwerp vijf metaalgraden met categorie-iconen, niveaunummers en lintlabels.
+- [ ] Toon een vergrendelde volgende medaille en dezelfde grotere badge in het feestvenster; behoud alle werking.
+- [ ] Test de graadindeling en bekijk desktop en mobiel.

@@ -14,8 +14,20 @@ describe("medal celebrations", () => {
   test("maxed out milestones have no almost-there message", () => {
     expect(almostThereRemaining({ value: 5_000_000, next: null })).toBeNull();
   });
-  test("levels 1-2 bronze, 3 silver, 4 gold and 5+ diamond", () => {
-    expect([0, 1, 2, 3, 4, 5, 7].map(medalMaterial)).toEqual(["bronze", "bronze", "silver", "gold", "diamond", "diamond", "diamond"]);
+  test("levels 1-2 are bronze", () => {
+    expect([0, 1].map(medalMaterial)).toEqual(["bronze", "bronze"]);
+  });
+  test("levels 3-4 are silver", () => {
+    expect([2, 3].map(medalMaterial)).toEqual(["silver", "silver"]);
+  });
+  test("levels 5-6 are gold", () => {
+    expect([4, 5].map(medalMaterial)).toEqual(["gold", "gold"]);
+  });
+  test("level 7 is platinum", () => {
+    expect(medalMaterial(6)).toBe("platinum");
+  });
+  test("levels 8+ are diamond", () => {
+    expect([7, 8, 12].map(medalMaterial)).toEqual(["diamond", "diamond", "diamond"]);
   });
   test("only uncelebrated achieved levels or maxed levels get the prominent action", () => {
     const medals = computeMedals([], [{ network: "ig", date: "2026-10-14", followers: 50_000, views: 10_000_000, posts: 0 }]);
