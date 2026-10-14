@@ -17,6 +17,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  useEffect(() => { if (user) navigate("/", { replace: true }); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -24,7 +25,8 @@ const Login = () => {
     try {
       const result = await signInUser(email,password);
       if(result.success){
-        navigate('/home');
+        const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", result.session.user.id).eq("role", "admin").maybeSingle();
+        navigate(role ? "/hibe" : "/");
       } else {
         setError("E-mailadres of wachtwoord klopt niet.");
       }
