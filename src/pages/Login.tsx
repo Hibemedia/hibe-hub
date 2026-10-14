@@ -36,112 +36,56 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+  const [sent, setSent] = useState(false);
+  const [forgotBusy, setForgotBusy] = useState(false);
   const handleForgot = async () => {
-    if (!email) { toast.error("Vul eerst je e-mailadres in"); return; }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) toast.error(error.message);
-    else toast.success("Als dit adres bij ons bekend is, ontvang je een e-mail met een resetlink.");
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) { setError("Vul eerst je e-mailadres in, dan sturen we je een resetlink."); document.getElementById("email")?.focus(); return; }
+    setError(null); setForgotBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` });
+    setForgotBusy(false);
+    if (error) setError(/rate|seconds/i.test(error.message) ? "Er is net al een resetmail verstuurd. Probeer het over een minuut opnieuw." : "Versturen lukte niet: " + error.message);
+    else setSent(true);
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Panel - Decorative */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-accent/30 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-glow/20 rounded-full blur-3xl animate-float-delayed" />
-        
-        <div className="relative z-10 flex flex-col justify-center px-12 text-primary-foreground">
-          <h1 className="text-5xl font-display font-bold mb-6 leading-tight">
-            <img  src={logo} ></img>
-          </h1>
-        </div>
-      </div>
-
-      {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8 animate-fade-in">
-          {/* Logo/Brand */}
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary mb-6">
-              <span className="text-2xl font-display font-bold text-primary-foreground">L</span>
-            </div>
-            <h2 className="text-3xl font-display font-bold text-foreground">
-                Sign in
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Enter your credentials to access your account
-            </p>
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md rounded-lg bg-card p-6 md:p-10">
+        <img src={logo} alt="HIBE Media" className="mb-8 h-8 w-auto" />
+        <h1 className="wordmark text-5xl md:text-6xl">Inloggen</h1>
+        <p className="mt-2 text-muted-foreground">Log in op het HIBE Klantportaal.</p>
+        {sent ? (
+          <div className="mt-8 space-y-4">
+            <p className="rounded-2xl bg-popover p-4 text-sm">Als <span className="font-semibold">{email}</span> bij ons bekend is, staat er nu een e-mail met een resetlink in je inbox. Open de link om een nieuw wachtwoord in te stellen.</p>
+            <Button variant="outline" onClick={() => setSent(false)}>Terug naar inloggen</Button>
           </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 bg-input/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 bg-input/50 border-border/50 focus:border-primary focus:ring-primary/20"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mailadres</Label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 pl-10" required />
               </div>
             </div>
-        
-            <div className="flex items-center justify-between">
-            <button type="button" onClick={handleForgot} className="text-sm text-primary hover:text-primary/80 transition-colors">
-                Wachtwoord vergeten?
+            <div className="space-y-2">
+              <Label htmlFor="password">Wachtwoord</Label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 pl-10 pr-12" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Verberg wachtwoord" : "Toon wachtwoord"} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <button type="button" onClick={handleForgot} disabled={forgotBusy} className="text-sm font-medium underline underline-offset-4">
+              {forgotBusy ? "Versturen…" : "Wachtwoord vergeten?"}
             </button>
-            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base font-medium group"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <>
-                  Sign in
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
+            <Button type="submit" className="h-12 w-full text-base" disabled={isLoading}>
+              {isLoading ? "Inloggen…" : <>Inloggen <ArrowRight className="h-4 w-4" /></>}
             </Button>
           </form>
-        </div>
+        )}
       </div>
     </div>
   );
