@@ -29,8 +29,8 @@ const NETWORKS = [
   { key: "linkedin", label: "LinkedIn", dot: "li" },
   { key: "threads", label: "Threads", dot: "th" },
 ];
-const netInfo = (n: string) => NETWORKS.find((x) => x.key === n) ?? { key: n, label: n, dot: n };
-const fmtDate = (d: string | null, time = true) =>
+export const netInfo = (n: string) => NETWORKS.find((x) => x.key === n) ?? { key: n, label: n, dot: n };
+export const fmtDate = (d: string | null, time = true) =>
   d ? new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", ...(time ? { hour: "2-digit", minute: "2-digit" } : {}) }) : "Geen datum";
 
 const STATUS_STYLE: Record<ReviewStatus, string> = {
@@ -113,7 +113,7 @@ export default function VideoApproval() {
   );
 }
 
-function ItemThumb({ item }: { item: ReviewItem }) {
+export function ItemThumb({ item }: { item: ReviewItem }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     if (!item.storage_path) return;
