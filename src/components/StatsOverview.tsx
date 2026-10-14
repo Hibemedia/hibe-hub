@@ -55,8 +55,8 @@ export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: 
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((it) => (
         <div key={it.label} className="rounded-lg bg-card p-5 md:p-6">
-          <div className="flex items-baseline gap-2">
-            <span className="text-[44px] font-light leading-none tracking-tight tabular md:text-[56px]">{formatNumber(it.value)}</span>
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[44px] font-light leading-none tracking-tight tabular xl:text-[56px]">{formatNumber(it.value)}</span>
             <span className="text-base text-muted-foreground">{it.label}</span>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs tabular">{it.change}</div>
