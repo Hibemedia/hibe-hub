@@ -50,7 +50,7 @@ const Login = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md rounded-lg bg-card p-6 md:p-10">
-        <img src={logo} alt="HIBE Media" className="mb-8 h-8 w-auto" />
+        <img src={logo} alt="HIBE Media" className="mb-8 h-8 w-auto invert" />
         <h1 className="wordmark text-5xl md:text-6xl">Inloggen</h1>
         <p className="mt-2 text-muted-foreground">Log in op het HIBE Klantportaal.</p>
         {sent ? (
