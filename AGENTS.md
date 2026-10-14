@@ -9,3 +9,4 @@
 - Private-bucket media (thumbnails, review-media) uses path clientId/... and is shown via signed URLs; stored IG thumbnails are saved as 'storage:thumbnails/<path>'.
 - Library files live in private bucket 'library' at clientId/category/filename with a library_files row; unique per client+category+name so duplicates are rejected.
 - Medal levels are computed client-side from videos/daily_stats in src/lib/medals.ts (tested); no stored medal data.
+- Two environments: client users use "/" (ClientEnv), admins use "/hibe" (HibeEnv); /hibe/klant/:id reuses the client pages by setting ClientContext.clientId, and in-page links use useBase().
