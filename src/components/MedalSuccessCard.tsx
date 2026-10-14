@@ -7,7 +7,7 @@ import logo from "@/assets/logo.png";
 
 type Format = "linkedin" | "story";
 
-export function MedalSuccessCard({ title, metric, date, clientName, level, badge }: { title: string; metric: string; date: string | null; clientName: string; level: number; badge: ReactNode }) {
+export function MedalSuccessCard({ title, metric, date, clientName, level, badge, videoMilestone }: { title: string; metric: string; date: string | null; clientName: string; level: number; badge: ReactNode; videoMilestone: boolean }) {
   const [open, setOpen] = useState(false);
   const [format, setFormat] = useState<Format>("linkedin");
   const [image, setImage] = useState<{ blob: Blob; url: string } | null>(null);
@@ -58,7 +58,7 @@ export function MedalSuccessCard({ title, metric, date, clientName, level, badge
             <div className="success-card-client">{clientName}</div>
             <div className="success-card-badge">{badge}</div>
             <div className="success-card-copy"><span className="success-card-level">Niveau {level} behaald</span><h2>{title}</h2><p className="success-card-metric">{metric}</p></div>
-            <footer><span>{date ? `${date}` : "Een prestatie om trots op te zijn."}</span><span>SAMEN GROEIEN. SAMEN VIEREN.</span></footer>
+            <footer><span>{date ? `${videoMilestone ? "Video van" : "Behaald op"} ${date}` : "Een prestatie om trots op te zijn."}</span><span>SAMEN GROEIEN. SAMEN VIEREN.</span></footer>
           </div>
         </div>
       </>}

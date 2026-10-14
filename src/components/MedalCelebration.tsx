@@ -73,7 +73,7 @@ export function MedalCelebration({ medal, title, metric, date, onClose }: { meda
             <p className="text-sm text-muted-foreground">{shareState === "copied" ? "De tekst staat klaar voor je LinkedIn-post of Instagram Story." : "Kopiëren lukt hier niet. Selecteer de tekst hieronder."}</p>
             <textarea aria-label="Deeltekst" readOnly value={text} onFocus={(event) => event.target.select()} className="min-h-28 w-full resize-none rounded-md bg-muted p-3 text-sm text-foreground" />
           </div>}
-          <MedalSuccessCard key={`${medal.key}:${medal.levelIndex}`} title={title} metric={metric} date={date} clientName={client?.name ?? ""} level={medal.levelIndex + 1} badge={<MedalBadge levelIndex={medal.levelIndex} category={medal.key} large />} />
+          <MedalSuccessCard key={`${medal.key}:${medal.levelIndex}`} title={title} metric={metric} date={date} videoMilestone={!!medal.achievedVideo} clientName={client?.name ?? ""} level={medal.levelIndex + 1} badge={<MedalBadge levelIndex={medal.levelIndex} category={medal.key} large />} />
           <PartyPopper className="mx-auto h-5 w-5 text-muted-foreground" aria-hidden />
         </>}
       </DialogContent>

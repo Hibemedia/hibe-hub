@@ -15,6 +15,6 @@
 - [x] Test de graadindeling en bekijk desktop en mobiel.
 
 # Downloadbare succeskaart
-- [ ] Voeg LinkedIn- en Story-formaat toe met echte medaille, klantnaam en bestaand HIBE-logo.
-- [ ] Genereer een PNG met voorbeeld en downloadknop in het feestvenster.
-- [ ] Download en inspecteer beide afbeeldingen; controleer mobiel.
+- [x] Voeg LinkedIn- en Story-formaat toe met echte medaille, klantnaam en bestaand HIBE-logo.
+- [x] Genereer een PNG met voorbeeld en downloadknop in het feestvenster.
+- [x] Download en inspecteer beide afbeeldingen; controleer mobiel.
