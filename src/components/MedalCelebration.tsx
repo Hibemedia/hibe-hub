@@ -9,7 +9,13 @@ import { medalMaterial } from "@/lib/medal-celebrations";
 export function fireMedalConfetti() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const styles = getComputedStyle(document.documentElement);
-  const colors = ["--medal-lime", "--medal-gold", "--medal-bronze", "--medal-diamond", "--medal-silver"].map((token) => `hsl(${styles.getPropertyValue(token).trim()})`);
+  const colorContext = document.createElement("canvas").getContext("2d");
+  if (!colorContext) return;
+  // canvas-confetti expects hex, so resolve the semantic HSL palette first.
+  const colors = ["--medal-lime", "--medal-gold", "--medal-bronze", "--medal-diamond", "--medal-silver"].map((token) => {
+    colorContext.fillStyle = `hsl(${styles.getPropertyValue(token).trim()})`;
+    return colorContext.fillStyle;
+  });
   const options = { colors, particleCount: 100, spread: 95, startVelocity: 48, gravity: 1, ticks: 230, zIndex: 100, disableForReducedMotion: true };
   void confetti({ ...options, angle: 60, origin: { x: 0.1, y: 0.65 } });
   void confetti({ ...options, angle: 120, origin: { x: 0.9, y: 0.65 } });

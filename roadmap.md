@@ -5,6 +5,6 @@
 - [x] Controleer lege/foutstaten en maak screenshots.
 
 # Speelse medailles
-- [ ] Voeg visuele badges, feestvenster, confetti en deeltekst toe.
-- [ ] Markeer voortgang boven 85% en animeer kaarten en balken met respect voor minder beweging.
-- [ ] Test regels en controleer de echte klantpagina en feestactie.
+- [x] Voeg visuele badges, feestvenster, confetti en deeltekst toe.
+- [x] Markeer voortgang boven 85% en animeer kaarten en balken met respect voor minder beweging.
+- [x] Test regels en controleer de echte klantpagina en feestactie.
