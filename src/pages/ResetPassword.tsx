@@ -34,9 +34,9 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-background">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-5">
-        <h1 className="text-2xl font-bold">Nieuw wachtwoord instellen</h1>
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-lg bg-card p-6 md:p-10">
+        <h1 className="wordmark text-4xl md:text-5xl">Nieuw wachtwoord</h1>
         {!ready ? (
           <p className="text-sm text-muted-foreground">
             Open deze pagina via de link in je e-mail. Is de link verlopen? Vraag op de inlogpagina een nieuwe aan.
