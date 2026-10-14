@@ -102,7 +102,7 @@ export function useHibeActions(clientIds: string[]) {
         const r = latest.get(id);
         if (!r) { syncIssues.push({ client_id: id, status: "none", finished_at: null, started_at: "", error: null, reason: "never" }); continue; }
         const lastOk = r.finished_at ?? r.started_at;
-        if (r.status === "error") syncIssues.push({ ...r, reason: "failed" });
+        if (r.status === "fout" || r.status === "error") syncIssues.push({ ...r, reason: "failed" });
         else if (Date.parse(lastOk) < cutoff) syncIssues.push({ ...r, reason: "stale" });
       }
       return {
