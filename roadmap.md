@@ -1,5 +1,5 @@
 # Overzicht en Performance
-- [ ] Maak Overzicht compact met kerncijfers, beste video, beoordelingen en komende momenten.
-- [ ] Behoud Performance en alle bestaande cijfers, synchronisatie en rechten.
-- [ ] Test selectieregels en controleer beide omgevingen op desktop en mobiel.
-- [ ] Controleer lege/foutstaten en maak screenshots.
+- [x] Maak Overzicht compact met kerncijfers, beste video, beoordelingen en komende momenten.
+- [x] Behoud Performance en alle bestaande cijfers, synchronisatie en rechten.
+- [x] Test selectieregels en controleer beide omgevingen op desktop en mobiel.
+- [x] Controleer lege/foutstaten en maak screenshots.
