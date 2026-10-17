@@ -18,3 +18,8 @@
 - [x] Voeg LinkedIn- en Story-formaat toe met echte medaille, klantnaam en bestaand HIBE-logo.
 - [x] Genereer een PNG met voorbeeld en downloadknop in het feestvenster.
 - [x] Download en inspecteer beide afbeeldingen; controleer mobiel.
+
+# Top 5 naast het weer
+- [x] Zet de compacte Top 5 video's links naast de weerkaart op het HIBE-dashboard; behoud de stijl en cijfers.
+- [x] Verwijder het grote Top 5-blok verder op de pagina en los horizontale scroll op 375px op.
+- [x] Controleer desktop, mobiel en alle HIBE-routes op afkapping.
