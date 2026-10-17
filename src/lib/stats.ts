@@ -95,3 +95,27 @@ export const formatNumber = (n: number | null | undefined) =>
   n == null ? "–" : new Intl.NumberFormat("nl-NL", { notation: n >= 10000 ? "compact" : "standard", maximumFractionDigits: 1 }).format(n);
 
 export const formatPct = (p: number | null) => (p == null ? "geen vergelijking" : `${p >= 0 ? "+" : ""}${p.toFixed(1)}% t.o.v. vorige periode`);
+
+const AM = "Europe/Amsterdam";
+
+/** UTC offset (ms) of a time zone at a given instant (DST-aware). */
+function tzOffsetMs(date: Date, tz: string) {
+  const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const g = (t: string) => Number(f.formatToParts(date).find((p) => p.type === t)!.value);
+  return Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"), g("second")) - date.getTime();
+}
+
+/** UTC instant of 00:00 Amsterdam time on a YYYY-MM-DD date. */
+function amMidnight(dateStr: string) {
+  const asUTC = Date.parse(`${dateStr}T00:00:00Z`);
+  return asUTC - tzOffsetMs(new Date(asUTC + 12 * 3600e3), AM);
+}
+
+/** Monday 00:00 through Sunday 24:00 of the previous ISO week, Amsterdam time, as ISO strings. */
+export function lastWeekRange(now = new Date()) {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: AM, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  const dow = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7;
+  const monday = new Date(Date.parse(`${today}T00:00:00Z`) - dow * 86400e3).toISOString().slice(0, 10);
+  const lastMonday = new Date(Date.parse(`${monday}T00:00:00Z`) - 7 * 86400e3).toISOString().slice(0, 10);
+  return { start: new Date(amMidnight(lastMonday)).toISOString(), end: new Date(amMidnight(monday)).toISOString() };
+}

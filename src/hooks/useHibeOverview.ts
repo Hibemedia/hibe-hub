@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DailyStat, PeriodKey, periodRange, totalsFor, pctChange } from "@/lib/stats";
+import { DailyStat, PeriodKey, periodRange, totalsFor, pctChange, lastWeekRange } from "@/lib/stats";
 import type { VideoRow } from "@/hooks/useClientStats";
 
 const PAGE = 1000;
@@ -71,6 +71,28 @@ export function useHibeOverview(period: PeriodKey, enabled = true) {
         stored.forEach((v, i) => { v.thumbnail_url = signed?.[i]?.signedUrl ?? null; });
       }
       return { range, stats, summaries, totals, videos };
+    },
+  });
+}
+
+/** Top 5 videos published last week (Mon–Sun, Amsterdam), across all clients. */
+export function useTopVideosLastWeek(enabled = true) {
+  return useQuery({
+    queryKey: ["hibe-top-videos-last-week"],
+    enabled,
+    queryFn: async (): Promise<TopVideo[]> => {
+      const { start, end } = lastWeekRange();
+      const vq = supabase.from("videos").select("id,client_id,network,external_id,published_at,title,views,likes,comments,shares,saves,url,thumbnail_url")
+        .gte("published_at", start).lt("published_at", end).order("views", { ascending: false }).limit(5);
+      const { data: vids, error } = await vq;
+      if (error) throw error;
+      const videos = (vids ?? []) as TopVideo[];
+      const stored = videos.filter((v) => v.thumbnail_url?.startsWith("storage:thumbnails/"));
+      if (stored.length) {
+        const { data: signed } = await supabase.storage.from("thumbnails").createSignedUrls(stored.map((v) => v.thumbnail_url!.slice(19)), 3600);
+        stored.forEach((v, i) => { v.thumbnail_url = signed?.[i]?.signedUrl ?? null; });
+      }
+      return videos;
     },
   });
 }
