@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight, ArrowUpDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useClient } from "@/context/ClientContext";
-import { useHibeOverview, useHibeActions, ClientSummary } from "@/hooks/useHibeOverview";
+import { useHibeOverview, useHibeActions, ClientSummary, type TopVideo } from "@/hooks/useHibeOverview";
 import { useMySettings } from "@/hooks/useMySettings";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { PeriodSelect } from "@/components/PeriodSelect";
@@ -37,7 +37,10 @@ export default function HibeDashboard() {
         <p className="mt-2 text-lg text-muted-foreground">{today}</p>
       </div>
 
-      {me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}
+      <div className="grid items-start gap-4 xl:grid-cols-5">
+        <div className="xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
+        {data && <TopVideosSmall videos={data.videos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="xl:col-span-2" />}
+      </div>
 
       <PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />
 
@@ -67,29 +70,34 @@ export default function HibeDashboard() {
         <ActionNeeded className="xl:col-span-2" actions={actions} />
       </div>
 
-      {data && (
-        <Section title="Top 5 video's">
-          {data.videos.length === 0 ? <EmptyState /> : (
-            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              {data.videos.map((v) => (
-                <li key={v.id} className="relative flex flex-col gap-3 rounded-lg bg-popover p-3">
-                  <div className="aspect-[3/4] w-full overflow-hidden rounded-[14px] bg-muted">
-                    {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
-                  </div>
-                  <p className="line-clamp-2 font-semibold leading-snug">{v.title || "Zonder titel"}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="chip">{clients.find((c) => c.id === v.client_id)?.name ?? "Klant"}</span>
-                    <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
-                  </div>
-                  <div className="flex items-baseline gap-1.5 tabular"><span className="text-2xl font-light">{formatNumber(v.views)}</span><span className="text-xs text-muted-foreground">weergaven</span></div>
-                  {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-5 top-5 h-9 w-9"><ArrowUpRight className="h-4 w-4" /></a>}
-                </li>
-              ))}
-            </ol>
-          )}
-        </Section>
-      )}
     </div>
+  );
+}
+
+function TopVideosSmall({ videos, names, className }: { videos: TopVideo[]; names: Record<string, string>; className?: string }) {
+  return (
+    <Section title="Top 5 video's" className={className}>
+      {videos.length === 0 ? <EmptyState /> : (
+        <ol className="space-y-2.5">
+          {videos.map((v) => (
+            <li key={v.id} className="flex items-center gap-3 rounded-2xl bg-popover p-2.5">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-muted">
+                {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-1 text-sm font-semibold leading-snug">{v.title || "Zonder titel"}</p>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">{names[v.client_id] ?? "Klant"} · {NETWORK_LABELS[v.network as Network] ?? v.network}</p>
+              </div>
+              <div className="shrink-0 text-right tabular">
+                <span className="text-sm font-semibold">{formatNumber(v.views)}</span>
+                <p className="text-[11px] text-muted-foreground">weergaven</p>
+              </div>
+              {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn h-8 w-8 shrink-0"><ArrowUpRight className="h-4 w-4" /></a>}
+            </li>
+          ))}
+        </ol>
+      )}
+    </Section>
   );
 }
 
