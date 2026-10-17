@@ -168,7 +168,7 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
   );
   return (
     <Section title="Ranglijst klanten" className={className}>
-      <div className="-mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
+      <div className="relative -mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
         <table className="w-full min-w-[520px] table-fixed text-sm tabular">
           <colgroup><col /><col className="w-[104px]" /><col className="w-[100px]" /><col className="w-[96px]" /></colgroup>
           <thead><tr className="text-xs text-muted-foreground"><Th k="name" label="Klant" /><Th k="views" label="Weergaven" right /><Th k="viewsChange" label="Groei" right /><Th k="followers" label="Volgers" right /></tr></thead>
