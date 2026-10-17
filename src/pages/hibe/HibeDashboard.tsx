@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight, ArrowUpDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useClient } from "@/context/ClientContext";
-import { useHibeOverview, useHibeActions, ClientSummary, type TopVideo } from "@/hooks/useHibeOverview";
+import { useHibeOverview, useHibeActions, useTopVideosLastWeek, ClientSummary, type TopVideo } from "@/hooks/useHibeOverview";
 import { useMySettings } from "@/hooks/useMySettings";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { PeriodSelect } from "@/components/PeriodSelect";
@@ -25,6 +25,7 @@ export default function HibeDashboard() {
   const { clients } = useClient();
   const { data: me } = useMySettings();
   const { data, isLoading } = useHibeOverview(period);
+  const { data: weekVideos } = useTopVideosLastWeek();
   const { data: actions } = useHibeActions(clients.map((c) => c.id));
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
   const today = new Intl.DateTimeFormat("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: TZ }).format(new Date());
@@ -38,7 +39,7 @@ export default function HibeDashboard() {
       </div>
 
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-5">
-        {data && <TopVideosSmall videos={data.videos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="min-w-0 xl:col-span-2" />}
+        {weekVideos && <TopVideosSmall videos={weekVideos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="min-w-0 xl:col-span-2" />}
         <div className="min-w-0 xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
 
@@ -76,8 +77,8 @@ export default function HibeDashboard() {
 
 function TopVideosSmall({ videos, names, className }: { videos: TopVideo[]; names: Record<string, string>; className?: string }) {
   return (
-    <Section title="Top 5 video's" className={className}>
-      {videos.length === 0 ? <EmptyState /> : (
+    <Section title="Top 5 video's · vorige week" className={className}>
+      {videos.length === 0 ? <EmptyState text="Geen video's gepubliceerd vorige week." /> : (
         <ol className="space-y-2.5">
           {videos.map((v) => (
             <li key={v.id} className="flex items-center gap-3 rounded-2xl bg-popover p-2.5">

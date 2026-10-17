@@ -98,11 +98,6 @@ export function useHibeOverview(period: PeriodKey, enabled = true) {
   });
 }
 
-function signThumbnails(videos: TopVideo[]) {
-  const stored = videos.filter((v) => v.thumbnail_url?.startsWith("storage:thumbnails/"));
-  if (!stored.length) return;
-}
-
 /** Top 5 videos published last week (Mon–Sun, Amsterdam), across all clients. */
 export function useTopVideosLastWeek(enabled = true) {
   return useQuery({
