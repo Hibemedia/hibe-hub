@@ -37,7 +37,10 @@ export default function HibeDashboard() {
         <p className="mt-2 text-lg text-muted-foreground">{today}</p>
       </div>
 
-      {me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}
+      <div className="grid items-start gap-4 xl:grid-cols-5">
+        <div className="xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
+        {data && <TopVideosSmall videos={data.videos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="xl:col-span-2" />}
+      </div>
 
       <PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />
 
@@ -67,28 +70,6 @@ export default function HibeDashboard() {
         <ActionNeeded className="xl:col-span-2" actions={actions} />
       </div>
 
-      {data && (
-        <Section title="Top 5 video's">
-          {data.videos.length === 0 ? <EmptyState /> : (
-            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              {data.videos.map((v) => (
-                <li key={v.id} className="relative flex flex-col gap-3 rounded-lg bg-popover p-3">
-                  <div className="aspect-[3/4] w-full overflow-hidden rounded-[14px] bg-muted">
-                    {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
-                  </div>
-                  <p className="line-clamp-2 font-semibold leading-snug">{v.title || "Zonder titel"}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="chip">{clients.find((c) => c.id === v.client_id)?.name ?? "Klant"}</span>
-                    <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
-                  </div>
-                  <div className="flex items-baseline gap-1.5 tabular"><span className="text-2xl font-light">{formatNumber(v.views)}</span><span className="text-xs text-muted-foreground">weergaven</span></div>
-                  {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-5 top-5 h-9 w-9"><ArrowUpRight className="h-4 w-4" /></a>}
-                </li>
-              ))}
-            </ol>
-          )}
-        </Section>
-      )}
     </div>
   );
 }
