@@ -37,9 +37,9 @@ export default function HibeDashboard() {
         <p className="mt-2 text-lg text-muted-foreground">{today}</p>
       </div>
 
-      <div className="grid items-start gap-4 xl:grid-cols-5">
-        <div className="xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
-        {data && <TopVideosSmall videos={data.videos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="xl:col-span-2" />}
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-5">
+        {data && <TopVideosSmall videos={data.videos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="min-w-0 xl:col-span-2" />}
+        <div className="min-w-0 xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
 
       <PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />
@@ -168,7 +168,7 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
   );
   return (
     <Section title="Ranglijst klanten" className={className}>
-      <div className="-mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
+      <div className="relative -mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
         <table className="w-full min-w-[520px] table-fixed text-sm tabular">
           <colgroup><col /><col className="w-[104px]" /><col className="w-[100px]" /><col className="w-[96px]" /></colgroup>
           <thead><tr className="text-xs text-muted-foreground"><Th k="name" label="Klant" /><Th k="views" label="Weergaven" right /><Th k="viewsChange" label="Groei" right /><Th k="followers" label="Volgers" right /></tr></thead>

@@ -128,7 +128,7 @@ export function NetworkBreakdown({ stats, range, className }: { stats: DailyStat
   return (
     <Section title="Per platform" className={className}>
       {networks.length === 0 ? <EmptyState /> : (
-        <div className="-mx-4 overflow-x-auto px-4 md:-mx-5 md:px-5">
+        <div className="relative -mx-4 overflow-x-auto px-4 md:-mx-5 md:px-5">
         <table className="w-full min-w-[520px] table-fixed text-sm tabular">
           <colgroup>
             <col />
