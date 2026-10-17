@@ -335,9 +335,8 @@ async function run(db: any, mode: Mode, clientId?: string) {
     try {
       videos = await syncVideos(db, c, videosFrom, today, nets);
       stats = await syncStats(db, c, statsFrom, today, nets);
-      let scheduled: number | string = 0;
-      try { scheduled = await syncScheduled(db, c, today, addDays(today, 60)); }
-      catch (e) { scheduled = String(e).slice(0, 300); console.error(`scheduler failed for ${c.name}:`, String(e)); }
+      // Posts already scheduled in Metricool are approved by definition; they no longer become review items.
+      const scheduled = 0;
       report.push({ client: c.name, nets, videos, stats, scheduled });
       if (runRow) await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), days_count: stats, videos_count: videos }).eq("id", runRow.id);
     } catch (e) {
