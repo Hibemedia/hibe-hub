@@ -38,8 +38,8 @@ export default function HibeDashboard() {
       </div>
 
       <div className="grid items-start gap-4 xl:grid-cols-5">
-        <div className="xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
         {data && <TopVideosSmall videos={data.videos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="xl:col-span-2" />}
+        <div className="xl:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
 
       <PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />
