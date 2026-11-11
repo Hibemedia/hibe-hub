@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Link2, Plus, Trash2, Unlink } from "lucide-react";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ const DOW_LETTERS = ["m", "d", "w", "d", "v", "z", "z"];
 const dow = (d: string) => (new Date(d + "T00:00:00").getDay() + 6) % 7; // 0 = maandag
 
 /** Colored left strip per status in the status picker popup, matching the legend. */
-const barCls = (s: PostStatus) =>
+const statusBarCls = (s: PostStatus) =>
   s === "scheduled" ? "border-l-[hsl(var(--social-green-fg))]"
   : s === "none" ? "border-l-border"
   : s === "to_post" ? "border-l-[hsl(var(--social-amber-fg))]"
@@ -192,7 +192,7 @@ export function SocialsWeekGrid() {
                 <div className="overflow-hidden rounded-md border border-border">
                   {STATUSES.map((s) => (
                     <button key={s.key} onClick={() => { savePost(c.id, d, { status: s.key }); setMenu(null); }}
-                      className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", barCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
+                      className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
                       <b className="w-4 text-center">{s.symbol || "–"}</b>{s.label}
                     </button>
                   ))}
@@ -248,7 +248,7 @@ export function SocialsWeekGrid() {
                   <div className="overflow-hidden rounded-md border border-border">
                     {WEEKLY.map((s) => { const x = statusOf(s); return (
                       <button key={s} onClick={() => { saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v)); setMenu(null); }}
-                        className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", barCls(s), it?.status === s ? "bg-muted font-semibold" : "bg-card")}>
+                        className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s), it?.status === s ? "bg-muted font-semibold" : "bg-card")}>
                         <b className="w-4 text-center">{x.symbol || "–"}</b>{s === "scheduled" ? "Afgeleverd" : x.label}
                       </button>); })}
                   </div>
