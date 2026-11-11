@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useRef, useState, DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -61,11 +62,8 @@ export default function HibeVideos() {
       onDragOver={(e) => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); setFileOver(true); } }}
       onDragLeave={(e) => { if (e.currentTarget === e.target) setFileOver(false); }}
       onDrop={onFileDrop}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="wordmark">Video's</h1>
-        <button onClick={() => input.current?.click()} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Upload className="h-4 w-4" /></span>Video uploaden
-        </button>
+      <PageHeader title="Video's" action={<PrimaryAction icon={Upload} onClick={() => input.current?.click()}>Video uploaden</PrimaryAction>} />
+      <div className="contents">
         <input ref={input} type="file" accept="video/*" className="hidden" onChange={(e) => { pickFile(e.target.files?.[0]); e.target.value = ""; }} />
       </div>
 
@@ -103,7 +101,9 @@ export default function HibeVideos() {
                   <h2 className="text-sm font-semibold">{VIDEO_STATUS_LABEL[s]}</h2>
                   <span className="chip tabular">{col.length}</span>
                 </header>
-                {isLoading ? <p className="px-1 text-sm text-muted-foreground">Laden…</p> : col.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted-foreground">Leeg</p>}
+                {isLoading ? <p className="px-1 text-sm text-muted-foreground">Laden…</p> : col.length === 0 && (s === "internal_review"
+                  ? <div className="px-1 py-4 text-center text-xs text-muted-foreground"><p>Sleep een video hierheen om te starten.</p><button onClick={() => input.current?.click()} className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-md bg-foreground px-3 text-xs font-medium text-background"><Upload className="h-3.5 w-3.5" />Video uploaden</button></div>
+                  : <p className="px-1 py-4 text-center text-xs text-muted-foreground">Sleep een video hierheen om hem in deze fase te zetten.</p>)}
                 {col.map((i) => (
                   <article key={i.id} draggable onDragStart={(e) => { setDragId(i.id); e.dataTransfer.effectAllowed = "move"; }} onDragEnd={() => { setDragId(null); setOver(null); }}
                     className={`group cursor-grab rounded-lg bg-background p-3 active:cursor-grabbing ${dragId === i.id ? "opacity-50" : ""}`}>

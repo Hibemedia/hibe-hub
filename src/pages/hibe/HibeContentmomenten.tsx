@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -38,12 +39,7 @@ export default function HibeContentmomenten() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="wordmark min-w-0">Contentmomenten</h1>
-        <button onClick={() => { setChosen(client !== "all" ? client : ""); setCreating("choose"); }} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>Moment toevoegen
-        </button>
-      </div>
+      <PageHeader title="Contentmomenten" action={<PrimaryAction icon={Plus} onClick={() => { setChosen(client !== "all" ? client : ""); setCreating("choose"); }}>Moment toevoegen</PrimaryAction>} />
       <div className="flex flex-wrap items-center gap-2">
         <Select value={client} onValueChange={setClient}>
           <SelectTrigger aria-label="Filter op klant" className="h-9 w-auto min-w-44"><SelectValue /></SelectTrigger>
@@ -54,7 +50,7 @@ export default function HibeContentmomenten() {
       </div>
 
       {isLoading ? <section className="rounded-lg bg-card"><EmptyState text="Laden…" /></section> : list.length === 0 ? (
-        <section className="rounded-lg bg-card"><EmptyState text="Nog geen contentmomenten." /></section>
+        <section className="rounded-lg bg-card"><EmptyState text="Plan shootdagen en andere contentmomenten voor je klanten." action={<button onClick={() => { setChosen(client !== "all" ? client : ""); setCreating("choose"); }} className="inline-flex h-9 items-center gap-2 rounded-md bg-foreground px-3.5 text-sm font-medium text-background"><Plus className="h-4 w-4" />Moment toevoegen</button>} /></section>
       ) : [...groups.entries()].map(([month, ms]) => (
         <section key={month} className="rounded-lg bg-card p-5 md:p-7">
           <h2 className="mb-4 text-xl font-semibold capitalize">{month}</h2>

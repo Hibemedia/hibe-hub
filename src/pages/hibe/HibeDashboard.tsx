@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight, ArrowUpDown } from "lucide-react";
@@ -34,10 +35,8 @@ export default function HibeDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 p-4 md:space-y-5 md:p-8">
-      <div>
-        <h1 className="wordmark">{greeting()}{me?.name ? ` ${me.name}` : ""}</h1>
-        <p className="mt-2 text-lg text-muted-foreground">{today}</p>
-      </div>
+      <PageHeader title="Dashboard" />
+      <p className="text-base"><span className="font-semibold">{greeting()}{me?.name ? ` ${me.name}` : ""}</span> <span className="text-muted-foreground">· {today}</span></p>
 
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-5">
         {weekVideos && <TopVideosSmall videos={weekVideos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="min-w-0 xl:col-span-4" />}

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -58,7 +59,7 @@ export default function Medals() {
 
   return (
     <div className="medals-screen mx-auto max-w-7xl space-y-5 p-4 md:p-8">
-      <h1 className="wordmark">Medailles</h1>
+      <PageHeader title="Medailles" />
       {!clientId && ready ? <section className="rounded-lg bg-card"><EmptyState text="Je account is nog niet aan een klant gekoppeld." /></section>
         : isLoading || !data ? <Skeleton className="h-64 rounded-lg" />
         : data.empty ? <section className="rounded-lg bg-card"><EmptyState text="Nog geen data om medailles uit te berekenen." /></section>

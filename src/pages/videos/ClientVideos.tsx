@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Film } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
@@ -34,7 +35,7 @@ export default function ClientVideos() {
   );
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
-      <h1 className="wordmark">Video's</h1>
+      <PageHeader title="Video's" />
       {isLoading ? <section className="rounded-lg bg-card"><EmptyState text="Laden…" /></section> : (
         <>
           <section className="space-y-3"><h2 className="text-xl font-semibold">Ter controle <span className="text-muted-foreground tabular">{open.length}</span></h2>

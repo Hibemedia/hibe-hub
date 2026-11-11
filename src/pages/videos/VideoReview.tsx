@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -106,11 +107,12 @@ export default function VideoReview() {
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-center gap-2">
-        <Link to={back} className="inline-flex h-10 items-center gap-2 rounded-full bg-foreground px-4 text-sm font-medium text-background"><ArrowLeft className="h-4 w-4" />Video's</Link>
+        <PageHeader title="Video bekijken" />
+        <Link to={back} className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-popover px-3 text-sm font-medium"><ArrowLeft className="h-4 w-4" />Video's</Link>
         {isAdmin && clientName && <span className="chip">{clientName}</span>}
         <span className="chip bg-lime text-lime-foreground">{VIDEO_STATUS_LABEL[item.status]}</span>
       </div>
-      <h1 className="break-words text-3xl font-extrabold leading-tight md:text-5xl">{item.title}</h1>
+      <h2 className="break-words text-xl font-semibold leading-tight">{item.title}</h2>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section className="min-w-0 space-y-3">
