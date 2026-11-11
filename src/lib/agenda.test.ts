@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, it, expect } from "bun:test";
-import { monthGrid, entriesOn, absentOn, ymd, AgendaEntry } from "./agenda";
+import { monthGrid, entriesOn, absentOn, shootRow, ymd, AgendaEntry } from "./agenda";
 
 const list: AgendaEntry[] = [
   { id: "v", kind: "vacation", title: "Vakantie", start: "2026-11-10", end: "2026-11-14", people: ["a"] },
@@ -23,5 +23,11 @@ describe("agenda", () => {
   it("absentOn lists people on vacation that day", () => {
     expect(absentOn("2026-11-11", list)).toEqual(["a"]);
     expect(absentOn("2026-11-20", list)).toEqual([]);
+  });
+  it("a draaidag from the agenda becomes a confirmed shoot moment", () => {
+    const row = shootRow({ title: "  Shoot najaar  ", client_id: "c1", date: "2026-11-20", start_time: "09:30", location: "  ", notes: "Neem lichten mee" }, "u1");
+    expect(row).toEqual({ client_id: "c1", title: "Shoot najaar", type: "shoot", date: "2026-11-20", start_time: "09:30", location: null, notes: "Neem lichten mee", status: "bevestigd", requested_by: "u1" });
+    expect(shootRow({ title: "X", client_id: "c1", date: "2026-11-20", start_time: "  " }, "").start_time).toBeNull();
+    expect(shootRow({ title: "X", client_id: "c1", date: "2026-11-20" }, "").requested_by).toBeNull();
   });
 });

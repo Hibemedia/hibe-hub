@@ -61,7 +61,7 @@ export default function HibeAgenda() {
   const name = (id: string) => team.find((t) => t.id === id)?.name ?? "Teamlid";
 
   const entries: AgendaEntry[] = useMemo(() => [
-    ...(data?.moments ?? []).filter((m) => m.date && m.status !== "cancelled").map((m) => ({
+    ...(data?.moments ?? []).filter((m) => m.date && m.status !== "cancelled" && m.status !== "geannuleerd").map((m) => ({
       id: m.id, kind: "shoot" as const, start: m.date, end: m.date, time: m.start_time?.slice(0, 5),
       title: `${clients.find((c) => c.id === m.client_id)?.name ?? "Klant"} · ${m.title}`, people: (m.crew ?? []).map((c: any) => c.user_id),
     })),
@@ -189,7 +189,7 @@ export default function HibeAgenda() {
               </div>}
               <div className="space-y-1.5"><Label htmlFor="ag-title">Titel</Label><Input id="ag-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={form.kind === "shoot" ? "Bijv. Shoot najaarscollectie" : form.kind === "meeting" ? "Bijv. Weekstart" : "Vakantie"} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label htmlFor="ag-start">{form.kind === "meeting" ? "Datum" : "Van"}</Label><Input id="ag-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value, end_date: form.end_date < e.target.value ? e.target.value : form.end_date })} /></div>
+                <div className="space-y-1.5"><Label htmlFor="ag-start">{form.kind === "vacation" ? "Van" : "Datum"}</Label><Input id="ag-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value, end_date: form.end_date < e.target.value ? e.target.value : form.end_date })} /></div>
                 {form.kind === "vacation" && <div className="space-y-1.5"><Label htmlFor="ag-end">Tot en met</Label><Input id="ag-end" type="date" value={form.end_date} min={form.start_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} /></div>}
                 {form.kind === "shoot" && <div className="space-y-1.5"><Label htmlFor="ag-st">Starttijd</Label><Input id="ag-st" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></div>}
                 {form.kind === "meeting" && <div className="grid grid-cols-2 gap-2">
