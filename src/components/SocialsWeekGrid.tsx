@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Link2, Plus, Trash2, Unlink } from "lucide-react";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,6 +31,26 @@ const statusBarCls = (s: PostStatus) =>
   : s === "client_check" ? "border-l-[hsl(var(--social-cyan-fg))]"
   : s === "in_progress" ? "border-l-[hsl(var(--social-blue-fg))]"
   : "border-l-[hsl(var(--social-purple-fg))]"; // to_schedule
+
+/** Name + link fields of a checklist cell, saved together with one explicit button. */
+function PostFields({ title, note, onSave }: { title: string; note: string; onSave: (title: string, note: string) => void }) {
+  const [t, setT] = useState(title);
+  const [n, setN] = useState(note);
+  const dirty = t !== title || n !== note;
+  return (
+    <div className="space-y-2">
+      <div className="space-y-1">
+        <Label className="text-xs">Naam van de video</Label>
+        <Input value={t} onChange={(e) => setT(e.target.value)} placeholder="Bijv. Behind the scenes" />
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Link van de video</Label>
+        <Input value={n} onChange={(e) => setN(e.target.value)} placeholder="https://…" />
+      </div>
+      <Button size="sm" className="w-full" disabled={!dirty} onClick={() => onSave(t, n)}>Opslaan</Button>
+    </div>
+  );
+}
 
 /** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
 export function SocialsWeekGrid() {
@@ -191,14 +212,13 @@ export function SocialsWeekGrid() {
               <>
                 <div className="overflow-hidden rounded-md border border-border">
                   {STATUSES.map((s) => (
-                    <button key={s.key} onClick={() => { savePost(c.id, d, { status: s.key }); setMenu(null); }}
+                    <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })}
                       className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
                       <b className="w-4 text-center">{s.symbol || "–"}</b>{s.label}
                     </button>
                   ))}
                 </div>
-                <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={p?.title ?? ""} onBlur={(e) => e.target.value !== (p?.title ?? "") && savePost(c.id, d, { title: e.target.value })} /></div>
-                <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={p?.note ?? ""} onBlur={(e) => e.target.value !== (p?.note ?? "") && savePost(c.id, d, { note: e.target.value })} /></div>
+                <PostFields title={p?.title ?? ""} note={p?.note ?? ""} onSave={(t, n) => savePost(c.id, d, { title: t || null, note: n || null })} />
                 <div className="space-y-1">
                   <Label className="text-xs">Koppel een video uit Video's</Label>
                   <Select onValueChange={(v) => { link(c.id, d, v); setMenu(null); }}>
@@ -247,13 +267,12 @@ export function SocialsWeekGrid() {
                   <p className="text-sm font-semibold">{c.name} · video {idx + 1}</p>
                   <div className="overflow-hidden rounded-md border border-border">
                     {WEEKLY.map((s) => { const x = statusOf(s); return (
-                      <button key={s} onClick={() => { saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v)); setMenu(null); }}
+                      <button key={s} onClick={() => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v))}
                         className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s), it?.status === s ? "bg-muted font-semibold" : "bg-card")}>
                         <b className="w-4 text-center">{x.symbol || "–"}</b>{s === "scheduled" ? "Afgeleverd" : x.label}
                       </button>); })}
                   </div>
-                  <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={it?.title ?? ""} onBlur={(e) => e.target.value !== (it?.title ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: e.target.value } : v))} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={it?.note ?? ""} onBlur={(e) => e.target.value !== (it?.note ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, note: e.target.value } : v))} /></div>
+                  <PostFields title={it?.title ?? ""} note={it?.note ?? ""} onSave={(t, n) => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: t, note: n } : v))} />
                   {it && <button onClick={() => { saveWeek(c.id, from, items.filter((_, j) => j !== idx)); setMenu(null); }} className="inline-flex items-center gap-1 text-xs text-destructive"><Trash2 className="h-3 w-3" />Verwijderen</button>}
                 </PopoverContent>
               </Popover>
