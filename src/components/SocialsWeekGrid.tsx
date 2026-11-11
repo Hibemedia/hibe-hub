@@ -267,13 +267,12 @@ export function SocialsWeekGrid() {
                   <p className="text-sm font-semibold">{c.name} · video {idx + 1}</p>
                   <div className="overflow-hidden rounded-md border border-border">
                     {WEEKLY.map((s) => { const x = statusOf(s); return (
-                      <button key={s} onClick={() => { saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v)); setMenu(null); }}
+                      <button key={s} onClick={() => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v))}
                         className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s), it?.status === s ? "bg-muted font-semibold" : "bg-card")}>
                         <b className="w-4 text-center">{x.symbol || "–"}</b>{s === "scheduled" ? "Afgeleverd" : x.label}
                       </button>); })}
                   </div>
-                  <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={it?.title ?? ""} onBlur={(e) => e.target.value !== (it?.title ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: e.target.value } : v))} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={it?.note ?? ""} onBlur={(e) => e.target.value !== (it?.note ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, note: e.target.value } : v))} /></div>
+                  <PostFields title={it?.title ?? ""} note={it?.note ?? ""} onSave={(t, n) => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: t, note: n } : v))} />
                   {it && <button onClick={() => { saveWeek(c.id, from, items.filter((_, j) => j !== idx)); setMenu(null); }} className="inline-flex items-center gap-1 text-xs text-destructive"><Trash2 className="h-3 w-3" />Verwijderen</button>}
                 </PopoverContent>
               </Popover>
