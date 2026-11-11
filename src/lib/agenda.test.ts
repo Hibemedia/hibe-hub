@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+// @ts-ignore bun types not installed in app tsconfig
+import { describe, it, expect } from "bun:test";
 import { monthGrid, entriesOn, absentOn, ymd, AgendaEntry } from "./agenda";
 
 const list: AgendaEntry[] = [
