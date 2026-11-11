@@ -1,3 +1,4 @@
+// @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, test } from "bun:test";
 import { parseTitles, statusAfterAssign, filterEdits, progressLabel, type Edit } from "./edits";
 
