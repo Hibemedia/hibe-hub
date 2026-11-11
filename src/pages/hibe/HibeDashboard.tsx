@@ -9,6 +9,7 @@ import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { PeriodSelect } from "@/components/PeriodSelect";
 import { Section, EmptyState, Change } from "@/components/StatsOverview";
 import { WeatherCard } from "@/components/WeatherCard";
+import { SocialsChecklistCard } from "@/components/SocialsChecklistCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber, NETWORK_LABELS, Network, PeriodKey } from "@/lib/stats";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,8 @@ export default function HibeDashboard() {
         {weekVideos && <TopVideosSmall videos={weekVideos} names={Object.fromEntries(clients.map((c) => [c.id, c.name]))} className="min-w-0 xl:col-span-4" />}
         <div className="min-w-0 xl:col-span-1">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
+
+      <SocialsChecklistCard />
 
       <PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />
 

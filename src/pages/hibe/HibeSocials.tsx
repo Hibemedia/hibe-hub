@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/StatsOverview";
-import { Item, Post, PostStatus, SClient, STATUSES, Week, WEEKLY, callSocials, cellCls, statusOf, ymd, mondayOf } from "@/lib/socials";
+import { Item, Post, PostStatus, SClient, STATUSES, Week, WEEKLY, callSocials, cellCls, statusOf, weekItems, ymd, mondayOf } from "@/lib/socials";
 
 export default function HibeSocials() {
   const qc = useQueryClient();
@@ -42,7 +42,6 @@ export default function HibeSocials() {
     try { await callSocials({ action: "set_week", client_id: c, week_start: ws, items }); }
     catch { toast.error("Kon niet opslaan"); qc.invalidateQueries({ queryKey: key }); }
   };
-  const weekItems = (w?: Week): Item[] => w?.items?.length ? w.items : Array.from({ length: w?.count ?? 0 }, (_, i) => ({ id: `legacy-${i}`, title: "", status: "scheduled" as PostStatus, note: "" }));
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-5 p-4 md:p-8">
