@@ -50,8 +50,9 @@ export async function uploadVideo(opts: {
   let target = resume[key];
   let signed: Signed;
   if (target) {
-    try { signed = await invokeVideo<Signed>({ action: "sign_parts", version_id: target.version_id }); }
-    catch { delete resume[key]; writeResume(resume); target = undefined as any; }
+    let r: (Signed & { gone?: boolean }) | null = null;
+    try { r = await invokeVideo<Signed & { gone?: boolean }>({ action: "sign_parts", version_id: target.version_id }); } catch { r = null; }
+    if (!r || r.gone) { delete resume[key]; writeResume(resume); target = undefined as any; } else signed = r;
   }
   if (!target) {
     const r = await invokeVideo<Signed & { version_id: string; item_id: string }>({
@@ -92,4 +93,11 @@ export async function uploadVideo(opts: {
   await invokeVideo({ action: "complete", version_id: target.version_id, parts });
   const after = readResume(); delete after[key]; writeResume(after);
   return target;
+}
+
+/** Forget local resume info for a deleted video so a new upload starts clean. */
+export function forgetResume(itemId: string) {
+  const r = readResume();
+  for (const k of Object.keys(r)) if (r[k].item_id === itemId) delete r[k];
+  writeResume(r);
 }
