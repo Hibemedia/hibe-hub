@@ -28,3 +28,8 @@
 - [x] Toon de Socials-checklist van deze week (ma-zo) als compacte kaart op /hibe, live vanaf dezelfde rijen als Review Hub.
 - [x] Deel de checklist-helpers tussen kaart en volledige pagina; klik een vakje om de status te zetten, knop naar de volledige checklist.
 - [x] Test de kaart als HIBE-admin op desktop en 375px zonder afkapping; controleer dat de volledige pagina nog werkt.
+## Video-meldingen
+- [x] Belletje voor HIBE bij klantfeedback/-goedkeuring
+- [x] Knop "Stuur naar klant" bij Mag naar klant
+- [ ] E-mail aan klant (één per verzending) met titels + "Bekijk en beoordeel" — wacht op eigen e-maildomein
+- [ ] Eén herinnering na 3 dagen zonder reactie — wacht op eigen e-maildomein

@@ -185,6 +185,54 @@ export type Database = {
           },
         ]
       }
+      hibe_notifications: {
+        Row: {
+          actor_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          item_id: string | null
+          kind: string
+          read_at: string | null
+          video_title: string
+        }
+        Insert: {
+          actor_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          kind: string
+          read_at?: string | null
+          video_title: string
+        }
+        Update: {
+          actor_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          kind?: string
+          read_at?: string | null
+          video_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hibe_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hibe_notifications_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "video_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       library_files: {
         Row: {
           category: string

@@ -6,6 +6,7 @@ import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { CLIENT_MENU } from "@/components/AppSidebar";
 import { useHeaderSlots } from "@/components/PageHeader";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 
 function Avatar() {
@@ -25,6 +26,7 @@ export function FrameTopBar({ variant }: { variant: "client" | "hibe" }) {
       <div className="flex flex-none justify-center md:flex-1"><GlobalSearch variant={variant} /></div>
       <div className="flex flex-none items-center justify-end gap-3 md:flex-1">
         <div ref={setActionEl} className="flex items-center" />
+        {variant === "hibe" && <NotificationBell />}
         <Avatar />
       </div>
     </header>

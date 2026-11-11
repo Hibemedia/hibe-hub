@@ -45,6 +45,19 @@ export default function HibeVideos() {
     refresh();
   };
 
+  const [sending, setSending] = useState<string | null>(null);
+  /** Moves all "Mag naar klant" videos of one client to "Ter controle bij klant" at once. */
+  const sendToClient = async (clientId: string) => {
+    const batch = items.filter((i) => i.client_id === clientId && i.status === "ready_for_client");
+    if (!batch.length) return;
+    setSending(clientId);
+    try {
+      for (const i of batch) await setVideoStatus(i.id, "client_review");
+      toast.success(`${batch.length} video${batch.length > 1 ? "'s" : ""} naar ${name(clientId)} gestuurd`);
+    } catch (e: any) { toast.error(e.message ?? "Doorzetten mislukt"); }
+    setSending(null); refresh();
+  };
+
   const pickFile = (f?: File | null) => {
     if (!f) return;
     if (!f.type.startsWith("video/")) { toast.error("Dit is geen videobestand"); return; }
@@ -79,7 +92,7 @@ export default function HibeVideos() {
         <div key={r.client_id} role="status" className="flex flex-wrap items-center gap-3 rounded-lg bg-foreground px-5 py-3 text-background">
           <Bell className="h-4 w-4" />
           <span className="text-sm"><b>{name(r.client_id)}</b>: {r.count} video's staan klaar in "Mag naar klant".</span>
-          <button onClick={() => setClient(r.client_id)} className="ml-auto rounded-full bg-lime px-4 py-1.5 text-sm font-medium text-lime-foreground">Bekijk</button>
+          <button onClick={() => sendToClient(r.client_id)} disabled={sending === r.client_id} className="ml-auto rounded-md bg-lime px-4 py-1.5 text-sm font-medium text-lime-foreground disabled:opacity-50">Stuur naar klant</button>
         </div>
       ))}
 
@@ -101,6 +114,12 @@ export default function HibeVideos() {
                   <h2 className="text-sm font-semibold">{VIDEO_STATUS_LABEL[s]}</h2>
                   <span className="chip tabular">{col.length}</span>
                 </header>
+                {s === "ready_for_client" && [...new Set(col.map((i) => i.client_id))].map((cid) => (
+                  <button key={cid} onClick={() => sendToClient(cid)} disabled={sending === cid}
+                    className="flex h-9 items-center justify-between gap-2 rounded-md bg-foreground px-3 text-xs font-medium text-background disabled:opacity-50">
+                    <span className="truncate">Stuur naar klant · {name(cid)}</span><span className="tabular">{col.filter((i) => i.client_id === cid).length}</span>
+                  </button>
+                ))}
                 {isLoading ? <p className="px-1 text-sm text-muted-foreground">Laden…</p> : col.length === 0 && (s === "internal_review"
                   ? <div className="px-1 py-4 text-center text-xs text-muted-foreground"><p>Sleep een video hierheen om te starten.</p><button onClick={() => input.current?.click()} className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-md bg-foreground px-3 text-xs font-medium text-background"><Upload className="h-3.5 w-3.5" />Video uploaden</button></div>
                   : <p className="px-1 py-4 text-center text-xs text-muted-foreground">Sleep een video hierheen om hem in deze fase te zetten.</p>)}
