@@ -141,6 +141,20 @@
       "when": 1794433482019,
       "tag": "0019_moment_crew",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794433665663,
+      "tag": "0020_user_profile_avatar",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794433679524,
+      "tag": "0021_avatars_policies",
+      "breakpoints": true
     }
   ]
 }

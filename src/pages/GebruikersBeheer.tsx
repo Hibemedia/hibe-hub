@@ -1,4 +1,5 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useEffect, useState } from "react";
 import { Plus, Trash2, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,7 +88,7 @@ export default function GebruikersBeheer() {
             {rows.filter((r) => filter === "all" || (filter === "admin" ? r.role === "admin" : r.role === "client" && r.client_id === filter))
               .sort((a, b) => (a.role + clientName(a.client_id)).localeCompare(b.role + clientName(b.client_id))).map((r) => (
               <TableRow key={r.id}>
-                <TableCell><div className="font-medium">{r.full_name || r.email}</div>{r.full_name && <div className="text-xs text-muted-foreground">{r.email}</div>}</TableCell>
+                <TableCell><div className="flex items-center gap-3"><UserAvatar userId={r.id} size={32} /><div><div className="font-medium">{r.full_name || r.email}</div>{r.full_name && <div className="text-xs text-muted-foreground">{r.email}</div>}</div></div></TableCell>
                 <TableCell><Badge variant={r.role === "admin" ? "default" : "secondary"}>{r.role === "admin" ? "HIBE (admin)" : "Klant"}</Badge></TableCell>
                 <TableCell>{r.role === "admin" ? "Alle klanten" : clientName(r.client_id)}</TableCell>
                 <TableCell>{new Date(r.created_at).toLocaleDateString("nl-NL")}</TableCell>

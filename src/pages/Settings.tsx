@@ -9,6 +9,7 @@ import { User, Bell, Shield, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { toast } from "sonner";
+import { MyProfile } from "@/components/MyProfile";
 
 export default function Settings() {
   const { user } = UserAuth();
@@ -58,6 +59,8 @@ export default function Settings() {
     <div className="p-6 space-y-6 max-w-3xl">
       <PageHeader title="Instellingen" action={<PrimaryAction icon={Save} onClick={save} disabled={saving}>Opslaan</PrimaryAction>} />
       <p className="text-sm text-muted-foreground">Beheer je account en voorkeuren</p>
+
+      <MyProfile />
 
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Account</CardTitle></CardHeader>

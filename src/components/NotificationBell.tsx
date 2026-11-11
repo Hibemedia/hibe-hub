@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ import { UserAuth } from "@/context/AuthContext.jsx";
 import { useChatLive, useChatNotes, useTeamMembers } from "@/hooks/useChat";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-type Note = { id: string; client_id: string; item_id: string | null; kind: string; video_title: string; created_at: string; read_at: string | null; recipient_id: string | null };
+type Note = { id: string; client_id: string; item_id: string | null; kind: string; video_title: string; created_at: string; read_at: string | null; recipient_id: string | null; actor_id?: string | null };
 const WHAT: Record<string, string> = { client_feedback: "heeft feedback gegeven op", client_approved: "heeft goedgekeurd:" };
 
 /** HIBE-only bell: client feedback/approvals on videos. */
@@ -21,7 +22,7 @@ export function NotificationBell() {
     enabled: !!me,
     refetchInterval: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("hibe_notifications" as any).select("id,client_id,item_id,kind,video_title,created_at,read_at,recipient_id").or(`recipient_id.is.null,recipient_id.eq.${me}`).order("created_at", { ascending: false }).limit(30);
+      const { data, error } = await supabase.from("hibe_notifications" as any).select("id,client_id,item_id,kind,video_title,created_at,read_at,recipient_id,actor_id").or(`recipient_id.is.null,recipient_id.eq.${me}`).order("created_at", { ascending: false }).limit(30);
       if (error) throw error;
       return (data ?? []) as unknown as Note[];
     },
@@ -65,7 +66,7 @@ export function NotificationBell() {
             {all.map(({ el }) => el.chat ? (
               <li key={el.c.id}>
                 <button onClick={() => { markRead([el.c.id]); nav(`/hibe/chat?room=${el.c.room_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${el.c.read_at ? "bg-transparent" : "bg-lime"}`} />
+                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${el.c.read_at ? "bg-transparent" : "bg-lime"}`} /><UserAvatar userId={el.c.actor_id} size={28} />
                   <span className="min-w-0"><b>{person(el.c.actor_id)}</b> {el.c.kind === "dm" ? "stuurde je een bericht:" : "noemde je in de chat:"} <span className="line-clamp-2 font-medium">{el.c.preview}</span>
                     <span className="block text-xs text-muted-foreground">{when(el.c.created_at)}</span></span>
                 </button>
@@ -73,7 +74,7 @@ export function NotificationBell() {
             ) : ((n) => (
               <li key={n.id}>
                 <button onClick={() => { markRead([n.id]); if (n.kind === "edit_assigned") nav("/hibe/edits"); else if (n.kind === "crew_assigned") nav("/hibe/contentmomenten"); else if (n.item_id) nav(`/hibe/videos/${n.item_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-transparent" : "bg-lime"}`} />
+                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-transparent" : "bg-lime"}`} />{n.actor_id && <UserAvatar userId={n.actor_id} size={28} />}
                   <span className="min-w-0">{n.kind === "crew_assigned" ? <>Je staat op een draaidag bij <b>{name(n.client_id)}</b>: <span className="font-medium">{n.video_title}</span></> : n.kind === "edit_assigned" ? <>Nieuwe edit voor jou bij <b>{name(n.client_id)}</b>: <span className="font-medium">{n.video_title}</span></> : <><b>{name(n.client_id)}</b> {WHAT[n.kind] ?? n.kind} <span className="font-medium">{n.video_title}</span></>}
                     <span className="block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></span>
                 </button>
