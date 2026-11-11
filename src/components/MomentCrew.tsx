@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { crewConflicts, needsCrew, CrewRow } from "@/lib/crew";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export type Member = { id: string; name: string; avatar_url: string | null };
 export type ShownCrew = { moment_id: string; user_id?: string; name: string; avatar_url: string | null; role?: string | null };
@@ -55,9 +56,8 @@ export function useCrew(moments: { id: string; show_crew_to_client?: boolean }[]
   return { byMoment, rows: (isAdmin ? rows : []) as CrewRow[], team: team.data ?? [], asClient };
 }
 
-export function CrewAvatar({ c, size = 24 }: { c: { name: string; avatar_url: string | null }; size?: number }) {
-  if (c.avatar_url) return <img src={c.avatar_url} alt={c.name} title={c.name} className="shrink-0 rounded-full object-cover ring-2 ring-card" style={{ width: size, height: size }} />;
-  return <span title={c.name} className="flex shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-bold text-background ring-2 ring-card" style={{ width: size, height: size }}>{c.name.slice(0, 1).toUpperCase()}</span>;
+export function CrewAvatar({ c, size = 24 }: { c: { name: string; avatar_url: string | null; user_id?: string }; size?: number }) {
+  return <UserAvatar userId={c.user_id} name={c.name} url={c.avatar_url} size={size} className="ring-2 ring-card" />;
 }
 
 /** Avatars on a moment row/card, or the orange label for a shoot day without crew (HIBE only). */
@@ -113,7 +113,7 @@ export function CrewEditor({ m, allMoments }: { m: { id: string; date: string | 
           const clash = crewConflicts(c.user_id, m, allMoments, rows);
           return (
             <li key={c.user_id} className="flex items-center gap-2 rounded-lg bg-popover px-3 py-2">
-              <CrewAvatar c={{ name: mm?.name ?? "?", avatar_url: mm?.avatar_url ?? null }} />
+              <CrewAvatar c={{ name: mm?.name ?? "?", avatar_url: mm?.avatar_url ?? null, user_id: c.user_id }} />
               <span className="min-w-0 flex-1 truncate text-sm font-medium">{mm?.name ?? "Teamlid"}{clash.length > 0 && <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-warning"><AlertTriangle className="h-3 w-3" />ook op andere draaidag</span>}</span>
               <Input defaultValue={c.role ?? ""} placeholder="Rol (optioneel)" aria-label={`Rol van ${mm?.name}`} className="h-8 w-32" onBlur={(e) => e.target.value !== (c.role ?? "") && setRoleOf(c.user_id, e.target.value)} />
               <button onClick={() => remove(c.user_id)} aria-label={`${mm?.name} verwijderen`} className="rounded p-1 hover:bg-muted"><X className="h-4 w-4" /></button>

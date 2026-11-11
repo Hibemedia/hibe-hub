@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Plus, Upload, MessageSquareWarning, Film, Trash2 } from "lucide-react";
@@ -60,8 +61,7 @@ function useFilters() {
 
 function Avatar({ m, size = 24 }: { m?: Member; size?: number }) {
   if (!m) return <span className="shrink-0 rounded-full border border-dashed border-border" style={{ width: size, height: size }} />;
-  if (m.avatar_url) return <img src={m.avatar_url} alt="" className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />;
-  return <span className="flex shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-bold text-background" style={{ width: size, height: size }}>{m.name.slice(0, 1).toUpperCase()}</span>;
+  return <UserAvatar userId={m.id} name={m.name} url={m.avatar_url} size={size} />;
 }
 
 const STATUS_CLS: Record<EditStatus, string> = {

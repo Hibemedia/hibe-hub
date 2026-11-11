@@ -15,13 +15,13 @@ import { useHeaderSlots } from "@/components/PageHeader";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/UserAvatar";
 
 function Avatar() {
   const { user, session } = UserAuth() as any;
   const u = user ?? session?.user;
   const label: string = u?.full_name || u?.user_metadata?.full_name || u?.email || "";
-  const initials = label.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((s: string) => s[0]?.toUpperCase()).join("") || "?";
-  return <span title={label} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">{initials}</span>;
+  return <UserAvatar userId={u?.id} size={32} name={undefined} />;
 }
 
 /** 56px top bar on every page: title left, search centre, main action + avatar right. */

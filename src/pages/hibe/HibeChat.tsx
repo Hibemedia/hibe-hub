@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Bell, Hash, ImagePlus, MoreHorizontal, Plus, Send, Settings2, Users, X } from "lucide-react";
@@ -21,8 +22,7 @@ const db = supabase as any;
 const ASKED = "hibe.chat.notifyAsked";
 
 function Avatar({ m, size = 32 }: { m?: Member; size?: number }) {
-  if (m?.avatar_url) return <img src={m.avatar_url} alt="" className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />;
-  return <span className="flex shrink-0 items-center justify-center rounded-full bg-foreground font-bold text-background" style={{ width: size, height: size, fontSize: size * 0.4 }}>{(m?.name ?? "?").slice(0, 1).toUpperCase()}</span>;
+  return <UserAvatar userId={m?.id} name={m?.name ?? "?"} url={m?.avatar_url ?? null} size={size} />;
 }
 const Count = ({ n }: { n?: number }) => (n ? <span className="ml-auto min-w-5 rounded-full bg-lime px-1.5 text-center text-[11px] font-bold leading-5 text-lime-foreground tabular" aria-label={`${n} ongelezen`}>{n}</span> : null);
 
