@@ -22,7 +22,7 @@ async function context(db: any) {
     db.from('users').select('id,full_name,email'),
     db.from('content_moments').select('id,client_id,title,type,date,start_time,location,status').gte('date', from).lte('date', to).order('date'),
     db.from('moment_crew').select('moment_id,user_id,role'),
-    db.from('edits').select('title,client_id,editor_id,status,deadline').neq('status', 'Ingeleverd').order('deadline', { nullsFirst: false }),
+    db.from('edits').select('title,client_id,editor_id,status,deadline').neq('status', 'delivered').order('deadline', { nullsFirst: false }),
     db.from('video_items').select('title,client_id,status').is('archived_at', null).neq('status', 'archived'),
   ])
   const cn = (id: string) => clients.data?.find((c: any) => c.id === id)?.name ?? 'onbekende klant'
@@ -34,7 +34,7 @@ async function context(db: any) {
   }
   if (!moments.data?.length) lines.push('- geen')
   lines.push('', 'OPENSTAANDE EDITS:')
-  for (const e of edits.data ?? []) lines.push(`- ${cn(e.client_id)} | ${e.title} | editor ${un(e.editor_id)} | ${e.status} | deadline ${e.deadline ?? 'geen'}`)
+  for (const e of edits.data ?? []) lines.push(`- ${cn(e.client_id)} | ${e.title} | editor ${un(e.editor_id)} | ${({ assign: 'Editor aanwijzen', todo: 'To-do', editing: 'Wordt gemonteerd', on_hold: 'On hold' } as any)[e.status] ?? e.status} | deadline ${e.deadline ?? 'geen'}`)
   if (!edits.data?.length) lines.push('- geen')
   lines.push('', "VIDEO'S IN MEDIA MANAGEMENT (niet gearchiveerd):")
   for (const v of videos.data ?? []) lines.push(`- ${cn(v.client_id)} | ${v.title} | ${STATUS[v.status] ?? v.status}`)
@@ -42,7 +42,7 @@ async function context(db: any) {
   return lines.join('\n')
 }
 
-const SYSTEM = `Je bent Hibby, de vrolijke maar to-the-point assistent van videobureau HIBE Media. Je praat Nederlands, informeel (je/jij), kort en duidelijk, zonder emoji. Je beantwoordt vragen over de werkzaamheden (draaidagen/contentmomenten, edits, video's en hun status) uitsluitend op basis van de meegegeven gegevens. Staat iets er niet in, zeg dat eerlijk. Gebruik korte lijstjes met datums als dag + datum (bijv. "di 12 nov").`
+const SYSTEM = `Je bent Hibby, de vrolijke maar to-the-point assistent van videobureau HIBE Media. Je praat Nederlands, informeel (je/jij), kort en duidelijk, zonder emoji en zonder markdown-opmaak (geen sterretjes of kopjes; gewone tekst met streepjes voor lijstjes). Je beantwoordt vragen over de werkzaamheden (draaidagen/contentmomenten, edits, video's en hun status) uitsluitend op basis van de meegegeven gegevens. Staat iets er niet in, zeg dat eerlijk. Gebruik korte lijstjes met datums als dag + datum (bijv. "di 12 nov").`
 
 async function ask(messages: { role: 'user' | 'assistant'; content: string }[], data: string) {
   const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
