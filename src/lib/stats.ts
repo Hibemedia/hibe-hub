@@ -111,6 +111,12 @@ function amMidnight(dateStr: string) {
   return asUTC - tzOffsetMs(new Date(asUTC + 12 * 3600e3), AM);
 }
 
+/** Monday 00:00 of the current week (Amsterdam) until now, as ISO strings. */
+export function thisWeekRange(now = new Date()) {
+  const { end } = lastWeekRange(now);
+  return { start: end, end: now.toISOString() };
+}
+
 /** Monday 00:00 through Sunday 24:00 of the previous ISO week, Amsterdam time, as ISO strings. */
 export function lastWeekRange(now = new Date()) {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: AM, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);

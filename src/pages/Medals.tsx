@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { computeMedals, Medal, MedalStat, MedalVideo } from "@/lib/medals";
-import { formatNumber, NETWORK_LABELS, Network } from "@/lib/stats";
+import { formatNumber, NETWORK_LABELS, Network, thisWeekRange } from "@/lib/stats";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/StatsOverview";
@@ -48,12 +48,14 @@ export default function Medals() {
         fetchAll<MedalStat>("daily_stats", "network,date,followers,views,posts", clientId),
       ]);
       const hall = [...videos].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 5).map((v) => ({ ...v }));
-      const stored = hall.filter((v) => v.thumbnail_url?.startsWith("storage:thumbnails/"));
+      const wk = thisWeekRange();
+      const week = videos.filter((v) => v.published_at && v.published_at >= wk.start && v.published_at < wk.end).sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 5).map((v) => ({ ...v }));
+      const stored = [...hall, ...week].filter((v) => v.thumbnail_url?.startsWith("storage:thumbnails/"));
       if (stored.length) {
         const { data: signed } = await supabase.storage.from("thumbnails").createSignedUrls(stored.map((v) => v.thumbnail_url?.slice(19) ?? ""), 3600);
         stored.forEach((v, i) => { v.thumbnail_url = signed?.[i]?.signedUrl ?? null; });
       }
-      return { medals: computeMedals(videos, stats), hall, empty: !videos.length && !stats.length };
+      return { medals: computeMedals(videos, stats), hall, week, empty: !videos.length && !stats.length };
     },
   });
 
@@ -68,28 +70,8 @@ export default function Medals() {
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {data.medals.map((m) => <MedalCard key={`${clientId}:${m.key}:${m.reached}`} m={m} clientId={clientId ?? ""} onCelebrate={() => { setSelected(m); fireMedalConfetti(); }} />)}
           </ul>
-          <section className="rounded-lg bg-card p-5 md:p-7">
-            <h2 className="mb-5 text-xl font-semibold tracking-tight md:text-2xl">Hall of fame</h2>
-            <ol className="space-y-2">
-              {data.hall.map((v, i) => (
-                <li key={v.id} className="relative flex items-center gap-4 rounded-lg bg-popover p-3 pr-16">
-                  <span className="w-8 shrink-0 text-center text-3xl font-light tabular">{i + 1}</span>
-                  <div className="h-16 w-12 shrink-0 overflow-hidden rounded-[12px] bg-muted">
-                    {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{v.title || "Zonder titel"}</p>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
-                      {v.published_at && <span className="chip">{fmtDate(v.published_at)}</span>}
-                    </div>
-                  </div>
-                  <div className="hidden text-right tabular sm:block"><span className="text-2xl font-light">{formatNumber(v.views)}</span> <span className="text-xs text-muted-foreground">weergaven</span></div>
-                  {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-3 top-1/2 h-9 w-9 -translate-y-1/2 bg-card"><ArrowUpRight className="h-4 w-4" aria-hidden /></a>}
-                </li>
-              ))}
-            </ol>
-          </section>
+          <VideoList title="Top 5 deze week" items={data.week} empty="Deze week zijn er nog geen video's geplaatst." />
+          <VideoList title="Hall of fame" subtitle="Beste video's aller tijden" items={data.hall} />
         </>
       )}
       <MedalCelebration medal={selected} title={selected ? META[selected.key].title : ""} metric={selected ? META[selected.key].unit(selected.value) : ""} date={fmtDate(selected?.achievedDate ?? null)} onClose={() => setSelected(null)} />
@@ -151,5 +133,35 @@ function MedalCard({ m, clientId, onCelebrate }: { m: Medal; clientId: string; o
         ) : <span className="text-muted-foreground">Nog niet behaald</span>}
       </div>
     </li>
+  );
+}
+
+function VideoList({ title, subtitle, items, empty }: { title: string; subtitle?: string; items: MedalVideo[]; empty?: string }) {
+  return (
+          <section className="rounded-lg bg-card p-5 md:p-7">
+            <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
+            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+            <div className="mb-5" />
+            {!items.length && <p className="text-sm text-muted-foreground">{empty}</p>}
+            <ol className="space-y-2">
+              {items.map((v, i) => (
+                <li key={v.id} className="relative flex items-center gap-4 rounded-lg bg-popover p-3 pr-16">
+                  <span className="w-8 shrink-0 text-center text-3xl font-light tabular">{i + 1}</span>
+                  <div className="h-16 w-12 shrink-0 overflow-hidden rounded-[12px] bg-muted">
+                    {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{v.title || "Zonder titel"}</p>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
+                      {v.published_at && <span className="chip">{fmtDate(v.published_at)}</span>}
+                    </div>
+                  </div>
+                  <div className="hidden text-right tabular sm:block"><span className="text-2xl font-light">{formatNumber(v.views)}</span> <span className="text-xs text-muted-foreground">weergaven</span></div>
+                  {v.url && <a href={v.url} target="_blank" rel="noopener noreferrer" aria-label="Open post" className="round-btn absolute right-3 top-1/2 h-9 w-9 -translate-y-1/2 bg-card"><ArrowUpRight className="h-4 w-4" aria-hidden /></a>}
+                </li>
+              ))}
+            </ol>
+          </section>
   );
 }
