@@ -18,7 +18,7 @@ const db = supabase as any;
 
 /** Client review: /videos/beoordelen walks the queue one by one; /videos/:id opens a single video. */
 export default function ClientReview() {
-  const { id } = useParams();
+  const { videoId: id } = useParams();
   const flow = id === "beoordelen";
   const { clientId, isAdmin } = useClient();
   const base = useBase();

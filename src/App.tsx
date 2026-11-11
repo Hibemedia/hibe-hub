@@ -39,7 +39,7 @@ const clientPages = (
     <Route path="branding" element={<Branding />} />
     <Route path="medals" element={<Medals />} />
     <Route path="videos" element={<ClientVideos />} />
-    <Route path="videos/:id" element={<ClientReview />} />
+    <Route path="videos/:videoId" element={<ClientReview />} />
   </>
 );
 
