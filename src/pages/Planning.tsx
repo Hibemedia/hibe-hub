@@ -37,7 +37,7 @@ export default function Planning() {
               {posts.map((p) => (
                 <li key={p.id} className="flex gap-3 p-3">
                   <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-                    {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" loading="lazy" /> : <ImageOff className="h-4 w-4 text-muted-foreground" />}
+                    {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} /> : <ImageOff className="h-4 w-4 text-muted-foreground" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 text-xs">
