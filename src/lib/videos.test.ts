@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, STEPS } from "./videos";
+import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime } from "./videos";
 
 describe("videos", () => {
   it("statuses are in the agreed board order", () => {
