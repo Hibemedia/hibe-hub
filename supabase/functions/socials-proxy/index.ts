@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const b = p.data; const h = await hubClient();
     if (b.action === "load") {
       const [c, po, w] = await Promise.all([
-        h.from("social_clients").select("*").order("sort_order"),
+        h.from("social_clients").select("id,name,abbreviation,category,sort_order,is_active,tracking_mode,weekly_target").order("sort_order"),
         h.from("social_posts").select("client_id,post_date,status,note,title").gte("post_date", b.from).lte("post_date", b.to),
         h.from("social_weekly_edits").select("client_id,week_start,count,items").gte("week_start", b.weekFrom).lte("week_start", b.to),
       ]);
