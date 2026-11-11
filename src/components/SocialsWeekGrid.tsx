@@ -174,7 +174,7 @@ export function SocialsWeekGrid() {
               onPointerUp={endPress}
               onPointerLeave={endPress}
               onPointerMove={endPress}
-              className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "h-8 text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
+              className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
               {st.symbol}
               {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
               {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
@@ -274,7 +274,7 @@ export function SocialsWeekGrid() {
       : "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]";
     return (
       <td key={ws} colSpan={span} className="border border-border p-0" title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
-        <div className={cn("flex h-8 w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
+        <div className={cn("flex w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
       </td>
     );
   };
@@ -299,8 +299,8 @@ export function SocialsWeekGrid() {
       </div>
 
       <div className="-mx-1 overflow-x-auto px-1">
-        <table className={cn("w-full table-fixed border-collapse text-xs", view === "week" ? "min-w-[640px]" : "min-w-[1100px]")}>
-          <colgroup><col className="w-32 md:w-44" />{dates.map((d) => <col key={d} />)}<col className="w-32 md:w-36" /></colgroup>
+        <table className={cn("w-full table-fixed border-collapse text-xs", view === "week" ? "min-w-[640px]" : "min-w-[1220px]")}>
+          <colgroup><col className="w-32 md:w-44" />{dates.map((d) => <col key={d} className={view === "week" ? undefined : "w-[30px]"} />)}<col className={view === "week" ? "w-32 md:w-36" : undefined} /></colgroup>
           <thead><tr>
             <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
             {dates.map((d, i) => (
