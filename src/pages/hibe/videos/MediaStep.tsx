@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { BoardItem, setVideoStatus, renameVideo, trashVideo } from "@/hooks/useVideos";
 import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
-import { STEPS, STEP_HINT, STEP_ACTION, STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, stepNo, ageTone, fmtSize, whatsappText } from "@/lib/videos";
+import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, stepNo, ageTone, fmtSize } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -158,4 +158,3 @@ export default function MediaStep() {
     </div>
   );
 }
-export { STEP_SLUG, whatsappText };
