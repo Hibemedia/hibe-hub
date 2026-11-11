@@ -57,7 +57,7 @@ export function SocialsChecklistCard({ className }: { className?: string }) {
               <div className="overflow-x-auto">
                 <table className="border-separate border-spacing-0.5 text-xs">
                   <thead><tr>
-                    <th className="sticky left-0 z-10 min-w-20 bg-card px-1 text-left font-medium text-muted-foreground md:min-w-32 md:px-2">Klant</th>
+                    <th className="sticky left-0 z-10 min-w-[72px] bg-card px-1 text-left font-medium text-muted-foreground md:min-w-32 md:px-2">Klant</th>
                     {dates.map((d, i) => (
                       <th key={d} className={cn("w-7 min-w-7 font-medium md:w-8 md:min-w-8", d === today ? "text-foreground underline" : "text-muted-foreground")}>
                         <div>{DAYS[i]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
@@ -67,7 +67,7 @@ export function SocialsChecklistCard({ className }: { className?: string }) {
                   <tbody>
                     {daily.map((c) => (
                       <tr key={c.id}>
-                        <td className="sticky left-0 z-10 bg-card px-1 font-medium md:px-2" title={c.name}><span className="block max-w-20 truncate md:max-w-40">{c.name}</span></td>
+                        <td className="sticky left-0 z-10 bg-card px-1 font-medium md:px-2" title={c.name}><span className="block max-w-[72px] truncate md:max-w-40">{c.name}</span></td>
                         {dates.map((d) => {
                           const p = posts.get(`${c.id}_${d}`); const st = statusOf(p?.status ?? "none");
                           return (
