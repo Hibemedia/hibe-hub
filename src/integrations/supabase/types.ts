@@ -185,35 +185,98 @@ export type Database = {
           },
         ]
       }
+      edits: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          editor_id: string | null
+          id: string
+          notes: string | null
+          status: string
+          title: string
+          updated_at: string
+          video_item_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          editor_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          video_item_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          editor_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          video_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edits_video_item_id_fkey"
+            columns: ["video_item_id"]
+            isOneToOne: false
+            referencedRelation: "video_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hibe_notifications: {
         Row: {
           actor_id: string | null
           client_id: string
           created_at: string
+          edit_id: string | null
           id: string
           item_id: string | null
           kind: string
           read_at: string | null
+          recipient_id: string | null
           video_title: string
         }
         Insert: {
           actor_id?: string | null
           client_id: string
           created_at?: string
+          edit_id?: string | null
           id?: string
           item_id?: string | null
           kind: string
           read_at?: string | null
+          recipient_id?: string | null
           video_title: string
         }
         Update: {
           actor_id?: string | null
           client_id?: string
           created_at?: string
+          edit_id?: string | null
           id?: string
           item_id?: string | null
           kind?: string
           read_at?: string | null
+          recipient_id?: string | null
           video_title?: string
         }
         Relationships: [
@@ -222,6 +285,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hibe_notifications_edit_id_fkey"
+            columns: ["edit_id"]
+            isOneToOne: false
+            referencedRelation: "edits"
             referencedColumns: ["id"]
           },
           {

@@ -8,7 +8,7 @@ const PART = 64 * 1024 * 1024;
 const MAX = 5 * 1024 * 1024 * 1024;
 const uuid = z.string().uuid();
 const Body = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("create"), item_id: uuid.optional(), client_id: uuid.optional(), title: z.string().trim().min(1).max(300).optional(), file_name: z.string().min(1).max(300), size: z.number().int().positive().max(MAX), mime: z.string().max(100).optional() }),
+  z.object({ action: z.literal("create"), item_id: uuid.optional(), client_id: uuid.optional(), title: z.string().trim().min(1).max(300).optional(), file_name: z.string().min(1).max(300), size: z.number().int().positive().max(MAX), mime: z.string().max(100).optional(), uploader_id: uuid.optional() }),
   z.object({ action: z.literal("sign_parts"), version_id: uuid }),
   z.object({ action: z.literal("complete"), version_id: uuid, parts: z.array(z.object({ PartNumber: z.number().int().min(1).max(10000), ETag: z.string().max(200) })).min(1).max(10000) }),
   z.object({ action: z.literal("abort"), version_id: uuid }),
@@ -64,13 +64,14 @@ Deno.serve(async (req) => {
 
     if (b.action === "create") {
       let itemId = b.item_id, clientId = b.client_id;
+      const uploader = b.uploader_id ?? u.user.id;
       if (itemId) {
         const { data: it } = await admin.from("video_items").select("client_id").eq("id", itemId).single();
         if (!it) return json({ error: "Video niet gevonden" }, 404);
         clientId = it.client_id;
       } else {
         if (!clientId || !b.title) return json({ error: "Klant en titel zijn verplicht" }, 400);
-        const { data: it, error } = await admin.from("video_items").insert({ client_id: clientId, title: b.title, created_by: u.user.id }).select("id").single();
+        const { data: it, error } = await admin.from("video_items").insert({ client_id: clientId, title: b.title, created_by: uploader }).select("id").single();
         if (error) throw error; itemId = it.id;
       }
       const { data: last } = await admin.from("video_versions").select("version").eq("item_id", itemId).order("version", { ascending: false }).limit(1).maybeSingle();
@@ -80,7 +81,7 @@ Deno.serve(async (req) => {
       const xml = await call("POST", key, "?uploads");
       const uploadId = xml.match(/<UploadId>([^<]+)<\/UploadId>/)?.[1];
       if (!uploadId) throw new Error("Upload kon niet starten");
-      const { data: ver, error } = await admin.from("video_versions").insert({ item_id: itemId, version, r2_key: key, file_name: b.file_name, size_bytes: b.size, mime_type: b.mime ?? null, upload_id: uploadId, uploaded_by: u.user.id }).select("id").single();
+      const { data: ver, error } = await admin.from("video_versions").insert({ item_id: itemId, version, r2_key: key, file_name: b.file_name, size_bytes: b.size, mime_type: b.mime ?? null, upload_id: uploadId, uploaded_by: uploader }).select("id").single();
       if (error) throw error;
       return json({ item_id: itemId, version_id: ver.id, version, ...(await signAll(key, uploadId, b.size)) });
     }
