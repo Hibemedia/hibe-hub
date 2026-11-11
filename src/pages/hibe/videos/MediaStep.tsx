@@ -123,7 +123,7 @@ export default function MediaStep() {
             {list.map((i) => {
               const a = status && !trashView ? STEP_ACTION[status] : undefined;
               return (
-                <li key={i.id} onClick={() => nav(`/hibe/videos/${i.id}`)} className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
+                <li key={i.id} onClick={() => status === "approved_internal" ? downloadVideo(i.versionId, i.file_name ?? i.title) : nav(`/hibe/videos/${i.id}`)} title={status === "approved_internal" ? "Klik om te downloaden" : undefined} className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
                   <span onClick={(e) => e.stopPropagation()}><Checkbox checked={sel.has(i.id)} onCheckedChange={(v) => setSel((s) => { const n = new Set(s); v ? n.add(i.id) : n.delete(i.id); return n; })} aria-label={`Selecteer ${i.title}`} /></span>
                   {m.mark(i.client_id, 24)}
                   <VideoThumb versionId={i.versionId} className="h-12 w-[27px]" />
@@ -157,7 +157,7 @@ export default function MediaStep() {
       </section>
       <input ref={verInput} type="file" accept="video/*" className="hidden" onChange={(e) => {
         const file = e.target.files?.[0]; e.target.value = "";
-        if (file && verFor) startUpload({ file, itemId: verFor.id, onDone: () => { refresh(); toast.success(`V${verFor.current_version + 1} van ${verFor.title} staat in ${verFor.status === "approved_internal" ? "Mag naar klant" : "Interne controle"}`); } });
+        if (file && verFor) startUpload({ file, itemId: verFor.id, onDone: () => { refresh(); toast.success(`V${verFor.current_version + 1} van ${verFor.title} staat in ${verFor.status === "approved_internal" ? "Ter controle bij klant" : "Interne controle"}`); } });
       }} />
       {up.ui}{sender.dialog}
     </div>

@@ -28,7 +28,7 @@ export function clientsReadyToSend<T extends { client_id: string; status: VideoS
 export function hibeNext(status: VideoStatus, action: "approve" | "feedback"): VideoStatus | null {
   if (action === "feedback") return status === "archived" ? null : "feedback";
   const map: Partial<Record<VideoStatus, VideoStatus>> = {
-    internal_review: "approved_internal", feedback: "approved_internal", approved_internal: "ready_for_client",
+    internal_review: "approved_internal", feedback: "approved_internal", approved_internal: "client_review",
     ready_for_client: "client_review", client_review: "approved_client", approved_client: "scheduled",
   };
   return map[status] ?? null;
@@ -109,7 +109,7 @@ export function clientColorSlot(id: string) {
 }
 
 /* ---------- Media Management steps ---------- */
-export const STEPS: VideoStatus[] = ["internal_review", "feedback", "approved_internal", "ready_for_client", "client_review", "approved_client", "scheduled"];
+export const STEPS: VideoStatus[] = ["internal_review", "feedback", "approved_internal", "client_review", "approved_client", "scheduled"]; // ready_for_client is retired: CapCut finals go straight to the client
 export const stepNo = (s: VideoStatus) => STEPS.indexOf(s) + 1; // 0 for archived
 export const STEP_SLUG: Record<VideoStatus, string> = {
   internal_review: "interne-controle", feedback: "feedback-verwerken", approved_internal: "capcut", ready_for_client: "mag-naar-klant",
@@ -119,7 +119,7 @@ export const statusFromSlug = (slug?: string) => (Object.keys(STEP_SLUG) as Vide
 export const STEP_HINT: Record<VideoStatus, string> = {
   internal_review: "Klaar met monteren? Upload je video hier.",
   feedback: "Bekijk de feedback, maak een nieuwe versie en upload die bij de video.",
-  approved_internal: "Intern goedgekeurd. Download de video, voeg in CapCut de ondertiteling toe en upload de final: die gaat dan door naar Mag naar klant.",
+  approved_internal: "Intern goedgekeurd. Download de video, voeg in CapCut de ondertiteling toe en upload de final: die gaat direct naar Ter controle bij klant. Opnieuw beoordelen hoeft niet.",
   ready_for_client: "Klaar om te versturen. Bij 3 video's per klant kan het setje naar de klant.",
   client_review: "Verstuurd naar de klant, wacht op reactie.",
   approved_client: "Goedgekeurd door de klant. Moet nog worden ingepland.",
