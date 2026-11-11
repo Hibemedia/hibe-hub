@@ -78,7 +78,7 @@ export function NotificationBell() {
                     <span className="block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></span>
                 </button>
               </li>
-            ))(el.n))}
+            ))((el as { n: Note }).n))}
           </ul>
         )}
       </PopoverContent>
