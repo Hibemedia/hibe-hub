@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePendingReviewCount } from "@/hooks/useReviews";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
+import { useUnread } from "@/hooks/useChat";
 
 type Item = { title: string; url: string; icon: LucideIcon; prefix?: string };
 export const CLIENT_MENU: Item[] = [
@@ -26,6 +27,7 @@ const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Edits", url: "/hibe/edits", icon: Scissors },
+  { title: "Chat", url: "/hibe/chat", icon: MessagesSquare },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
@@ -170,7 +172,9 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const toggle = () => setCollapsed((c) => { localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1"); return !c; });
   const items = variant === "hibe" ? HIBE_MENU : CLIENT_MENU;
   const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Instellingen", url: "/settings", icon: Settings };
-  const badgeFor = (i: Item) => (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined);
+  const { data: chatUnread = {} } = useUnread(variant === "hibe");
+  const chatCount = Object.values(chatUnread).reduce((a, b) => a + b, 0);
+  const badgeFor = (i: Item) => i.icon === MessagesSquare ? chatCount : (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined);
   const primary = items.slice(0, 5);
   const rest = [...items.slice(5), settings];
 
