@@ -823,6 +823,53 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          assignee_id: string
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          done_at: string | null
+          due_date: string | null
+          due_time: string | null
+          id: string
+          notes: string | null
+          title: string
+        }
+        Insert: {
+          assignee_id: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          notes?: string | null
+          title: string
+        }
+        Update: {
+          assignee_id?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          notes?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_roles: {
         Row: {
           role: string

@@ -16,14 +16,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AgendaEntry, AgendaKind, absentOn, entriesOn, monthGrid, shootRow, ymd } from "@/lib/agenda";
+import { TaskDialog, TaskFields, blankTask, saveTask, taskToForm, type TaskForm } from "@/components/TaskDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const db = supabase as any;
-const KIND_LABEL: Record<AgendaKind, string> = { shoot: "Draaidag", meeting: "Meeting", vacation: "Vrij" };
+const KIND_LABEL: Record<AgendaKind, string> = { shoot: "Draaidag", meeting: "Meeting", vacation: "Vrij", task: "Taak" };
 const KIND_CLS: Record<AgendaKind, string> = {
   shoot: "bg-lime text-lime-foreground",
   meeting: "bg-foreground text-background",
   vacation: "bg-muted text-muted-foreground border border-dashed border-border",
+  task: "bg-card text-foreground border border-foreground/30",
 };
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
@@ -34,13 +36,14 @@ function useAgenda(from: string, to: string) {
   return useQuery({
     queryKey: ["agenda", from, to],
     queryFn: async () => {
-      const [ev, mo] = await Promise.all([
+      const [ev, mo, tk] = await Promise.all([
         db.from("calendar_events").select("*, attendees:calendar_attendees(user_id)").lte("start_date", to).gte("end_date", from),
         db.from("content_moments").select("id,title,date,start_time,client_id,status,crew:moment_crew(user_id)").gte("date", from).lte("date", to),
+        db.from("tasks").select("*").not("due_date", "is", null).gte("due_date", from).lte("due_date", to),
       ]);
       if (ev.error) throw ev.error;
       if (mo.error) throw mo.error;
-      return { events: (ev.data ?? []) as Ev[], moments: (mo.data ?? []) as any[] };
+      return { events: (ev.data ?? []) as Ev[], moments: (mo.data ?? []) as any[], tasks: (tk.data ?? []) as any[] };
     },
   });
 }
@@ -70,11 +73,18 @@ export default function HibeAgenda() {
       title: e.kind === "vacation" ? `${e.person_id ? name(e.person_id) : ""} ${e.title}`.trim() : e.title,
       people: e.kind === "vacation" ? (e.person_id ? [e.person_id] : []) : e.attendees.map((a) => a.user_id),
     })),
+    ...(data?.tasks ?? []).filter((t) => !t.done_at).map((t) => ({
+      id: t.id, kind: "task" as const, start: t.due_date, end: t.due_date, time: t.due_time?.slice(0, 5),
+      title: t.assignee_id === me ? t.title : `${name(t.assignee_id)}: ${t.title}`, people: [t.assignee_id],
+    })),
   ], [data, clients, team]);
+  const [task, setTask] = useState<TaskForm | null>(null);
+  const [taskEdit, setTaskEdit] = useState<TaskForm | null>(null);
 
   const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [], client_id: "" });
   const open = (e: AgendaEntry) => {
     if (e.kind === "shoot") return nav("/hibe/contentmomenten");
+    if (e.kind === "task") { const t = data?.tasks.find((x) => x.id === e.id); if (t) setTaskEdit(taskToForm(t)); return; }
     const ev = data?.events.find((x) => x.id === e.id); if (!ev) return;
     setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id), client_id: "" });
   };
@@ -85,6 +95,12 @@ export default function HibeAgenda() {
 
   const save = async () => {
     if (!form) return;
+    if (form.kind === "task") {
+      setSaving(true);
+      try { await saveTask({ ...task!, due_date: task!.due_date || form.start_date }, me); toast.success("Taak ingepland"); setForm(null); qc.invalidateQueries({ queryKey: ["agenda"] }); qc.invalidateQueries({ queryKey: ["tasks"] }); }
+      catch (e: any) { toast.error(e.message ?? "Opslaan mislukt"); } finally { setSaving(false); }
+      return;
+    }
     if (!form.title.trim()) return toast.error("Geef een titel op");
     if (form.end_date < form.start_date) return toast.error("Einddatum ligt voor de begindatum");
     setSaving(true);
@@ -145,7 +161,7 @@ export default function HibeAgenda() {
           <Button variant="ghost" size="sm" onClick={() => setCursor({ y: now.getFullYear(), m: now.getMonth() })}>Vandaag</Button>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
-          {(["shoot", "meeting", "vacation"] as AgendaKind[]).map((k) => <span key={k} className={cn("rounded-full px-2.5 py-1 font-medium", KIND_CLS[k])}>{KIND_LABEL[k]}</span>)}
+          {(["shoot", "meeting", "vacation", "task"] as AgendaKind[]).map((k) => <span key={k} className={cn("rounded-full px-2.5 py-1 font-medium", KIND_CLS[k])}>{KIND_LABEL[k]}</span>)}
         </div>
       </div>
       <div className="overflow-hidden rounded-[20px] border border-border bg-card">
@@ -178,8 +194,10 @@ export default function HibeAgenda() {
             <DialogHeader><DialogTitle>{form.id ? "Bewerken" : "Nieuw in de agenda"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               {!form.id && <div className="flex flex-wrap gap-2">
-                {(["shoot", "meeting", "vacation"] as const).map((k) => <button key={k} onClick={() => setForm({ ...blank(form.start_date, k) })} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : "Vakantie / vrij"}</button>)}
+                {(["shoot", "meeting", "vacation", "task"] as const).map((k) => <button key={k} onClick={() => { setForm({ ...blank(form.start_date, k) }); if (k === "task") setTask(blankTask(me, form.start_date)); }} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : k === "task" ? "Taak" : "Vakantie / vrij"}</button>)}
               </div>}
+              {form.kind === "task" && task && <TaskFields form={task} setForm={setTask} />}
+              {form.kind !== "task" && <>
               {form.kind === "shoot" && <div className="space-y-1.5">
                 <Label>Voor welke klant?</Label>
                 <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
@@ -209,6 +227,7 @@ export default function HibeAgenda() {
                 <div>{absent.length > 0 && <p>{absent.map(name).join(", ")} {absent.length > 1 ? "zijn" : "is"} die dag vrij.</p>}{busyShoot.length > 0 && <p>{form.kind === "shoot" ? "Iemand staat die dag al op een andere draaidag" : "Er is die dag een draaidag"}: {busyShoot.map((s) => s.title).join(", ")}.</p>}<p className="text-muted-foreground">Je kunt het toch opslaan.</p></div>
               </div>}
               <div className="space-y-1.5"><Label htmlFor="ag-notes">Notities</Label><Textarea id="ag-notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+              </>}
             </div>
             <DialogFooter className="gap-2 sm:justify-between">
               {form.id ? <Button variant="ghost" onClick={remove}><Trash2 className="mr-1 h-4 w-4" />Verwijderen</Button> : <span />}
@@ -217,6 +236,7 @@ export default function HibeAgenda() {
           </>}
         </DialogContent>
       </Dialog>
+      <TaskDialog initial={taskEdit} onClose={() => setTaskEdit(null)} />
     </div>
   );
 }
