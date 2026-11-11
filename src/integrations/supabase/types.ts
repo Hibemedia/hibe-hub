@@ -407,6 +407,41 @@ export type Database = {
           },
         ]
       }
+      social_post_video_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          post_date: string
+          social_client_id: string
+          video_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          post_date: string
+          social_client_id: string
+          video_item_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          post_date?: string
+          social_client_id?: string
+          video_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_video_links_video_item_id_fkey"
+            columns: ["video_item_id"]
+            isOneToOne: false
+            referencedRelation: "video_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_runs: {
         Row: {
           client_id: string

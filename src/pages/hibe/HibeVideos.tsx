@@ -1,8 +1,8 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useRef, useState, DragEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload, ArrowUpRight, Bell } from "lucide-react";
+import { Upload, ArrowUpRight, Bell, X } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { useVideoItems, setVideoStatus, VideoItem } from "@/hooks/useVideos";
 import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, VideoStatus, clientsReadyToSend, READY_THRESHOLD } from "@/lib/videos";
@@ -19,6 +19,9 @@ export default function HibeVideos() {
   const { clients } = useClient();
   const qc = useQueryClient();
   const nav = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const rawStatus = params.get("status");
+  const statusFilter = VIDEO_STATUSES.includes(rawStatus as VideoStatus) ? (rawStatus as VideoStatus) : null;
   const [client, setClient] = useState("all");
   const { data: items = [], isLoading } = useVideoItems();
   const [dragId, setDragId] = useState<string | null>(null);
@@ -86,6 +89,11 @@ export default function HibeVideos() {
           <SelectContent><SelectItem value="all">Alle klanten</SelectItem>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
         </Select>
         <span className="text-sm text-muted-foreground">Sleep een videobestand op deze pagina om te uploaden.</span>
+        {statusFilter && (
+          <button onClick={() => setParams({}, { replace: true })} className="chip-filter inline-flex h-9 items-center gap-1.5" aria-pressed="true">
+            Filter: {VIDEO_STATUS_LABEL[statusFilter]}<X className="h-3.5 w-3.5" aria-hidden />
+          </button>
+        )}
       </div>
 
       {ready.map((r) => (
@@ -102,7 +110,7 @@ export default function HibeVideos() {
 
       <div className="-mx-4 overflow-x-auto px-4 pb-4 md:-mx-8 md:px-8">
         <div className="flex gap-3">
-          {VIDEO_STATUSES.map((s) => {
+          {(statusFilter ? [statusFilter] : VIDEO_STATUSES).map((s) => {
             const col = list.filter((i) => i.status === s);
             return (
               <section key={s} aria-label={VIDEO_STATUS_LABEL[s]}

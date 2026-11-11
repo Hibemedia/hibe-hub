@@ -9,6 +9,7 @@ const STATUS = z.enum(["none", "to_post", "internal_check", "client_check", "in_
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("load"), from: date, to: date, weekFrom: date }),
+  z.object({ action: z.literal("stats") }),
   z.object({ action: z.literal("set_post"), client_id: z.string().uuid(), post_date: date, status: STATUS, note: z.string().max(2000).nullable(), title: z.string().max(500).nullable() }),
   z.object({ action: z.literal("set_week"), client_id: z.string().uuid(), week_start: date, items: z.array(z.object({ id: z.string().max(64), title: z.string().max(500), status: STATUS, note: z.string().max(2000) })).max(50) }),
 ]);
@@ -43,6 +44,16 @@ Deno.serve(async (req) => {
       ]);
       const err = c.error || po.error || w.error; if (err) throw err;
       return json({ clients: c.data, posts: po.data, weeks: w.data });
+    }
+    if (b.action === "stats") {
+      // Read-only row counts, e.g. to confirm checklist data is untouched.
+      const [c, po, w] = await Promise.all([
+        h.from("social_clients").select("id", { count: "exact", head: true }),
+        h.from("social_posts").select("client_id", { count: "exact", head: true }),
+        h.from("social_weekly_edits").select("client_id", { count: "exact", head: true }),
+      ]);
+      const err = c.error || po.error || w.error; if (err) throw err;
+      return json({ social_clients: c.count ?? 0, social_posts: po.count ?? 0, social_weekly_edits: w.count ?? 0 });
     }
     if (b.action === "set_post") {
       // Same rule as Review Hub: an emptied cell is removed, otherwise upserted.

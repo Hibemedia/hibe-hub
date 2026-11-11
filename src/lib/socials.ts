@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type PostStatus = "none" | "to_post" | "internal_check" | "client_check" | "in_progress" | "to_schedule" | "scheduled";
@@ -27,7 +28,48 @@ export type Week = { client_id: string; week_start: string; count: number; items
 export const weekItems = (w?: Week): Item[] => w?.items?.length ? w.items : Array.from({ length: w?.count ?? 0 }, (_, i) => ({ id: `legacy-${i}`, title: "", status: "scheduled" as PostStatus, note: "" }));
 
 /** Cell colours, shared by the checklist page and the dashboard card. */
-export const cellCls = (s: PostStatus) => s === "scheduled" ? "bg-primary text-primary-foreground" : s === "none" ? "bg-background" : "bg-foreground/10 text-foreground";
+export const cellCls = (s: PostStatus) =>
+  s === "scheduled" ? "bg-primary text-primary-foreground"
+  : s === "none" ? "bg-background"
+  : s === "to_post" ? "bg-foreground/10 text-foreground"
+  : s === "in_progress" ? "bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground))]"
+  : s === "internal_check" ? "bg-[hsl(var(--social-orange))] text-white"
+  : s === "client_check" ? "bg-[hsl(var(--social-blue))] text-white"
+  : "bg-lime text-lime-foreground"; // to_schedule
+
+/** Click cycles a cell to the next status in this order. */
+export const STATUS_CYCLE: PostStatus[] = ["none", "to_post", "in_progress", "internal_check", "client_check", "to_schedule", "scheduled"];
+export const nextStatus = (cur: PostStatus): PostStatus => STATUS_CYCLE[(STATUS_CYCLE.indexOf(cur) + 1) % STATUS_CYCLE.length];
+
+/** A linked checklist cell follows the status of its video in Video's. */
+export const videoToPostStatus = (s: string): PostStatus =>
+  s === "internal_review" ? "internal_check"
+  : s === "feedback" ? "in_progress"
+  : s === "client_review" ? "client_check"
+  : s === "scheduled" || s === "archived" ? "scheduled"
+  : "to_schedule"; // approved_internal, ready_for_client, approved_client
+
+export type SocialVideoLink = { id: string; social_client_id: string; post_date: string; video_item_id: string };
+
+/** Links between checklist cells and Video's items, stored in HIBE Hub itself. */
+export function useSocialVideoLinks() {
+  return useQuery({
+    queryKey: ["social-video-links"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("social_post_video_links").select("id,social_client_id,post_date,video_item_id");
+      if (error) throw error;
+      return (data ?? []) as SocialVideoLink[];
+    },
+  });
+}
+export async function linkSocialVideo(socialClientId: string, postDate: string, videoItemId: string) {
+  const { error } = await (supabase as any).from("social_post_video_links").upsert({ social_client_id: socialClientId, post_date: postDate, video_item_id: videoItemId }, { onConflict: "social_client_id,post_date" });
+  if (error) throw error;
+}
+export async function unlinkSocialVideo(id: string) {
+  const { error } = await (supabase as any).from("social_post_video_links").delete().eq("id", id);
+  if (error) throw error;
+}
 
 /** Live call to the HIBE Review Hub checklist through the server-side proxy. */
 export async function callSocials<T>(body: unknown): Promise<T> {

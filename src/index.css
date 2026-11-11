@@ -56,6 +56,9 @@
     --warning-foreground: 0 0% 5%;
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
+    /* Socials-checklist statuskleuren */
+    --social-orange: 25 95% 53%;
+    --social-blue: 214 90% 56%;
     --border: 60 5% 89%;            /* #E6E6E3 */
     --input: 60 5% 86%;
     --ring: 0 0% 7%;
