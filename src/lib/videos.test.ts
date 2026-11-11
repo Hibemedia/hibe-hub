@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime } from "./videos";
+import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, STEPS } from "./videos";
 
 describe("videos", () => {
   it("statuses are in the agreed board order", () => {
@@ -62,7 +62,7 @@ describe("video phases", () => {
 
 import { STEPS, stepNo, statusFromSlug, STEP_ACTION, worstTone } from "./videos";
 describe("media management steps", () => {
-  it("has seven numbered steps", () => { expect(STEPS.length).toBe(7); expect(stepNo("internal_review")).toBe(1); expect(stepNo("scheduled")).toBe(7); expect(stepNo("archived")).toBe(0); });
+  it("has six numbered steps", () => { expect(STEPS.length).toBe(6); expect(stepNo("internal_review")).toBe(1); expect(stepNo("scheduled")).toBe(6); expect(stepNo("archived")).toBe(0); });
   it("slugs round-trip", () => { expect(statusFromSlug("mag-naar-klant")).toBe("ready_for_client"); expect(statusFromSlug("x")).toBeNull(); });
   it("CapCut step asks for a final upload", () => { expect(STEP_ACTION.approved_internal?.kind).toBe("new_version"); expect(STEP_ACTION.ready_for_client).toBeUndefined(); });
   it("counter tone takes the oldest video", () => {
