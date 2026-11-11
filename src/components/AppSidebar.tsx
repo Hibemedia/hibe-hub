@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,6 +25,7 @@ export const CLIENT_MENU: Item[] = [
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
+  { title: "Edits", url: "/hibe/edits", icon: Scissors },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
