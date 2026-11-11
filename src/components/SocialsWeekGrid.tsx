@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Link2, Plus, Trash2, Unlink } from "lucide-react";
 import { toast } from "sonner";
@@ -13,13 +13,23 @@ import { VIDEO_STATUS_LABEL } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 import {
   Item, Post, PostStatus, SClient, STATUSES, WEEKLY, Week,
-  callSocials, cellCls, linkSocialVideo, mondayOf, nextStatus, statusOf, unlinkSocialVideo,
+  callSocials, cellCls, linkSocialVideo, mondayOf, statusOf, unlinkSocialVideo,
   useSocialVideoLinks, videoToPostStatus, weekDates, weekItems, ymd,
 } from "@/lib/socials";
 
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 const DOW_LETTERS = ["m", "d", "w", "d", "v", "z", "z"];
 const dow = (d: string) => (new Date(d + "T00:00:00").getDay() + 6) % 7; // 0 = maandag
+
+/** Colored left strip per status in the status picker popup, matching the legend. */
+const statusBarCls = (s: PostStatus) =>
+  s === "scheduled" ? "border-l-[hsl(var(--social-green-fg))]"
+  : s === "none" ? "border-l-border"
+  : s === "to_post" ? "border-l-[hsl(var(--social-amber-fg))]"
+  : s === "internal_check" ? "border-l-[hsl(var(--social-orange-fg))]"
+  : s === "client_check" ? "border-l-[hsl(var(--social-cyan-fg))]"
+  : s === "in_progress" ? "border-l-[hsl(var(--social-blue-fg))]"
+  : "border-l-[hsl(var(--social-purple-fg))]"; // to_schedule
 
 /** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
 export function SocialsWeekGrid() {
@@ -29,7 +39,6 @@ export function SocialsWeekGrid() {
   const [offset, setOffset] = useState(0);
   const [openOnly, setOpenOnly] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
-  const press = useRef<{ t?: ReturnType<typeof setTimeout>; long?: boolean }>({});
 
   const today = ymd(new Date());
   const { dates, from, to, weekFrom, label } = useMemo(() => {
@@ -126,12 +135,6 @@ export function SocialsWeekGrid() {
     : done === 0 && lateInPeriod ? "bg-destructive"
     : "bg-lime";
 
-  const startPress = (k: string) => {
-    press.current.long = false;
-    press.current.t = setTimeout(() => { press.current.long = true; setMenu(k); }, 550);
-  };
-  const endPress = () => { if (press.current.t) clearTimeout(press.current.t); };
-
   if (isLoading) return <EmptyState text="Laden…" />;
   if (error) return <EmptyState text={"De checklist kon niet worden geladen: " + (error as Error).message} />;
   if (active.length === 0) return <EmptyState text="Nog geen klanten in de checklist." />;
@@ -168,12 +171,7 @@ export function SocialsWeekGrid() {
             <button
               aria-label={`${c.name} ${d}: ${st.label}`}
               title={hover}
-              onClick={() => { if (press.current.long) { press.current.long = false; return; } if (l) setMenu(k); else savePost(c.id, d, { status: nextStatus(eff) }); }}
-              onContextMenu={(e) => { e.preventDefault(); setMenu(k); }}
-              onPointerDown={() => startPress(k)}
-              onPointerUp={endPress}
-              onPointerLeave={endPress}
-              onPointerMove={endPress}
+              onClick={() => setMenu(k)}
               className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
               {st.symbol}
               {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
@@ -191,8 +189,13 @@ export function SocialsWeekGrid() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-1">
-                  {STATUSES.map((s) => <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s.key), eff === s.key && "ring-2 ring-foreground")}><b className="mr-1">{s.symbol}</b>{s.label}</button>)}
+                <div className="overflow-hidden rounded-md border border-border">
+                  {STATUSES.map((s) => (
+                    <button key={s.key} onClick={() => { savePost(c.id, d, { status: s.key }); setMenu(null); }}
+                      className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
+                      <b className="w-4 text-center">{s.symbol || "–"}</b>{s.label}
+                    </button>
+                  ))}
                 </div>
                 <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={p?.title ?? ""} onBlur={(e) => e.target.value !== (p?.title ?? "") && savePost(c.id, d, { title: e.target.value })} /></div>
                 <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={p?.note ?? ""} onBlur={(e) => e.target.value !== (p?.note ?? "") && savePost(c.id, d, { note: e.target.value })} /></div>
@@ -242,8 +245,12 @@ export function SocialsWeekGrid() {
                 </PopoverTrigger>
                 <PopoverContent className="w-72 space-y-3">
                   <p className="text-sm font-semibold">{c.name} · video {idx + 1}</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {WEEKLY.map((s) => { const x = statusOf(s); return <button key={s} onClick={() => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v))} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s), it?.status === s && "ring-2 ring-foreground")}><b className="mr-1">{x.symbol}</b>{s === "scheduled" ? "Afgeleverd" : x.label}</button>; })}
+                  <div className="overflow-hidden rounded-md border border-border">
+                    {WEEKLY.map((s) => { const x = statusOf(s); return (
+                      <button key={s} onClick={() => { saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v)); setMenu(null); }}
+                        className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s), it?.status === s ? "bg-muted font-semibold" : "bg-card")}>
+                        <b className="w-4 text-center">{x.symbol || "–"}</b>{s === "scheduled" ? "Afgeleverd" : x.label}
+                      </button>); })}
                   </div>
                   <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={it?.title ?? ""} onBlur={(e) => e.target.value !== (it?.title ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: e.target.value } : v))} /></div>
                   <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={it?.note ?? ""} onBlur={(e) => e.target.value !== (it?.note ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, note: e.target.value } : v))} /></div>
