@@ -22,3 +22,19 @@ export function entriesOn(day: string, list: AgendaEntry[]): AgendaEntry[] {
 export function absentOn(day: string, list: AgendaEntry[]): string[] {
   return [...new Set(list.filter((e) => e.kind === "vacation" && e.start <= day && day <= e.end).flatMap((e) => e.people))];
 }
+
+/** A shoot day added straight from the agenda becomes a real content moment. */
+export type ShootDraft = { title: string; client_id: string; date: string; start_time?: string; location?: string; notes?: string };
+export function shootRow(d: ShootDraft, me: string) {
+  return {
+    client_id: d.client_id,
+    title: d.title.trim(),
+    type: "shoot",
+    date: d.date,
+    start_time: d.start_time?.trim() || null,
+    location: d.location?.trim() || null,
+    notes: d.notes?.trim() || null,
+    status: "bevestigd",
+    requested_by: me || null,
+  };
+}

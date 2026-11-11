@@ -15,7 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { AgendaEntry, AgendaKind, absentOn, entriesOn, monthGrid, ymd } from "@/lib/agenda";
+import { AgendaEntry, AgendaKind, absentOn, entriesOn, monthGrid, shootRow, ymd } from "@/lib/agenda";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const db = supabase as any;
 const KIND_LABEL: Record<AgendaKind, string> = { shoot: "Draaidag", meeting: "Meeting", vacation: "Vrij" };
@@ -27,7 +28,7 @@ const KIND_CLS: Record<AgendaKind, string> = {
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 type Ev = { id: string; kind: "meeting" | "vacation"; title: string; start_date: string; end_date: string; start_time: string | null; end_time: string | null; location: string | null; notes: string | null; person_id: string | null; attendees: { user_id: string }[] };
-type Form = { id?: string; kind: "meeting" | "vacation"; title: string; start_date: string; end_date: string; start_time: string; end_time: string; location: string; notes: string; people: string[] };
+type Form = { id?: string; kind: AgendaKind; title: string; start_date: string; end_date: string; start_time: string; end_time: string; location: string; notes: string; people: string[]; client_id: string };
 
 function useAgenda(from: string, to: string) {
   return useQuery({
@@ -71,7 +72,7 @@ export default function HibeAgenda() {
     })),
   ], [data, clients, team]);
 
-  const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [] });
+  const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [], client_id: "" });
   const open = (e: AgendaEntry) => {
     if (e.kind === "shoot") return nav("/hibe/contentmomenten");
     const ev = data?.events.find((x) => x.id === e.id); if (!ev) return;
