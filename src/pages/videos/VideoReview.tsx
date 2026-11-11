@@ -7,7 +7,7 @@ import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
 import { useVideoItem, useVideoComments, usePlayUrl, setVideoStatus } from "@/hooks/useVideos";
 import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, VideoStatus, fmtTime, fmtSize, hibeNext } from "@/lib/videos";
-import { invokeVideo } from "@/lib/r2Upload";
+import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
 import { UploadProgress } from "@/components/UploadProgress";
 import { EmptyState } from "@/components/StatsOverview";
@@ -96,7 +96,7 @@ export default function VideoReview() {
     startUpload({ file: f, itemId: item.id, onDone: () => { reload(); toast.success(`V${item.current_version + 1} staat klaar`); } });
   };
   const del = async () => {
-    try { await invokeVideo({ action: "delete_item", item_id: item.id }); qc.invalidateQueries({ queryKey: ["video-items"] }); nav(back); }
+    try { await invokeVideo({ action: "delete_item", item_id: item.id }); forgetResume(item.id); qc.invalidateQueries({ queryKey: ["video-items"] }); nav(back); }
     catch (e: any) { toast.error(e.message); }
   };
 

@@ -88,7 +88,8 @@ Deno.serve(async (req) => {
     const { data: ver } = await admin.from("video_versions").select("*").eq("id", (b as { version_id?: string }).version_id ?? "00000000-0000-0000-0000-000000000000").maybeSingle();
 
     if (b.action === "sign_parts") {
-      if (!ver || ver.upload_status !== "uploading") return json({ error: "Upload niet gevonden" }, 404);
+      // Stale resume (upload deleted or already finished): tell the browser to start fresh.
+      if (!ver || ver.upload_status !== "uploading") return json({ gone: true });
       const xml = await call("GET", ver.r2_key, `?uploadId=${encodeURIComponent(ver.upload_id)}&max-parts=10000`);
       const done = [...xml.matchAll(/<Part>[\s\S]*?<PartNumber>(\d+)<\/PartNumber>[\s\S]*?<ETag>([^<]+)<\/ETag>[\s\S]*?<\/Part>/g)].map((m) => ({ PartNumber: Number(m[1]), ETag: m[2].replace(/&quot;/g, '"') }));
       return json({ done, ...(await signAll(ver.r2_key, ver.upload_id, ver.size_bytes)) });
