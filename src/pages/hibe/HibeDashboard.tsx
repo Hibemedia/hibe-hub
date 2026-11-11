@@ -272,25 +272,30 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
   ];
   const total = groups.reduce((a, g) => a + g.items.length, 0);
   return (
-    <Section title="Actie nodig" className={className} aside={total > 0 ? <span className="growth">{total}</span> : undefined}>
-      {total === 0 ? <EmptyState text="Alles is bijgewerkt." /> : (
-        <div className="space-y-5">
-          {groups.filter((g) => g.items.length).map((g) => (
-            <div key={g.title}>
-              <Link to={g.to} className="mb-2 flex items-center justify-between text-sm font-semibold hover:underline">{g.title}<span className="text-muted-foreground tabular">{g.items.length}</span></Link>
-              <ul className="space-y-1.5">
-                {g.items.slice(0, 5).map((i) => (
-                  <li key={i.key} className="flex items-center justify-between gap-2 rounded-full bg-popover px-4 py-2 text-sm">
+    <Section title="Actie nodig" className={cn("self-start xl:sticky xl:top-20", className)} aside={total > 0 ? <span className="growth">{total}</span> : undefined}>
+      {total === 0 && <p className="mb-3 text-sm text-muted-foreground">Alles is bijgewerkt. Hier verschijnt wat jouw aandacht nodig heeft.</p>}
+      <div className="divide-y divide-border/70">
+        {groups.map((g) => (
+          <div key={g.title} className="py-3 first:pt-0 last:pb-0">
+            <Link to={g.to} className="group flex items-center justify-between gap-2 text-sm">
+              <span className={cn("font-semibold group-hover:underline", !g.items.length && "font-medium text-muted-foreground")}>{g.title}</span>
+              {g.items.length ? <span className="min-w-6 rounded-full bg-foreground px-2 text-center text-xs font-bold leading-6 text-background tabular">{g.items.length}</span>
+                : <span className="text-xs text-muted-foreground">Niets open</span>}
+            </Link>
+            {g.items.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {g.items.slice(0, 4).map((i) => (
+                  <li key={i.key}><Link to={g.to} className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-popover">
                     <span className="truncate">{i.text}</span>
-                    {(i as { badge?: string }).badge && <span className="growth shrink-0">{(i as { badge?: string }).badge}</span>}
-                  </li>
+                    {(i as { badge?: string }).badge && <span className="shrink-0 text-xs text-muted-foreground tabular">{(i as { badge?: string }).badge} video{(i as { badge?: string }).badge === "1" ? "" : "'s"}</span>}
+                  </Link></li>
                 ))}
-                {g.items.length > 5 && <li className="px-4 text-xs text-muted-foreground">en nog {g.items.length - 5}</li>}
+                {g.items.length > 4 && <li><Link to={g.to} className="px-2 text-xs text-muted-foreground hover:text-foreground">en nog {g.items.length - 4} →</Link></li>}
               </ul>
-            </div>
-          ))}
-        </div>
-      )}
+            )}
+          </div>
+        ))}
+      </div>
     </Section>
   );
 }
