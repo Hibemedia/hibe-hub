@@ -5,9 +5,11 @@ import { KpiBand, DailyChart, NetworkBreakdown, TopVideoList, EmptyState, Period
 import { useClientStats } from "@/hooks/useClientStats";
 import { PeriodKey } from "@/lib/stats";
 import { SyncButtons } from "@/components/SyncButtons";
+import { useViewAs } from "@/context/ViewAs";
 
 export default function Performance() {
   const [period, setPeriod] = useState<PeriodKey>("30d");
+  const viewAs = useViewAs();
   const { data, isLoading } = useClientStats(period);
   const stats = data?.stats ?? [];
   const range = data?.range;
@@ -15,8 +17,8 @@ export default function Performance() {
   return (
     <div className="mx-auto max-w-7xl space-y-4 p-4 md:space-y-5 md:p-8">
       <div className="flex flex-col gap-4">
-        <PageHeader title="Performance" />
-        <div className="flex flex-wrap items-center gap-2"><SyncButtons /><PeriodSelect value={period} onChange={setPeriod} /></div>
+        <PageHeader title="Resultaten" />
+        <div className="flex flex-wrap items-center gap-2">{!viewAs && <SyncButtons />}<PeriodSelect value={period} onChange={setPeriod} /></div>
       </div>
 
       {!isLoading && !data?.client ? (

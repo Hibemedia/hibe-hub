@@ -7,13 +7,16 @@ import { useVideoBoard, BoardItem } from "@/hooks/useVideos";
 import { VideoThumb } from "@/components/videos/parts";
 import { EmptyState } from "@/components/StatsOverview";
 import { Button } from "@/components/ui/button";
+import { useViewAs } from "@/context/ViewAs";
+import { isClientVisible } from "@/lib/videos";
 
 /** Klant-startscherm: what waits for review, then all own videos in three groups. */
 export default function ClientVideos() {
   const { clientId } = useClient();
   const base = useBase();
   const { data = [], isLoading } = useVideoBoard({ includeDone: true });
-  const items = data.filter((i) => i.client_id === clientId && !i.archived_at && i.current_version > 0);
+  const viewAs = useViewAs();
+  const items = data.filter((i) => i.client_id === clientId && !i.archived_at && i.current_version > 0 && (!viewAs || isClientVisible(i.status)));
   const todo = items.filter((i) => i.status === "client_review");
   const changes = items.filter((i) => i.status === "feedback");
   const approved = items.filter((i) => ["approved_client", "scheduled", "archived"].includes(i.status));
