@@ -127,6 +127,13 @@
       "when": 1794432604629,
       "tag": "0017_create_team_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794433168563,
+      "tag": "0018_view_as_log",
+      "breakpoints": true
     }
   ]
 }

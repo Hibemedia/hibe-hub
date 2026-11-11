@@ -13,15 +13,16 @@ import { usePendingReviewCount } from "@/hooks/useReviews";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { useUnread } from "@/hooks/useChat";
+import { useViewAs, ReadOnlyTip } from "@/context/ViewAs";
+import { useBase } from "@/lib/paths";
+import { User } from "lucide-react";
 
 type Item = { title: string; url: string; icon: LucideIcon; prefix?: string };
 export const CLIENT_MENU: Item[] = [
-  { title: "Overzicht", url: "/", icon: Home },
-  { title: "Performance", url: "/performance", icon: BarChart3 },
+  { title: "Home", url: "/", icon: Home },
   { title: "Video's", url: "/videos", icon: Film, prefix: "/videos/" },
-  { title: "Contentmomenten", url: "/content-moments", icon: Calendar },
-  { title: "Branding & Archief", url: "/branding", icon: Archive },
-  { title: "Medailles", url: "/medals", icon: Award },
+  { title: "Planning", url: "/planning", icon: Calendar },
+  { title: "Resultaten", url: "/performance", icon: BarChart3 },
 ];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
@@ -150,8 +151,9 @@ function Brand({ variant, collapsed }: { variant: "client" | "hibe"; collapsed: 
   const logos = useLogoUrls([variant === "client" ? client?.logo_url : null]);
   if (variant === "client" && client) {
     return (
-      <div className="flex min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 items-center gap-2">
         <ClientLogo url={client.logo_url ? logos[client.logo_url] : null} name={client.name} size={32} />
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-[11px] font-extrabold text-background" aria-label="HIBE">H</span>
         {!collapsed && <div className="min-w-0"><p className="truncate text-sm font-semibold leading-tight">{client.name}</p><p className="text-xs text-muted-foreground">HIBE Klantportaal</p></div>}
       </div>
     );
@@ -170,17 +172,22 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1");
   const [more, setMore] = useState(false);
   const toggle = () => setCollapsed((c) => { localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1"); return !c; });
-  const items = variant === "hibe" ? HIBE_MENU : CLIENT_MENU;
-  const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Instellingen", url: "/settings", icon: Settings };
+  const viewAs = useViewAs();
+  const base = useBase();
+  const items = variant === "hibe" ? HIBE_MENU : CLIENT_MENU.map((i) => ({ ...i, url: i.url === "/" ? base || "/" : base + i.url, prefix: i.prefix ? base + i.prefix : undefined }));
+  const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Mijn account", url: "/settings", icon: User };
   const { data: chatUnread = {} } = useUnread(variant === "hibe");
   const chatCount = Object.values(chatUnread).reduce((a, b) => a + b, 0);
   const badgeFor = (i: Item) => i.icon === MessagesSquare ? chatCount : (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined);
-  const primary = items.slice(0, 5);
+  const primary = variant === "client" ? items : items.slice(0, 5);
   const rest = [...items.slice(5), settings];
+  const accountLink = viewAs
+    ? <ReadOnlyTip className="block"><span className={cn("flex h-10 cursor-not-allowed items-center gap-3 rounded-md px-3 text-sm font-medium opacity-50")}><User className="h-[18px] w-[18px]" strokeWidth={1.8} />{!collapsed && "Mijn account"}</span></ReadOnlyTip>
+    : <SideLink item={settings} collapsed={collapsed} />;
 
   return (
     <>
-      <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-popover transition-[width] duration-200 md:flex", collapsed ? "w-16" : "w-[220px]")}>
+      <aside className={cn("sticky hidden shrink-0", viewAs ? "top-11 h-[calc(100vh-2.75rem)]" : "top-0 h-screen", " flex-col border-r border-border bg-popover transition-[width] duration-200 md:flex", collapsed ? "w-16" : "w-[220px]")}>
         <div className={cn("flex h-14 items-center border-b border-border", collapsed ? "justify-center px-2" : "justify-between gap-2 px-3")}>
           {!collapsed && <Brand variant={variant} collapsed={false} />}
           <Tooltip>
@@ -196,25 +203,27 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
           {items.map((i) => variant === "hibe" && i.icon === Film ? <MediaGroup key={i.url} item={i} collapsed={collapsed} /> : <SideLink key={i.url} item={i} collapsed={collapsed} badge={badgeFor(i)} />)}
         </nav>
         <div className="flex flex-col gap-1 border-t border-border p-2">
-          <SideLink item={settings} collapsed={collapsed} />
-          <LogoutLink collapsed={collapsed} />
+          {accountLink}
+          {!viewAs && <LogoutLink collapsed={collapsed} />}
         </div>
       </aside>
 
       <nav aria-label="Hoofdmenu" className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-popover pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className="grid grid-cols-6">
+        <div className={cn("grid", variant === "client" ? "grid-cols-5" : "grid-cols-6")}>
           {primary.map((i) => <BottomLink key={i.url} item={i} badge={badgeFor(i)} />)}
-          <button onClick={() => setMore(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground">
+          {variant === "client" ? (
+            <button onClick={() => setMore(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground"><User className="h-5 w-5" />Account</button>
+          ) : <button onClick={() => setMore(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground">
             <MoreHorizontal className="h-5 w-5" />Meer
-          </button>
+          </button>}
         </div>
       </nav>
       <Sheet open={more} onOpenChange={setMore}>
         <SheetContent side="bottom" className="rounded-t-lg">
-          <SheetHeader><SheetTitle className="text-left text-base">Meer</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle className="text-left text-base">{variant === "client" ? "Account" : "Meer"}</SheetTitle></SheetHeader>
           <div className="mt-3 flex flex-col gap-1" onClick={() => setMore(false)}>
-            {rest.map((i) => <SideLink key={i.url} item={i} collapsed={false} badge={badgeFor(i)} />)}
-            <LogoutLink collapsed={false} />
+            {variant === "client" ? accountLink : rest.map((i) => <SideLink key={i.url} item={i} collapsed={false} badge={badgeFor(i)} />)}
+            {!viewAs && <LogoutLink collapsed={false} />}
           </div>
         </SheetContent>
       </Sheet>

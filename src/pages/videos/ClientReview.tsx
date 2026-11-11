@@ -8,7 +8,8 @@ import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
 import { useVideoBoard, useVideoItem, usePlayUrl, useItemComments } from "@/hooks/useVideos";
 import { Player, PlayerHandle } from "@/components/videos/Player";
-import { fmtTime } from "@/lib/videos";
+import { fmtTime, isClientVisible } from "@/lib/videos";
+import { useViewAs, ReadOnlyTip } from "@/context/ViewAs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -73,9 +74,11 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
   const [text, setText] = useState(""); const [stamp, setStamp] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const canAct = !readOnly && item?.status === "client_review";
+  const viewAs = useViewAs();
 
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Laden…</div>;
-  if (!item) return (
+  // Meekijkmodus: HIBE may read every video, so apply the client's own visibility rules here.
+  if (!item || (viewAs && (item.client_id !== viewAs.clientId || !isClientVisible(item.status)))) return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-3 p-6 pt-16 text-center">
       <PageHeader title="Video's" /><Lock className="h-8 w-8 text-muted-foreground" />
       <h1 className="text-xl font-semibold">Geen toegang</h1><p className="text-sm text-muted-foreground">Deze video hoort niet bij jouw account of is niet meer beschikbaar.</p>
@@ -118,6 +121,12 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
             <div className="sticky bottom-20 z-10 grid grid-cols-2 gap-2 bg-background py-2 md:bottom-0">
               <Button size="lg" className="h-12 bg-lime text-base text-lime-foreground hover:bg-lime/90" disabled={busy} onClick={() => action("approve")}><Check />Goedkeuren</Button>
               <Button size="lg" variant={asking ? "outline" : "default"} className="h-12 text-base" disabled={busy} onClick={ask}><MessageSquare />Wijziging vragen</Button>
+            </div>
+          )}
+          {viewAs && item.status === "client_review" && (
+            <div className="grid grid-cols-2 gap-2 py-2">
+              <ReadOnlyTip className="block"><Button size="lg" disabled className="h-12 w-full bg-lime text-base text-lime-foreground"><Check />Goedkeuren</Button></ReadOnlyTip>
+              <ReadOnlyTip className="block"><Button size="lg" disabled className="h-12 w-full text-base"><MessageSquare />Wijziging vragen</Button></ReadOnlyTip>
             </div>
           )}
           {!canAct && item.status !== "client_review" && <p className="rounded-md bg-muted p-3 text-sm">{item.status === "feedback" ? "Je hebt wijzigingen gevraagd. HIBE is ermee bezig." : "Deze video is goedgekeurd."}</p>}

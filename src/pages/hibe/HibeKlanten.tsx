@@ -1,6 +1,6 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
-import { Link } from "react-router-dom";
-import { Settings2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Settings2, Eye } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { useHibeOverview, useHibeActions } from "@/hooks/useHibeOverview";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
@@ -13,6 +13,7 @@ export default function HibeKlanten() {
   const { data: actions } = useHibeActions(clients.map((c) => c.id));
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
 
+  const nav = useNavigate();
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <PageHeader title="Klanten" action={<PrimaryAction icon={Settings2} to="/hibe/klanten/beheer">Klanten beheren &amp; sync</PrimaryAction>} />
@@ -35,8 +36,9 @@ export default function HibeKlanten() {
                     <div><div className="text-3xl font-light tabular">{formatNumber(s?.followers ?? null)}</div><div className="text-xs text-muted-foreground">volgers</div></div>
                     <div><div className="text-3xl font-light tabular">{formatNumber(s?.views ?? null)}</div><div className="text-xs text-muted-foreground">weergaven 30 dagen</div></div>
                   </div>
-                  <div className="mt-5">
+                  <div className="mt-5 flex items-center justify-between gap-2">
                     {pending > 0 ? <span className="growth">{pending} te beoordelen</span> : <span className="chip">Niets te beoordelen</span>}
+                    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav(`/hibe/als/${c.id}`); }} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border bg-popover px-2.5 text-xs font-semibold hover:bg-muted"><Eye className="h-3.5 w-3.5" />Bekijk als klant</button>
                   </div>
                 </Link>
               </li>
