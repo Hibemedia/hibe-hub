@@ -2,7 +2,7 @@ import { PERIODS, PeriodKey } from "@/lib/stats";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 /** Chips on wide screens, a dropdown on narrow ones — never scrolls sideways. */
-export function PeriodSelect({ value, onChange, only }: { value: PeriodKey; onChange: (v: PeriodKey) => void; only?: PeriodKey[] }) {
+export function PeriodSelect({ value, onChange, only, compact }: { value: PeriodKey; onChange: (v: PeriodKey) => void; only?: PeriodKey[]; compact?: boolean }) {
   const list = PERIODS.filter((p) => !only || only.includes(p.key));
   return (
     <>
@@ -14,7 +14,7 @@ export function PeriodSelect({ value, onChange, only }: { value: PeriodKey; onCh
       </div>
       <div className="hidden flex-wrap justify-end gap-2 sm:flex" role="group" aria-label="Periode">
         {list.map((p) => (
-          <button key={p.key} onClick={() => onChange(p.key)} aria-pressed={value === p.key} className="chip-filter shrink-0">{p.label}</button>
+          <button key={p.key} onClick={() => onChange(p.key)} aria-pressed={value === p.key} className={compact ? "chip-filter h-8 shrink-0 px-3 text-xs" : "chip-filter shrink-0"}>{p.label}</button>
         ))}
       </div>
     </>

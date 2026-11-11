@@ -106,7 +106,7 @@ export default function HibeDashboard() {
 
       {full && <>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <Section title="Totaal alle kanalen" className="h-full lg:col-span-6" aside={<PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />}>
+          <Section title="Totaal alle kanalen" className="h-full lg:col-span-6" aside={<PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} compact />}>
             {isLoading || !t ? <Skeleton className="h-32 rounded-lg" /> : (
               <div className="grid grid-cols-2 gap-3">
                 {[
