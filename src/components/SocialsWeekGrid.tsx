@@ -245,8 +245,12 @@ export function SocialsWeekGrid() {
                 </PopoverTrigger>
                 <PopoverContent className="w-72 space-y-3">
                   <p className="text-sm font-semibold">{c.name} · video {idx + 1}</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {WEEKLY.map((s) => { const x = statusOf(s); return <button key={s} onClick={() => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v))} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s), it?.status === s && "ring-2 ring-foreground")}><b className="mr-1">{x.symbol}</b>{s === "scheduled" ? "Afgeleverd" : x.label}</button>; })}
+                  <div className="overflow-hidden rounded-md border border-border">
+                    {WEEKLY.map((s) => { const x = statusOf(s); return (
+                      <button key={s} onClick={() => { saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v)); setMenu(null); }}
+                        className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", barCls(s), it?.status === s ? "bg-muted font-semibold" : "bg-card")}>
+                        <b className="w-4 text-center">{x.symbol || "–"}</b>{s === "scheduled" ? "Afgeleverd" : x.label}
+                      </button>); })}
                   </div>
                   <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={it?.title ?? ""} onBlur={(e) => e.target.value !== (it?.title ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: e.target.value } : v))} /></div>
                   <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={it?.note ?? ""} onBlur={(e) => e.target.value !== (it?.note ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, note: e.target.value } : v))} /></div>
