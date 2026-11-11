@@ -970,6 +970,35 @@ export type Database = {
           },
         ]
       }
+      view_as_log: {
+        Row: {
+          admin_id: string
+          client_id: string
+          id: string
+          started_at: string
+        }
+        Insert: {
+          admin_id: string
+          client_id: string
+          id?: string
+          started_at?: string
+        }
+        Update: {
+          admin_id?: string
+          client_id?: string
+          id?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "view_as_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1019,6 +1048,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      start_view_as: { Args: { _client: string }; Returns: string }
       video_client_action: {
         Args: { _action: string; _item_id: string }
         Returns: {
