@@ -69,7 +69,7 @@ export function MyProfile() {
       avatar_url = `storage:avatars/${path}`;
     }
     const full_name = `${f.first_name.trim()} ${f.last_name.trim()}`.trim() || null;
-    const { error } = await db.from("users").update({ first_name: f.first_name.trim() || null, last_name: f.last_name.trim() || null, job_title: f.job_title.trim() || null, full_name, avatar_url }).eq("id", user.id);
+    const { error } = await db.from("users").update({ first_name: f.first_name.trim() || null, last_name: f.last_name.trim() || null, full_name, avatar_url }).eq("id", user.id);
     setBusy(false);
     if (error) return toast.error("Opslaan mislukt: " + error.message);
     setAvatar(avatar_url); setSrc(null); refresh();
@@ -122,7 +122,6 @@ export function MyProfile() {
         <div className="grid content-start gap-4 sm:grid-cols-2">
           <div className="space-y-2"><Label htmlFor="pf-fn">Voornaam</Label><Input id="pf-fn" value={f.first_name} maxLength={80} onChange={(e) => setF({ ...f, first_name: e.target.value })} /></div>
           <div className="space-y-2"><Label htmlFor="pf-ln">Achternaam</Label><Input id="pf-ln" value={f.last_name} maxLength={80} onChange={(e) => setF({ ...f, last_name: e.target.value })} /></div>
-          <div className="space-y-2 sm:col-span-2"><Label htmlFor="pf-job">Functie</Label><Input id="pf-job" value={f.job_title} maxLength={80} placeholder="Bijv. editor, marketingmanager" onChange={(e) => setF({ ...f, job_title: e.target.value })} /></div>
         </div>
       </CardContent>
     </Card>
