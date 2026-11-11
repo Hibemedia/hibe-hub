@@ -53,10 +53,10 @@ function PostFields({ title, note, onSave }: { title: string; note: string; onSa
 }
 
 /** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
-export function SocialsWeekGrid() {
+export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {}) {
   const qc = useQueryClient();
   const { clients: hibeClients } = useClient();
-  const [view, setView] = useState<"week" | "month">("month");
+  const [view, setView] = useState<"week" | "month">(weekOnly ? "week" : "month");
   const [offset, setOffset] = useState(0);
   const [openOnly, setOpenOnly] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
@@ -310,13 +310,15 @@ export function SocialsWeekGrid() {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
+        {weekOnly ? <span className="chip">Deze week · {label}</span> : <>
         <button aria-label={view === "week" ? "Vorige week" : "Vorige maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset - 1)}><ChevronLeft className="h-4 w-4" /></button>
         <span className="chip">{label}</span>
         <button aria-label={view === "week" ? "Volgende week" : "Volgende maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset + 1)}><ChevronRight className="h-4 w-4" /></button>
-        <div className="flex overflow-hidden rounded-full border border-border">
+        </>}
+        {!weekOnly && <div className="flex overflow-hidden rounded-full border border-border">
           <button className={cn("h-8 px-3 text-xs font-medium transition", view === "week" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "week"} onClick={() => { setView("week"); setOffset(0); }}>Deze week</button>
           <button className={cn("h-8 px-3 text-xs font-medium transition", view === "month" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "month"} onClick={() => { setView("month"); setOffset(0); }}>Deze maand</button>
-        </div>
+        </div>}
         <button className="chip-filter h-8 px-3 text-xs" aria-pressed={openOnly} onClick={() => setOpenOnly(!openOnly)}>Alleen open</button>
         <span className="ml-auto text-sm text-muted-foreground tabular"><b className="text-foreground">{totDone}</b> van {totPlanned} posts ingepland {periodWord}</span>
       </div>

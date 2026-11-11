@@ -22,8 +22,8 @@ export function Section({ title, aside, children, className }: { title: string; 
   return (
     <section className={cn("min-w-0 rounded-lg bg-card p-5 md:p-7", className)}>
       <header className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
-        {aside}
+        <h2 title={title} className="min-w-0 truncate text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
+        {aside && <div className="shrink-0">{aside}</div>}
       </header>
       <div>{children}</div>
     </section>
