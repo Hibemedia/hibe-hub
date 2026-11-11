@@ -156,7 +156,6 @@ function Brand({ variant, collapsed }: { variant: "client" | "hibe"; collapsed: 
     return (
       <div className="flex min-w-0 items-center gap-2">
         <ClientLogo url={client.logo_url ? logos[client.logo_url] : null} name={client.name} size={32} />
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-[11px] font-extrabold text-background" aria-label="HIBE">H</span>
         {!collapsed && <div className="min-w-0"><p className="truncate text-sm font-semibold leading-tight">{client.name}</p><p className="text-xs text-muted-foreground">HIBE Klantportaal</p></div>}
       </div>
     );
