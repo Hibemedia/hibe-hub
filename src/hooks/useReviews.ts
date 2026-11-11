@@ -47,14 +47,14 @@ export function useReviewItems() {
 export function usePendingReviewCount() {
   const { clientId, ready } = useClient();
   return useQuery({
-    queryKey: ["review-items", clientId, "pending-count"],
+    queryKey: ["video-items", clientId, "pending-count"],
     enabled: ready && !!clientId,
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("review_items")
+        .from("video_items" as any)
         .select("id", { count: "exact", head: true })
         .eq("client_id", clientId!)
-        .eq("status", "pending");
+        .eq("status", "client_review");
       if (error) throw error;
       return count ?? 0;
     },

@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Performance from "./pages/Performance";
-import VideoApproval from "./pages/VideoApproval";
 import Medals from "./pages/Medals";
 import Branding from "./pages/Branding";
 import ContentMoments from "./pages/ContentMoments";
@@ -18,7 +17,6 @@ import ResetPassword from "./pages/ResetPassword";
 import Klanten from "./pages/Klanten";
 import HibeDashboard from "./pages/hibe/HibeDashboard";
 import HibeKlanten from "./pages/hibe/HibeKlanten";
-import HibeGoedkeuringen from "./pages/hibe/HibeGoedkeuringen";
 import HibeContentmomenten from "./pages/hibe/HibeContentmomenten";
 import HibeSocials from "./pages/hibe/HibeSocials";
 import HibeInstellingen from "./pages/hibe/HibeInstellingen";
@@ -34,7 +32,7 @@ const clientPages = (
   <>
     <Route index element={<Dashboard />} />
     <Route path="performance" element={<Performance />} />
-    <Route path="video-approval" element={<VideoApproval />} />
+    <Route path="video-approval" element={<Navigate to="../videos" relative="path" replace />} />
     <Route path="content-moments" element={<ContentMoments />} />
     <Route path="branding" element={<Branding />} />
     <Route path="medals" element={<Medals />} />
@@ -61,7 +59,7 @@ const App = () => (
                 <Route path="klanten" element={<HibeKlanten />} />
                 <Route path="klanten/beheer" element={<Klanten />} />
                 <Route path="klant/:id" element={<HibeClientScope />}>{clientPages}</Route>
-                <Route path="goedkeuringen" element={<HibeGoedkeuringen />} />
+                <Route path="goedkeuringen" element={<Navigate to="/hibe/videos" replace />} />
                 <Route path="contentmomenten" element={<HibeContentmomenten />} />
                 <Route path="socials" element={<HibeSocials />} />
                 <Route path="videos" element={<HibeVideos />} />

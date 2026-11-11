@@ -204,8 +204,8 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
   const pending = Object.entries(actions.pending).sort((a, b) => b[1] - a[1]);
   const fmt = (d: string | null) => d ? new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "nooit";
   const groups = [
-    { title: "Te beoordelen", to: "/hibe/goedkeuringen", items: pending.map(([id, n]) => ({ key: id, text: name(id), badge: String(n) })) },
-    { title: "Wijzigingsverzoeken", to: "/hibe/goedkeuringen", items: actions.changes.map((i) => ({ key: i.id, text: `${name(i.client_id)} · ${i.title}` })) },
+    { title: "Ter controle bij klant", to: "/hibe/videos", items: pending.map(([id, n]) => ({ key: id, text: name(id), badge: String(n) })) },
+    { title: "Feedback verwerken", to: "/hibe/videos", items: actions.changes.map((i) => ({ key: i.id, text: `${name(i.client_id)} · ${i.title}` })) },
     { title: "Aangevraagde contentmomenten", to: "/hibe/contentmomenten", items: actions.requested.map((m) => ({ key: m.id, text: `${name(m.client_id)} · ${m.title}` })) },
     { title: "Sync-problemen", to: "/hibe/klanten/beheer", items: actions.syncIssues.map((s) => ({ key: s.client_id, text: `${name(s.client_id)} · ${s.reason === "failed" ? "mislukt" : s.reason === "never" ? "nog nooit gesynct" : `laatste sync ${fmt(s.finished_at ?? s.started_at)}`}` })) },
   ];

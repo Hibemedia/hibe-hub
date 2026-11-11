@@ -110,12 +110,12 @@ export function useHibeActions(clientIds: string[]) {
     enabled: clientIds.length > 0,
     queryFn: async (): Promise<ActionData> => {
       const [{ data: items }, { data: moments }, { data: runs }] = await Promise.all([
-        supabase.from("review_items").select("id,client_id,title,status").in("status", ["pending", "changes_requested"]),
+        (supabase as any).from("video_items").select("id,client_id,title,status").in("status", ["client_review", "feedback"]),
         supabase.from("content_moments").select("id,client_id,title,date").eq("status", "aangevraagd").order("created_at"),
         supabase.from("sync_runs").select("client_id,status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(1000),
       ]);
       const pending: Record<string, number> = {};
-      for (const i of items ?? []) if (i.status === "pending") pending[i.client_id] = (pending[i.client_id] ?? 0) + 1;
+      for (const i of (items ?? []) as { id: string; client_id: string; title: string; status: string }[]) if (i.status === "client_review") pending[i.client_id] = (pending[i.client_id] ?? 0) + 1;
       const latest = new Map<string, NonNullable<typeof runs>[number]>();
       for (const r of runs ?? []) if (!latest.has(r.client_id)) latest.set(r.client_id, r);
       const cutoff = Date.now() - 48 * 3600e3;
@@ -129,7 +129,7 @@ export function useHibeActions(clientIds: string[]) {
       }
       return {
         pending,
-        changes: (items ?? []).filter((i) => i.status === "changes_requested"),
+        changes: ((items ?? []) as { id: string; client_id: string; title: string; status: string }[]).filter((i) => i.status === "feedback"),
         requested: moments ?? [],
         syncIssues,
       };
