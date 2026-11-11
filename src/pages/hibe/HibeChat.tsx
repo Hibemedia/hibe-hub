@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const db = supabase as any;
+const HIBBY_ID = "00000000-0000-4000-8000-00000000b1bb";
+const HIBBY: Member = { id: HIBBY_ID, name: "Hibby", avatar_url: null };
+const isInfo = (r: Room) => r.kind === "channel" && r.name === "Informatie";
 const ASKED = "hibe.chat.notifyAsked";
 
 function Avatar({ m, size = 32 }: { m?: Member; size?: number }) {
@@ -114,6 +117,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
   const [img, setImg] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [editing, setEditing] = useState<Message | null>(null);
+  const [hibbyBusy, setHibbyBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const roomTeam = team.filter((t) => room.members.includes(t.id));
@@ -135,6 +139,10 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         if (error) throw error;
       }
       const { error } = await db.from("chat_messages").insert({ room_id: room.id, user_id: me, body, image_path, mentions: extractMentions(body, roomTeam) });
+      if (!error && isInfo(room) && body.trim()) {
+        setHibbyBusy(true);
+        supabase.functions.invoke("hibby", { body: { room_id: room.id } }).finally(() => { setHibbyBusy(false); qc.invalidateQueries({ queryKey: ["chat-messages", room.id] }); });
+      }
       if (error) throw error;
       setText(""); setImg(null);
       qc.invalidateQueries({ queryKey: ["chat-messages", room.id] });
@@ -159,7 +167,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         {msgs.map((m) => {
           const day = new Date(m.created_at).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
           const showDay = day !== lastDay; lastDay = day;
-          const author = team.find((t) => t.id === m.user_id);
+          const author = m.user_id === HIBBY_ID ? HIBBY : team.find((t) => t.id === m.user_id);
           return (
             <div key={m.id}>
               {showDay && <p className="my-3 text-center text-xs font-medium text-muted-foreground">{day}</p>}
@@ -185,6 +193,8 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
             </div>
           );
         })}
+        {isInfo(room) && msgs.length === 0 && <p className="px-2 py-6 text-center text-sm text-muted-foreground">Stel Hibby een vraag over draaidagen, edits of video's. Elke maandag om 08:00 zet Hibby hier het weekoverzicht neer.</p>}
+        {hibbyBusy && <div className="flex items-center gap-3 px-2 py-1.5 text-sm text-muted-foreground"><Avatar m={HIBBY} size={34} /><span className="animate-pulse">Hibby denkt na…</span></div>}
         <div ref={endRef} />
       </div>
       <div className="relative shrink-0 border-t border-border p-3">
