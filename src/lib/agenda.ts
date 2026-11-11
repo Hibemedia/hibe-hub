@@ -1,5 +1,5 @@
 /** Pure helpers for the HIBE agenda (month grid). */
-export type AgendaKind = "shoot" | "meeting" | "vacation";
+export type AgendaKind = "shoot" | "meeting" | "vacation" | "task";
 export type AgendaEntry = { id: string; kind: AgendaKind; title: string; start: string; end: string; time?: string | null; people: string[] };
 
 export const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -13,7 +13,7 @@ export function monthGrid(year: number, month: number): Date[] {
 
 /** Entries that cover a given day (inclusive range), shoot > meeting > vacation, then time. */
 export function entriesOn(day: string, list: AgendaEntry[]): AgendaEntry[] {
-  const rank: Record<AgendaKind, number> = { shoot: 0, meeting: 1, vacation: 2 };
+  const rank: Record<AgendaKind, number> = { shoot: 0, meeting: 1, task: 2, vacation: 3 };
   return list.filter((e) => e.start <= day && day <= e.end)
     .sort((a, b) => rank[a.kind] - rank[b.kind] || (a.time ?? "").localeCompare(b.time ?? ""));
 }
