@@ -1,3 +1,4 @@
+import hibeLogo from "@/assets/hibe-logo.png.asset.json";
 import { useState } from "react";
 import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -160,8 +161,9 @@ function Brand({ variant, collapsed }: { variant: "client" | "hibe"; collapsed: 
   }
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-extrabold text-background">H</span>
-      {!collapsed && <span className="truncate text-base font-extrabold tracking-tight">HIBE <span className="font-medium text-muted-foreground">Hub</span></span>}
+      {collapsed
+        ? <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground"><img src={hibeLogo.url} alt="HIBE" className="w-6 dark:invert" /></span>
+        : <><img src={hibeLogo.url} alt="HIBE" className="h-6 w-auto invert dark:invert-0" /><span className="text-base font-medium text-muted-foreground">Hub</span></>}
     </div>
   );
 }
