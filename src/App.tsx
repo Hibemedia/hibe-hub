@@ -28,7 +28,8 @@ import HibeChat from "./pages/hibe/HibeChat";
 import ClientReview from "./pages/videos/ClientReview";
 import ClientVideos from "./pages/videos/ClientVideos";
 import { ClientProvider } from "@/context/ClientContext";
-import { ClientEnv, HibeEnv, HibeClientScope } from "@/components/EnvRoutes";
+import { ClientEnv, HibeEnv, HibeClientScope, ViewAsEnv } from "@/components/EnvRoutes";
+import Planning from "./pages/Planning";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const clientPages = (
   <>
     <Route index element={<Dashboard />} />
     <Route path="performance" element={<Performance />} />
+    <Route path="planning" element={<Planning />} />
     <Route path="video-approval" element={<Navigate to="../videos" relative="path" replace />} />
     <Route path="content-moments" element={<ContentMoments />} />
     <Route path="branding" element={<Branding />} />
@@ -58,6 +60,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/home" element={<Navigate to="/" replace />} />
 
+              <Route path="/hibe/als/:id" element={<ViewAsEnv />}>{clientPages}</Route>
               <Route path="/hibe" element={<HibeEnv />}>
                 <Route index element={<HibeDashboard />} />
                 <Route path="klanten" element={<HibeKlanten />} />
