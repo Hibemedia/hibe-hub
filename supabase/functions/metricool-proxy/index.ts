@@ -49,6 +49,32 @@ Deno.serve(async (req) => {
     }
 
     const apiDef = req.headers.get("apiDef") || "";
+    if (apiDef === "scheduledPosts") {
+      const body = await req.json().catch(() => ({}));
+      const clientId = typeof body.client_id === "string" ? body.client_id : "";
+      // RLS decides access: clients only see their own client row, HIBE sees all.
+      const { data: c } = await callerClient.from("clients").select("id,metricool_blog_id").eq("id", clientId).maybeSingle();
+      if (!c) return new Response(JSON.stringify({ error: "Geen toegang" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!c.metricool_blog_id) return new Response(JSON.stringify({ posts: [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const day = (d: Date) => d.toISOString().slice(0, 10);
+      const now = new Date(); const end = new Date(now.getTime() + 60 * 86400000);
+      const qs = new URLSearchParams({ userId: metricoolUserId, blogId: c.metricool_blog_id, start: `${day(now)}T00:00:00`, end: `${day(end)}T23:59:59`, timezone: "Europe/Amsterdam" });
+      const r = await fetch(`https://app.metricool.com/api/v2/scheduler/posts?${qs}`, { headers: { "X-Mc-Auth": metricoolToken } });
+      if (!r.ok) return new Response(JSON.stringify({ error: `Metricool ${r.status}` }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const j = await r.json();
+      const list: any[] = Array.isArray(j) ? j : (j?.data ?? []);
+      const posts = list.filter((p) => p && !p.draft && (p.providers ?? []).some((x: any) => x.status !== "PUBLISHED")).map((p) => {
+        const media = (p.media ?? [])[0];
+        return {
+          id: String(p.id),
+          date: p.publicationDate?.dateTime ?? null,
+          networks: (p.providers ?? []).map((x: any) => String(x.network ?? x).toLowerCase()),
+          text: (p.text ?? "").slice(0, 400),
+          image: typeof media === "string" ? media : (media?.url ?? media?.thumbnailUrl ?? null),
+        };
+      }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      return new Response(JSON.stringify({ posts }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const buildEndpoint = ENDPOINTS[apiDef];
     if (!buildEndpoint) {
       return new Response(JSON.stringify({ error: `Unknown apiDef: ${apiDef}` }), {
