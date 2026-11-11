@@ -117,6 +117,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
   const [img, setImg] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [editing, setEditing] = useState<Message | null>(null);
+  const [hibbyBusy, setHibbyBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const roomTeam = team.filter((t) => room.members.includes(t.id));
@@ -192,6 +193,8 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
             </div>
           );
         })}
+        {isInfo(room) && msgs.length === 0 && <p className="px-2 py-6 text-center text-sm text-muted-foreground">Stel Hibby een vraag over draaidagen, edits of video's. Elke maandag om 08:00 zet Hibby hier het weekoverzicht neer.</p>}
+        {hibbyBusy && <div className="flex items-center gap-3 px-2 py-1.5 text-sm text-muted-foreground"><Avatar m={HIBBY} size={34} /><span className="animate-pulse">Hibby denkt na…</span></div>}
         <div ref={endRef} />
       </div>
       <div className="relative shrink-0 border-t border-border p-3">
