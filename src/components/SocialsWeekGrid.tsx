@@ -171,12 +171,7 @@ export function SocialsWeekGrid() {
             <button
               aria-label={`${c.name} ${d}: ${st.label}`}
               title={hover}
-              onClick={() => { if (press.current.long) { press.current.long = false; return; } if (l) setMenu(k); else savePost(c.id, d, { status: nextStatus(eff) }); }}
-              onContextMenu={(e) => { e.preventDefault(); setMenu(k); }}
-              onPointerDown={() => startPress(k)}
-              onPointerUp={endPress}
-              onPointerLeave={endPress}
-              onPointerMove={endPress}
+              onClick={() => setMenu(k)}
               className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
               {st.symbol}
               {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
@@ -194,8 +189,13 @@ export function SocialsWeekGrid() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-1">
-                  {STATUSES.map((s) => <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s.key), eff === s.key && "ring-2 ring-foreground")}><b className="mr-1">{s.symbol}</b>{s.label}</button>)}
+                <div className="overflow-hidden rounded-md border border-border">
+                  {STATUSES.map((s) => (
+                    <button key={s.key} onClick={() => { savePost(c.id, d, { status: s.key }); setMenu(null); }}
+                      className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", barCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
+                      <b className="w-4 text-center">{s.symbol || "–"}</b>{s.label}
+                    </button>
+                  ))}
                 </div>
                 <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={p?.title ?? ""} onBlur={(e) => e.target.value !== (p?.title ?? "") && savePost(c.id, d, { title: e.target.value })} /></div>
                 <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={p?.note ?? ""} onBlur={(e) => e.target.value !== (p?.note ?? "") && savePost(c.id, d, { note: e.target.value })} /></div>
