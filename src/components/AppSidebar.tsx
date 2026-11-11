@@ -1,4 +1,5 @@
-import hibeLogo from "@/assets/hibe-logo.png.asset.json";
+import hibeLogoUrl from "@/assets/hibe-logo.png";
+const hibeLogo = { url: hibeLogoUrl };
 import { useState } from "react";
 import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
