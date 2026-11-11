@@ -3,7 +3,7 @@ import { Film } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls } from "@/hooks/useLogoUrl";
 import { usePlayUrl } from "@/hooks/useVideos";
-import { VIDEO_STATUS_LABEL, VideoStatus, phaseOf, clientColorSlot } from "@/lib/videos";
+import { VIDEO_STATUS_LABEL, VideoStatus, clientColorSlot } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 
 const LETTER = [
@@ -32,14 +32,8 @@ export function ClientMark({ id, name, url, size = 28, className }: { id: string
   );
 }
 
-const PHASE_CLS = {
-  internal: "bg-[hsl(var(--social-orange-bg))] text-[hsl(var(--social-orange-fg))]",
-  client: "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]",
-  plan: "bg-lime text-lime-foreground",
-  done: "bg-foreground text-background",
-};
 export function StatusLabel({ status, label, className }: { status: VideoStatus; label?: string; className?: string }) {
-  return <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium", PHASE_CLS[phaseOf(status)], className)}>{label ?? VIDEO_STATUS_LABEL[status]}</span>;
+  return <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium", status === "approved_client" || status === "approved_internal" ? "bg-lime text-lime-foreground" : "bg-muted text-foreground", className)}>{label ?? VIDEO_STATUS_LABEL[status]}</span>;
 }
 
 /** First frame of the latest version, loaded only when scrolled into view. */

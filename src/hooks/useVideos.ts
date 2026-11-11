@@ -60,13 +60,13 @@ export const setVideoStatus = async (id: string, status: VideoStatus) => {
 };
 
 /** Overview rows: items + uploader + latest ready version + open comment count. */
-export type BoardItem = VideoItem & { uploader: string | null; versionId: string | null; openComments: number };
+export type BoardItem = VideoItem & { uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null };
 export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
   return useQuery({
     queryKey: ["video-items", "board", !!opts.includeDone],
     queryFn: async () => {
-      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at,created_by").order("status_changed_at", { ascending: false });
-      if (!opts.includeDone) q = q.not("status", "in", "(scheduled,archived)");
+      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at,created_by,archived_at").order("created_at", { ascending: false });
+      if (!opts.includeDone) q = q.neq("status", "archived");
       const { data: items, error } = await q;
       if (error) throw error;
       const ids = (items ?? []).map((i: any) => i.id);
@@ -76,7 +76,7 @@ export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
       const vers: any[] = [], open: any[] = [];
       await Promise.all(chunks.map(async (c) => {
         const [{ data: v }, { data: o }] = await Promise.all([
-          db.from("video_versions").select("id,item_id,version,uploaded_by").in("item_id", c).eq("upload_status", "ready"),
+          db.from("video_versions").select("id,item_id,version,uploaded_by,file_name,size_bytes,mime_type").in("item_id", c).eq("upload_status", "ready"),
           db.from("video_comments").select("item_id").in("item_id", c).eq("resolved", false),
         ]);
         vers.push(...(v ?? [])); open.push(...(o ?? []));
@@ -86,7 +86,7 @@ export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
       const counts = new Map<string, number>();
       for (const o of open) counts.set(o.item_id, (counts.get(o.item_id) ?? 0) + 1);
       return (items as any[]).map((i) => ({
-        ...i, uploader: latest.get(i.id)?.uploaded_by ?? i.created_by ?? null, versionId: latest.get(i.id)?.id ?? null, openComments: counts.get(i.id) ?? 0,
+        ...i, uploader: latest.get(i.id)?.uploaded_by ?? i.created_by ?? null, versionId: latest.get(i.id)?.id ?? null, file_name: latest.get(i.id)?.file_name ?? null, size_bytes: latest.get(i.id)?.size_bytes ?? null, mime_type: latest.get(i.id)?.mime_type ?? null, openComments: counts.get(i.id) ?? 0,
       })) as BoardItem[];
     },
   });
@@ -118,3 +118,36 @@ export function useUserNames() {
     },
   });
 }
+
+export type Activity = { id: string; at: string; kind: "upload" | "approved" | "feedback" | "sent"; who: string | null; itemId: string; title: string; clientId: string; version?: number };
+/** Last events composed from versions (uploads), client notifications and send-outs. */
+export function useVideoActivity(items: BoardItem[]) {
+  return useQuery({
+    queryKey: ["video-items", "activity", items.length],
+    enabled: items.length > 0,
+    queryFn: async () => {
+      const byId = new Map(items.map((i) => [i.id, i]));
+      const [{ data: vers }, { data: notes }] = await Promise.all([
+        db.from("video_versions").select("id,item_id,version,uploaded_by,created_at").eq("upload_status", "ready").order("created_at", { ascending: false }).limit(20),
+        db.from("hibe_notifications").select("id,item_id,kind,actor_id,created_at,video_title,client_id").order("created_at", { ascending: false }).limit(20),
+      ]);
+      const out: Activity[] = [];
+      for (const v of vers ?? []) { const i = byId.get(v.item_id); if (i) out.push({ id: v.id, at: v.created_at, kind: "upload", who: v.uploaded_by, itemId: i.id, title: i.title, clientId: i.client_id, version: v.version }); }
+      for (const n of notes ?? []) if (n.item_id) out.push({ id: n.id, at: n.created_at, kind: n.kind === "client_approved" ? "approved" : "feedback", who: n.actor_id, itemId: n.item_id, title: n.video_title, clientId: n.client_id });
+      for (const i of items) if (i.status === "client_review") out.push({ id: "s" + i.id, at: i.status_changed_at, kind: "sent", who: null, itemId: i.id, title: i.title, clientId: i.client_id });
+      return out.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 10);
+    },
+  });
+}
+/** Unread client feedback notifications, used for "Actie nodig". */
+export function useOpenClientFeedback() {
+  return useQuery({
+    queryKey: ["video-items", "open-feedback"],
+    queryFn: async () => {
+      const { data } = await db.from("hibe_notifications").select("item_id").eq("kind", "client_feedback").is("read_at", null);
+      return new Set<string>((data ?? []).map((d: any) => d.item_id));
+    },
+  });
+}
+export const renameVideo = async (id: string, title: string) => { const { error } = await db.from("video_items").update({ title }).eq("id", id); if (error) throw error; };
+export const trashVideo = async (id: string, trash: boolean) => { const { error } = await db.from("video_items").update({ archived_at: trash ? new Date().toISOString() : null }).eq("id", id); if (error) throw error; };

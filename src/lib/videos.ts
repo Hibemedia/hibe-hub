@@ -107,3 +107,34 @@ export function clientColorSlot(id: string) {
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return h % 6;
 }
+
+/* ---------- Media Management steps ---------- */
+export const STEPS: VideoStatus[] = ["internal_review", "feedback", "approved_internal", "ready_for_client", "client_review", "approved_client", "scheduled"];
+export const stepNo = (s: VideoStatus) => STEPS.indexOf(s) + 1; // 0 for archived
+export const STEP_SLUG: Record<VideoStatus, string> = {
+  internal_review: "interne-controle", feedback: "feedback-verwerken", approved_internal: "goedgekeurd-intern", ready_for_client: "mag-naar-klant",
+  client_review: "ter-controle-bij-klant", approved_client: "goedgekeurd-klant", scheduled: "ingepland", archived: "archief",
+};
+export const statusFromSlug = (slug?: string) => (Object.keys(STEP_SLUG) as VideoStatus[]).find((s) => STEP_SLUG[s] === slug) ?? null;
+export const STEP_HINT: Record<VideoStatus, string> = {
+  internal_review: "Klaar met monteren? Upload je video hier.",
+  feedback: "Bekijk de feedback, maak een nieuwe versie en upload die bij de video.",
+  approved_internal: "Inhoudelijk goedgekeurd. Voeg ondertiteling toe en zet door naar Mag naar klant.",
+  ready_for_client: "Klaar om te versturen. Bij 3 video's per klant kan het setje naar de klant.",
+  client_review: "Verstuurd naar de klant, wacht op reactie.",
+  approved_client: "Goedgekeurd door de klant. Moet nog worden ingepland.",
+  scheduled: "Ingepland. Wordt periodiek naar het archief verplaatst.",
+  archived: "Afgeronde video's.",
+};
+export const STEP_ACTION: Partial<Record<VideoStatus, { label: string; kind: "review" | "new_version" | "move" | "remind"; to?: VideoStatus }>> = {
+  internal_review: { label: "Beoordeel", kind: "review" },
+  feedback: { label: "Upload nieuwe versie", kind: "new_version" },
+  approved_internal: { label: "Naar Mag naar klant", kind: "move", to: "ready_for_client" },
+  client_review: { label: "Herinner klant", kind: "remind" },
+  approved_client: { label: "Markeer als ingepland", kind: "move", to: "scheduled" },
+};
+/** Worst age in a set: used to colour the step counters. */
+export function worstTone(dates: string[], now = Date.now()) {
+  const t = dates.map((d) => ageTone(d, now));
+  return t.includes("late") ? "late" : t.includes("warn") ? "warn" : "ok";
+}
