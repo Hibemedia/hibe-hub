@@ -462,6 +462,157 @@ export type Database = {
           },
         ]
       }
+      video_comments: {
+        Row: {
+          created_at: string
+          id: string
+          internal: boolean
+          item_id: string
+          number: number
+          resolved: boolean
+          text: string
+          time_seconds: number
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          internal?: boolean
+          item_id: string
+          number?: number
+          resolved?: boolean
+          text: string
+          time_seconds?: number
+          user_id?: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          internal?: boolean
+          item_id?: string
+          number?: number
+          resolved?: boolean
+          text?: string
+          time_seconds?: number
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_comments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "video_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_comments_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "video_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_items: {
+        Row: {
+          archived_at: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          current_version: number
+          drive_link: string | null
+          id: string
+          status: string
+          status_changed_at: string
+          title: string
+        }
+        Insert: {
+          archived_at?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          current_version?: number
+          drive_link?: string | null
+          id?: string
+          status?: string
+          status_changed_at?: string
+          title: string
+        }
+        Update: {
+          archived_at?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_version?: number
+          drive_link?: string | null
+          id?: string
+          status?: string
+          status_changed_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_versions: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          item_id: string
+          mime_type: string | null
+          r2_key: string
+          size_bytes: number | null
+          upload_id: string | null
+          upload_status: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          item_id: string
+          mime_type?: string | null
+          r2_key: string
+          size_bytes?: number | null
+          upload_id?: string | null
+          upload_status?: string
+          uploaded_by?: string | null
+          version: number
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          item_id?: string
+          mime_type?: string | null
+          r2_key?: string
+          size_bytes?: number | null
+          upload_id?: string | null
+          upload_status?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_versions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "video_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           client_id: string
@@ -558,6 +709,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      video_client_action: {
+        Args: { _action: string; _item_id: string }
+        Returns: {
+          archived_at: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          current_version: number
+          drive_link: string | null
+          id: string
+          status: string
+          status_changed_at: string
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "video_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      video_client_visible: { Args: { _item_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
