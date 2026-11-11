@@ -5,7 +5,7 @@ import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible
 describe("videos", () => {
   it("statuses are in the agreed board order", () => {
     expect(VIDEO_STATUSES.map((s) => VIDEO_STATUS_LABEL[s])).toEqual([
-      "Interne controle", "Feedback verwerken", "Goedgekeurd (intern)", "Mag naar klant",
+      "Interne controle", "Feedback verwerken", "CapCut", "Mag naar klant",
       "Ter controle bij klant", "Goedgekeurd (klant)", "Ingepland", "Archief",
     ]);
   });

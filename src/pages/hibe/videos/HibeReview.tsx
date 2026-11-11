@@ -70,7 +70,7 @@ export default function HibeReview() {
     if (!item) return; setBusy(true);
     try {
       await setVideoStatus(item.id, to);
-      toast.success(to === "feedback" ? "Terug naar editor" : "Goedgekeurd (intern)");
+      toast.success(to === "feedback" ? "Terug naar editor" : "Goedgekeurd, naar CapCut");
       reload();
       const next = siblings[0];
       nav(next ? `/hibe/videos/${next.id}` : back);
