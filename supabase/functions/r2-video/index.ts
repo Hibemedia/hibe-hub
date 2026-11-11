@@ -14,6 +14,7 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("abort"), version_id: uuid }),
   z.object({ action: z.literal("play_url"), version_id: uuid }),
   z.object({ action: z.literal("delete_item"), item_id: uuid }),
+  z.object({ action: z.literal("set_cors") }),
 ]);
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
@@ -60,6 +61,15 @@ Deno.serve(async (req) => {
 
     const { data: isAdmin } = await user.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
     if (!isAdmin) return json({ error: "Alleen HIBE" }, 403);
+
+    if (b.action === "set_cors") {
+      const origins = ["https://hibe-hub.lovable.app", "https://id-preview--1094f6b7-1b74-424e-946e-2a00ae7157d1.lovable.app", "http://localhost:8080"];
+      const xml = `<CORSConfiguration><CORSRule>${origins.map((o) => `<AllowedOrigin>${o}</AllowedOrigin>`).join("")}<AllowedMethod>GET</AllowedMethod><AllowedMethod>PUT</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>`;
+      const md5 = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("MD5", new TextEncoder().encode(xml)))));
+      const { aws, base } = r2();
+      const res = await aws.fetch(`${base}?cors`, { method: "PUT", body: xml, headers: { "Content-MD5": md5, "Content-Type": "application/xml" } });
+      return json({ status: res.status, body: (await res.text()).slice(0, 500) });
+    }
 
     if (b.action === "create") {
       let itemId = b.item_id, clientId = b.client_id;
