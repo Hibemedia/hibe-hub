@@ -13,13 +13,23 @@ import { VIDEO_STATUS_LABEL } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 import {
   Item, Post, PostStatus, SClient, STATUSES, WEEKLY, Week,
-  callSocials, cellCls, linkSocialVideo, mondayOf, nextStatus, statusOf, unlinkSocialVideo,
+  callSocials, cellCls, linkSocialVideo, mondayOf, statusOf, unlinkSocialVideo,
   useSocialVideoLinks, videoToPostStatus, weekDates, weekItems, ymd,
 } from "@/lib/socials";
 
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 const DOW_LETTERS = ["m", "d", "w", "d", "v", "z", "z"];
 const dow = (d: string) => (new Date(d + "T00:00:00").getDay() + 6) % 7; // 0 = maandag
+
+/** Colored left strip per status in the status picker popup, matching the legend. */
+const barCls = (s: PostStatus) =>
+  s === "scheduled" ? "border-l-[hsl(var(--social-green-fg))]"
+  : s === "none" ? "border-l-border"
+  : s === "to_post" ? "border-l-[hsl(var(--social-amber-fg))]"
+  : s === "internal_check" ? "border-l-[hsl(var(--social-orange-fg))]"
+  : s === "client_check" ? "border-l-[hsl(var(--social-cyan-fg))]"
+  : s === "in_progress" ? "border-l-[hsl(var(--social-blue-fg))]"
+  : "border-l-[hsl(var(--social-purple-fg))]"; // to_schedule
 
 /** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
 export function SocialsWeekGrid() {
