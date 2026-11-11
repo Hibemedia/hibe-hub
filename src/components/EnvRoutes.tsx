@@ -22,7 +22,7 @@ export function ClientEnv() {
         <PageHeaderProvider>
           <div className="flex min-h-screen w-full">
             <AppSidebar variant="client" />
-            <main className="min-w-0 flex-1 pb-20 md:pb-0"><FrameTopBar variant="client" /><Outlet /></main>
+            <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="client" /><Outlet /></main>
           </div>
         </PageHeaderProvider>
       )}
@@ -39,7 +39,7 @@ export function HibeEnv() {
         <PageHeaderProvider>
           <div className="flex min-h-screen w-full">
             <AppSidebar variant="hibe" />
-            <main className="min-w-0 flex-1 pb-20 md:pb-0"><FrameTopBar variant="hibe" /><Outlet /></main>
+            <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="hibe" /><Outlet /></main>
           </div>
         </PageHeaderProvider>
       )}
@@ -86,7 +86,7 @@ export function ViewAsEnv() {
             </div>
             <div className="flex min-h-[calc(100vh-2.75rem)] w-full">
               <AppSidebar variant="client" />
-              <main className="min-w-0 flex-1 pb-20 md:pb-0"><FrameTopBar variant="client" /><Outlet /></main>
+              <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="client" /><Outlet /></main>
             </div>
           </PageHeaderProvider>
         </ViewAsProvider>

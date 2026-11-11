@@ -285,15 +285,15 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
         {groups.map((g) => (
           <div key={g.title} className="py-3 first:pt-0 last:pb-0">
             <Link to={g.to} className="group flex items-center justify-between gap-2 text-sm">
-              <span className={cn("font-semibold group-hover:underline", !g.items.length && "font-medium text-muted-foreground")}>{g.title}</span>
+              <span className={cn("min-w-0 truncate font-semibold group-hover:underline", !g.items.length && "font-medium text-muted-foreground")}>{g.title}</span>
               {g.items.length ? <span className="min-w-6 rounded-full bg-foreground px-2 text-center text-xs font-bold leading-6 text-background tabular">{g.items.length}</span>
                 : <span className="text-xs text-muted-foreground">Niets open</span>}
             </Link>
             {g.items.length > 0 && (
               <ul className="mt-2 space-y-1">
                 {g.items.slice(0, 4).map((i) => (
-                  <li key={i.key}><Link to={g.to} className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-popover">
-                    <span className="truncate">{i.text}</span>
+                  <li key={i.key}><Link to={g.to} className="flex min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-popover">
+                    <span className="min-w-0 truncate">{i.text}</span>
                     {(i as { badge?: string }).badge && <span className="shrink-0 text-xs text-muted-foreground tabular">{(i as { badge?: string }).badge} video{(i as { badge?: string }).badge === "1" ? "" : "'s"}</span>}
                   </Link></li>
                 ))}

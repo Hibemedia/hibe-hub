@@ -86,7 +86,7 @@ export default function MediaOverview() {
       </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-lg border border-border bg-card p-4">
+        <section className="min-w-0 rounded-lg border border-border bg-card p-4">
           <h2 className="mb-2 text-base font-semibold">Actie nodig</h2>
           {actions.length === 0 ? <p className="text-sm text-muted-foreground">Alles is bij. Hier verschijnen setjes om te versturen, nieuwe klantfeedback en video's die blijven hangen.</p> : (
             <ul className="divide-y divide-border">
@@ -100,7 +100,7 @@ export default function MediaOverview() {
             </ul>
           )}
         </section>
-        <section className="rounded-lg border border-border bg-card p-4">
+        <section className="min-w-0 rounded-lg border border-border bg-card p-4">
           <h2 className="mb-2 text-base font-semibold">Laatste activiteit</h2>
           {activity.length === 0 ? <p className="text-sm text-muted-foreground">Nog geen activiteit.</p> : (
             <ul className="divide-y divide-border">

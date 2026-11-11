@@ -20,7 +20,7 @@ export function EmptyState({ text = "Nog geen data", action }: { text?: string; 
 
 export function Section({ title, aside, children, className }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-lg bg-card p-5 md:p-7", className)}>
+    <section className={cn("min-w-0 rounded-lg bg-card p-5 md:p-7", className)}>
       <header className="mb-5 flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
         {aside}
