@@ -121,16 +121,23 @@ function UpcomingMoments({ names, className }: { names: Record<string, string>; 
       {isLoading ? <Skeleton className="h-32 rounded-lg" /> : upcoming.length === 0 ? <EmptyState text="Geen contentmomenten of draaidagen gepland." /> : (
         <ul className="space-y-2">
           {upcoming.map((m) => (
-            <li key={m.id} className="flex items-center gap-3 rounded-lg bg-popover px-4 py-2.5">
-              <span className="w-14 shrink-0 text-sm font-semibold tabular">
-                {new Date(m.date! + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" })}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.title}</span>
-              <span className="flex shrink-0 flex-wrap justify-end gap-1.5">
-                <span className="chip">{names[m.client_id] ?? "Klant"}</span>
-                <span className="chip">{MOMENT_TYPES[m.type]}</span>
-                <span className={cn("hidden rounded-full px-2.5 py-0.5 text-xs font-semibold sm:inline-flex", STATUS_STYLE[m.status])}>{MOMENT_STATUS[m.status]}</span>
-              </span>
+            <li key={m.id}>
+              <Link to="/hibe/contentmomenten" className="flex items-center gap-3.5 rounded-lg bg-popover p-2.5 transition-colors hover:bg-muted">
+                <div className={cn("flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl", m.date === todayStr ? "bg-lime text-lime-foreground" : "bg-foreground text-background")}>
+                  <span className="text-[10px] font-semibold uppercase leading-none opacity-80">{new Date(m.date! + "T00:00:00").toLocaleDateString("nl-NL", { month: "short" }).replace(".", "")}</span>
+                  <span className="mt-0.5 text-xl font-bold leading-none tabular">{new Date(m.date! + "T00:00:00").getDate()}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold leading-snug">{m.title}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {names[m.client_id] ?? "Klant"} · {new Date(m.date! + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "long" })}{m.start_time ? ` ${String(m.start_time).slice(0, 5)}` : ""}{m.location ? ` · ${m.location}` : ""}
+                  </p>
+                </div>
+                <span className="hidden shrink-0 flex-col items-end gap-1 sm:flex">
+                  <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{MOMENT_STATUS[m.status]}</span>
+                  <span className="text-[11px] text-muted-foreground">{MOMENT_TYPES[m.type]}</span>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
