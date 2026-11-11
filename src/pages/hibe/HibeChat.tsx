@@ -199,7 +199,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
             <ImagePlus className="h-5 w-5" /><input type="file" accept="image/*" className="hidden" onChange={(e) => { pickImage(e.target.files?.[0]); e.target.value = ""; }} />
           </label>
           <Textarea ref={taRef} rows={1} value={text} onChange={(e) => setText(e.target.value)} aria-label="Bericht"
-            onKeyDown={(e) => { if (isSendKey(e.nativeEvent as any)) { e.preventDefault(); if (suggestions.length && q) pickMention(suggestions[0]); else send(); } }}
+            onKeyDown={(e) => { if (isSendKey(e.nativeEvent as any)) { e.preventDefault(); if (suggestions.length && q && handleOf(suggestions[0].name) !== q) pickMention(suggestions[0]); else send(); } }}
             onPaste={(e) => { const f = Array.from(e.clipboardData.files)[0]; if (f) { e.preventDefault(); pickImage(f); } }}
             placeholder={`Bericht aan ${title}`} className="max-h-40 min-h-10 resize-none" />
           <Button size="icon" aria-label="Versturen" disabled={(!text.trim() && !img) || sending} onClick={send}><Send className="h-4 w-4" /></Button>

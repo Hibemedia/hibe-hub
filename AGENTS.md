@@ -21,3 +21,4 @@
 - Media Management (HIBE video's) is step-based: one page per status at /hibe/videos/stap/:slug, overview at /hibe/videos, review at /hibe/videos/:id; trash = video_items.archived_at (no extra status) — keeps the existing statuses and RLS untouched.
 - Client-scope routes use :videoId for nested video pages so they never shadow /hibe/klant/:id.
 - Edits (/hibe/edits) is admin-only montageplanning in the edits table; delivering uploads through the same r2-video flow (uploader_id = editor) and links edits.video_item_id — the Feedback label is derived from that video's status, never stored.
+- Team chat (/hibe/chat) uses chat_rooms/chat_members/chat_messages with membership RLS via is_chat_member() (admin + member); one realtime subscription lives in NotificationBell (useChatLive) and chat alerts go to chat_notifications, not hibe_notifications (that table requires a client).
