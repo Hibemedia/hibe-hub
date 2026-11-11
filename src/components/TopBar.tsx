@@ -29,7 +29,7 @@ export function FrameTopBar({ variant }: { variant: "client" | "hibe" }) {
   const { setTitleEl, setActionEl } = useHeaderSlots();
   const viewAs = useViewAs();
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background px-4 md:px-6">
+    <header className={cn("sticky z-40 flex h-14", viewAs ? "top-11" : "top-0", " items-center gap-3 border-b border-border bg-background px-4 md:px-6")}>
       <div ref={setTitleEl} className="min-w-0 flex-1" />
       <div className="flex min-w-0 flex-none justify-center md:flex-1">{!viewAs && <GlobalSearch variant={variant} />}</div>
       <div className="flex flex-none items-center justify-end gap-3 md:flex-1">
@@ -59,6 +59,7 @@ export function ClientScopeBar({ id }: { id: string }) {
             className={({ isActive }) => cn("chip-filter shrink-0", isActive && "border-foreground bg-foreground text-background hover:bg-foreground")}>{m.title}</NavLink>
         ))}
       </nav>
+      <Link to={`/hibe/als/${id}`} className="ml-auto inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-foreground px-3 text-sm font-semibold text-background"><Eye className="h-4 w-4" />Bekijk als klant</Link>
     </div>
   );
 }
