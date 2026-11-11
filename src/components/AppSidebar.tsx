@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, CheckCircle, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, CheckCircle, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ export const CLIENT_MENU: Item[] = [
   { title: "Overzicht", url: "/", icon: Home },
   { title: "Performance", url: "/performance", icon: BarChart3 },
   { title: "Video Goedkeuring", url: "/video-approval", icon: CheckCircle },
+  { title: "Video's", url: "/videos", icon: Film, prefix: "/videos/" },
   { title: "Contentmomenten", url: "/content-moments", icon: Calendar },
   { title: "Branding & Archief", url: "/branding", icon: Archive },
   { title: "Medailles", url: "/medals", icon: Award },
@@ -19,6 +20,7 @@ const HIBE_MENU: Item[] = [
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
   { title: "Goedkeuringen", url: "/hibe/goedkeuringen", icon: CheckCircle },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
+  { title: "Video's", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Socials", url: "/hibe/socials", icon: ListChecks },
   { title: "Gebruikers", url: "/hibe/gebruikers", icon: Users },
 ];
