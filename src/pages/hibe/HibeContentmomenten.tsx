@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCrew, CrewBadge } from "@/components/MomentCrew";
+import { shootDaysOf } from "@/lib/crew";
 
 export default function HibeContentmomenten() {
   const { clients } = useClient();
@@ -19,6 +21,7 @@ export default function HibeContentmomenten() {
   const [editing, setEditing] = useState<Moment | null>(null);
   const [creating, setCreating] = useState<null | "choose" | string>(null);
   const [chosen, setChosen] = useState("");
+  const [person, setPerson] = useState("all");
 
   const { data: all = [], isLoading } = useQuery({
     queryKey: ["content-moments", "all"],
@@ -28,7 +31,10 @@ export default function HibeContentmomenten() {
       return (data ?? []) as Moment[];
     },
   });
-  const list = all.filter((m) => (client === "all" || m.client_id === client) && (showDone || (m.status !== "afgerond" && m.status !== "geannuleerd")));
+  const crew = useCrew(all);
+  const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
+  const personIds = person === "all" ? null : new Set(shootDaysOf(person, all, crew.rows, today).map((m) => m.id));
+  const list = all.filter((m) => !personIds || personIds.has(m.id)).filter((m) => (client === "all" || m.client_id === client) && (showDone || (m.status !== "afgerond" && m.status !== "geannuleerd")));
   const name = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
   const groups = new Map<string, Moment[]>();
   for (const m of list) {
@@ -45,6 +51,10 @@ export default function HibeContentmomenten() {
           <SelectTrigger aria-label="Filter op klant" className="h-9 w-auto min-w-44"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="all">Alle klanten</SelectItem>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
         </Select>
+        <Select value={person} onValueChange={setPerson}>
+          <SelectTrigger aria-label="Draaidagen van" className="h-9 w-auto min-w-44"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="all">Draaidagen van: iedereen</SelectItem>{crew.team.map((t) => <SelectItem key={t.id} value={t.id}>Draaidagen van {t.name}</SelectItem>)}</SelectContent>
+        </Select>
         <button aria-pressed={!showDone} onClick={() => setShowDone(false)} className="chip-filter">Komend</button>
         <button aria-pressed={showDone} onClick={() => setShowDone(true)} className="chip-filter">Alles</button>
       </div>
@@ -60,6 +70,7 @@ export default function HibeContentmomenten() {
                 <button onClick={() => setOpenId(m.id)} className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-popover px-4 py-3 text-left hover:bg-background">
                   <span className="w-20 shrink-0 text-sm font-semibold tabular">{m.date ? new Date(m.date + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric" }) : "–"}{m.start_time && <span className="block text-xs font-normal text-muted-foreground">{m.start_time.slice(0, 5)}</span>}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{m.title}</span>
+                  <CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} />
                   <span className="flex flex-wrap gap-1.5">
                     <span className="chip">{name(m.client_id)}</span>
                     <span className="chip">{MOMENT_TYPES[m.type]}</span>
@@ -72,7 +83,7 @@ export default function HibeContentmomenten() {
         </section>
       ))}
 
-      {selected && <MomentDialog m={selected} onClose={() => setOpenId(null)} onEdit={() => { setOpenId(null); setEditing(selected); }} />}
+      {selected && <MomentDialog m={selected} allMoments={all} onClose={() => setOpenId(null)} onEdit={() => { setOpenId(null); setEditing(selected); }} />}
       {editing && <EditDialog clientId={editing.client_id} moment={editing} onClose={() => setEditing(null)} />}
       {creating === "choose" && (
         <Dialog open onOpenChange={(o) => !o && setCreating(null)}>
