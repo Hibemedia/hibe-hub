@@ -113,7 +113,7 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
       <h1 className="truncate text-lg font-semibold">{item.title}</h1>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-3">
-          <Player ref={player} url={url} maxH="min(70vh, calc(100vh - 300px))" markers={mine.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number) }))} />
+          <Player ref={player} url={url} maxH="min(60vh, calc(100vh - 300px))" markers={mine.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number) }))} />
           {canAct && (
             <div className="sticky bottom-20 z-10 grid grid-cols-2 gap-2 bg-background py-2 md:bottom-0">
               <Button size="lg" className="h-12 bg-lime text-base text-lime-foreground hover:bg-lime/90" disabled={busy} onClick={() => action("approve")}><Check />Goedkeuren</Button>
