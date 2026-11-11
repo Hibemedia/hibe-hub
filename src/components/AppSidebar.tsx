@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { STEPS, STEP_SLUG, VIDEO_STATUS_LABEL, stepNo, VideoStatus } from "@/lib/videos";
 import { useQuery } from "@tanstack/react-query";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -21,12 +24,72 @@ export const CLIENT_MENU: Item[] = [
 ];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
-  { title: "Video's", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
+  { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
   { title: "Team", url: "/hibe/gebruikers", icon: Users },
 ];
+const MEDIA_OPEN_KEY = "hibe.sidebar.media";
+export const MEDIA_SUB: { title: string; url: string; status?: VideoStatus | "trash" }[] = [
+  { title: "Overzicht", url: "/hibe/videos" },
+  ...STEPS.map((s) => ({ title: `${stepNo(s)} ${VIDEO_STATUS_LABEL[s]}`, url: `/hibe/videos/stap/${STEP_SLUG[s]}`, status: s as VideoStatus })),
+  { title: "Archief", url: "/hibe/videos/stap/archief", status: "archived" as VideoStatus },
+  { title: "Prullenbak", url: "/hibe/videos/stap/prullenbak", status: "trash" as const },
+];
+/** Counts per step for the Media Management submenu. */
+export function useMediaCounts(enabled: boolean) {
+  return useQuery({
+    queryKey: ["video-items", "media-counts"],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("video_items" as any).select("status,archived_at");
+      if (error) throw error;
+      const c: Record<string, number> = {};
+      for (const r of (data ?? []) as any[]) { const k = r.archived_at ? "trash" : r.status; c[k] = (c[k] ?? 0) + 1; }
+      return c;
+    },
+  });
+}
+
+function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
+  const path = useLocation().pathname;
+  const { data: counts = {} } = useMediaCounts(true);
+  const active = path.startsWith("/hibe/videos");
+  const [open, setOpen] = useState(() => localStorage.getItem(MEDIA_OPEN_KEY) !== "0");
+  const toggle = () => setOpen((o) => { localStorage.setItem(MEDIA_OPEN_KEY, o ? "0" : "1"); return !o; });
+  const n = (s?: string) => (s ? counts[s] : undefined);
+  if (collapsed) return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild onPointerEnter={(e) => (e.currentTarget as HTMLElement).click()}>
+        <button aria-label={item.title} className={cn("relative flex h-10 items-center justify-center rounded-md px-3", active ? "bg-foreground text-background" : "hover:bg-muted")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start" className="w-56">
+        {MEDIA_SUB.map((s) => <DropdownMenuItem key={s.url} asChild><NavLink to={s.url} end className="flex justify-between">{s.title}<span className="tabular text-muted-foreground">{n(s.status) || ""}</span></NavLink></DropdownMenuItem>)}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+  return (
+    <div>
+      <div className={cn("flex h-10 items-center rounded-md text-sm font-medium", active && path === "/hibe/videos" ? "" : "")}>
+        <NavLink to={item.url} end className={cn("flex h-10 min-w-0 flex-1 items-center gap-3 rounded-md px-3 transition-colors", active ? "font-semibold" : "hover:bg-muted")}>
+          <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} /><span className="truncate">{item.title}</span>
+        </NavLink>
+        <button onClick={toggle} aria-label={open ? "Stappen inklappen" : "Stappen uitklappen"} aria-expanded={open} className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"><ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} /></button>
+      </div>
+      {open && (
+        <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-border pl-2">
+          {MEDIA_SUB.map((s) => (
+            <NavLink key={s.url} to={s.url} end className={({ isActive }) => cn("flex h-8 items-center gap-2 rounded-md px-2 text-[13px]", isActive ? "bg-foreground text-background" : "text-foreground hover:bg-muted")}>
+              <span className="min-w-0 flex-1 truncate">{s.title}</span>{!!n(s.status) && <span className="text-[11px] tabular opacity-70">{n(s.status)}</span>}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const COLLAPSE_KEY = "hibe.sidebar.collapsed";
 
 /** HIBE: videos waiting for an internal check. */
@@ -125,7 +188,7 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
           </Tooltip>
         </div>
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2" aria-label="Hoofdmenu">
-          {items.map((i) => <SideLink key={i.url} item={i} collapsed={collapsed} badge={badgeFor(i)} />)}
+          {items.map((i) => variant === "hibe" && i.icon === Film ? <MediaGroup key={i.url} item={i} collapsed={collapsed} /> : <SideLink key={i.url} item={i} collapsed={collapsed} badge={badgeFor(i)} />)}
         </nav>
         <div className="flex flex-col gap-1 border-t border-border p-2">
           <SideLink item={settings} collapsed={collapsed} />
