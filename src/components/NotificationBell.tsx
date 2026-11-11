@@ -4,6 +4,7 @@ import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { UserAuth } from "@/context/AuthContext.jsx";
+import { useChatLive, useChatNotes, useTeamMembers } from "@/hooks/useChat";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type Note = { id: string; client_id: string; item_id: string | null; kind: string; video_title: string; created_at: string; read_at: string | null; recipient_id: string | null };
@@ -25,13 +26,27 @@ export function NotificationBell() {
       return (data ?? []) as unknown as Note[];
     },
   });
-  const unread = notes.filter((n) => !n.read_at);
+  const { data: team = [] } = useTeamMembers();
+  const person = (id: string | null) => team.find((t) => t.id === id)?.name ?? "Iemand";
+  useChatLive(me, person);
+  const { data: chat = [] } = useChatNotes(me);
+  const unread = [...notes.filter((n) => !n.read_at), ...chat.filter((n) => !n.read_at)];
   const name = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
   const markRead = async (ids: string[]) => {
     if (!ids.length) return;
-    await supabase.from("hibe_notifications" as any).update({ read_at: new Date().toISOString() }).in("id", ids);
+    const now = new Date().toISOString();
+    await Promise.all([
+      supabase.from("hibe_notifications" as any).update({ read_at: now }).in("id", ids),
+      supabase.from("chat_notifications" as any).update({ read_at: now }).in("id", ids),
+    ]);
     qc.invalidateQueries({ queryKey: ["hibe-notifications"] });
+    qc.invalidateQueries({ queryKey: ["chat-notes"] });
   };
+  const all = [
+    ...notes.map((n) => ({ at: n.created_at, el: { n, chat: false as const } })),
+    ...chat.map((c) => ({ at: c.created_at, el: { c, chat: true as const } })),
+  ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30);
+  const when = (d: string) => new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -45,9 +60,17 @@ export function NotificationBell() {
           <p className="text-sm font-semibold">Meldingen</p>
           {unread.length > 0 && <button onClick={() => markRead(unread.map((n) => n.id))} className="text-xs text-muted-foreground hover:text-foreground">Alles gelezen</button>}
         </div>
-        {notes.length === 0 ? <p className="px-4 py-6 text-center text-sm text-muted-foreground">Hier zie je wanneer een klant feedback geeft, een video goedkeurt of je een edit krijgt.</p> : (
+        {all.length === 0 ? <p className="px-4 py-6 text-center text-sm text-muted-foreground">Hier zie je feedback van klanten, nieuwe edits en chatberichten voor jou.</p> : (
           <ul className="max-h-96 overflow-y-auto">
-            {notes.map((n) => (
+            {all.map(({ el }) => el.chat ? (
+              <li key={el.c.id}>
+                <button onClick={() => { markRead([el.c.id]); nav(`/hibe/chat?room=${el.c.room_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
+                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${el.c.read_at ? "bg-transparent" : "bg-lime"}`} />
+                  <span className="min-w-0"><b>{person(el.c.actor_id)}</b> {el.c.kind === "dm" ? "stuurde je een bericht:" : "noemde je in de chat:"} <span className="line-clamp-2 font-medium">{el.c.preview}</span>
+                    <span className="block text-xs text-muted-foreground">{when(el.c.created_at)}</span></span>
+                </button>
+              </li>
+            ) : ((n) => (
               <li key={n.id}>
                 <button onClick={() => { markRead([n.id]); if (n.kind === "edit_assigned") nav("/hibe/edits"); else if (n.item_id) nav(`/hibe/videos/${n.item_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
                   <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-transparent" : "bg-lime"}`} />
@@ -55,7 +78,7 @@ export function NotificationBell() {
                     <span className="block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></span>
                 </button>
               </li>
-            ))}
+            ))(el.n))}
           </ul>
         )}
       </PopoverContent>
