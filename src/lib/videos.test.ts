@@ -27,3 +27,35 @@ describe("videos", () => {
   it("feedback always goes to Feedback verwerken", () => expect(hibeNext("client_review", "feedback")).toBe("feedback"));
   it("formats timecodes", () => { expect(fmtTime(65.7)).toBe("1:05"); expect(fmtTime(3725)).toBe("1:02:05"); });
 });
+
+import { phaseOf, inTab, tabForStatus, ageTone, ROW_ACTION, clientColorSlot } from "./videos";
+describe("video phases", () => {
+  it("groups statuses by who is at turn", () => {
+    expect(phaseOf("approved_internal")).toBe("internal");
+    expect(phaseOf("ready_for_client")).toBe("client");
+    expect(phaseOf("approved_client")).toBe("plan");
+    expect(phaseOf("archived")).toBe("done");
+  });
+  it("Voor mij = all Interne controle + my own Feedback verwerken", () => {
+    expect(inTab({ status: "internal_review", uploader: "x" }, "mine", "me")).toBe(true);
+    expect(inTab({ status: "feedback", uploader: "me" }, "mine", "me")).toBe(true);
+    expect(inTab({ status: "feedback", uploader: "x" }, "mine", "me")).toBe(false);
+    expect(inTab({ status: "approved_internal", uploader: "me" }, "mine", "me")).toBe(false);
+  });
+  it("dashboard counters open the right tab", () => {
+    expect(tabForStatus("internal_review")).toBe("mine");
+    expect(tabForStatus("client_review")).toBe("client");
+    expect(tabForStatus("feedback")).toBe("internal");
+  });
+  it("age turns orange after 3 days and red after 7", () => {
+    const now = Date.parse("2026-11-11T12:00:00Z");
+    expect(ageTone("2026-11-09T12:00:00Z", now)).toBe("ok");
+    expect(ageTone("2026-11-08T12:00:00Z", now)).toBe("warn");
+    expect(ageTone("2026-11-04T12:00:00Z", now)).toBe("late");
+  });
+  it("Mag naar klant has no per-video button", () => {
+    expect(ROW_ACTION.ready_for_client).toBeNull();
+    expect(ROW_ACTION.approved_client).toBe("schedule");
+  });
+  it("client colour is stable", () => { expect(clientColorSlot("abc")).toBe(clientColorSlot("abc")); });
+});
