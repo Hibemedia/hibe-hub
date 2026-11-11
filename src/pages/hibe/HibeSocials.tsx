@@ -1,28 +1,13 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/StatsOverview";
-import { PostStatus, STATUSES, WEEKLY, statusOf, ymd, mondayOf } from "@/lib/socials";
-
-type SClient = { id: string; name: string; abbreviation: string; category: string; is_active: boolean; tracking_mode: string; weekly_target: number };
-type Post = { client_id: string; post_date: string; status: PostStatus; note: string | null; title: string | null };
-type Item = { id: string; title: string; status: PostStatus; note: string };
-type Week = { client_id: string; week_start: string; count: number; items: Item[] | null };
-
-async function call<T>(body: unknown): Promise<T> {
-  const { data, error } = await supabase.functions.invoke("socials-proxy", { body });
-  if (error) throw error;
-  if ((data as any)?.error) throw new Error(String((data as any).error));
-  return data as T;
-}
-
-const cellCls = (s: PostStatus) => s === "scheduled" ? "bg-primary text-primary-foreground" : s === "none" ? "bg-background" : "bg-foreground/10 text-foreground";
+import { Item, Post, PostStatus, SClient, STATUSES, Week, WEEKLY, callSocials, cellCls, statusOf, ymd, mondayOf } from "@/lib/socials";
 
 export default function HibeSocials() {
   const qc = useQueryClient();
@@ -34,7 +19,7 @@ export default function HibeSocials() {
   const key = ["socials", from];
   const { data, isLoading, error } = useQuery({
     queryKey: key,
-    queryFn: () => call<{ clients: SClient[]; posts: Post[]; weeks: Week[] }>({ action: "load", from, to, weekFrom }),
+    queryFn: () => callSocials<{ clients: SClient[]; posts: Post[]; weeks: Week[] }>({ action: "load", from, to, weekFrom }),
     refetchInterval: 30000,
   });
   const posts = useMemo(() => new Map((data?.posts ?? []).map((p) => [`${p.client_id}_${p.post_date}`, p])), [data]);
@@ -49,12 +34,12 @@ export default function HibeSocials() {
     const cur = posts.get(`${c}_${date}`) ?? { client_id: c, post_date: date, status: "none" as PostStatus, note: null, title: null };
     const next = { ...cur, ...patch };
     qc.setQueryData(key, (old: any) => old && { ...old, posts: [...old.posts.filter((p: Post) => !(p.client_id === c && p.post_date === date)), next] });
-    try { await call({ action: "set_post", client_id: c, post_date: date, status: next.status, note: next.note || null, title: next.title || null }); }
+    try { await callSocials({ action: "set_post", client_id: c, post_date: date, status: next.status, note: next.note || null, title: next.title || null }); }
     catch (e) { toast.error("Kon niet opslaan"); qc.invalidateQueries({ queryKey: key }); }
   };
   const saveWeek = async (c: string, ws: string, items: Item[]) => {
     qc.setQueryData(key, (old: any) => old && { ...old, weeks: [...old.weeks.filter((w: Week) => !(w.client_id === c && w.week_start === ws)), { client_id: c, week_start: ws, count: 0, items }] });
-    try { await call({ action: "set_week", client_id: c, week_start: ws, items }); }
+    try { await callSocials({ action: "set_week", client_id: c, week_start: ws, items }); }
     catch { toast.error("Kon niet opslaan"); qc.invalidateQueries({ queryKey: key }); }
   };
   const weekItems = (w?: Week): Item[] => w?.items?.length ? w.items : Array.from({ length: w?.count ?? 0 }, (_, i) => ({ id: `legacy-${i}`, title: "", status: "scheduled" as PostStatus, note: "" }));
