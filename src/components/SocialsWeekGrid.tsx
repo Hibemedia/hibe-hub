@@ -300,7 +300,7 @@ export function SocialsWeekGrid() {
 
       <div className="-mx-1 overflow-x-auto px-1">
         <table className={cn("w-full table-fixed border-collapse text-xs", view === "week" ? "min-w-[640px]" : "min-w-[1080px]")}>
-          <colgroup><col className={view === "week" ? "w-32 md:w-44" : undefined} />{dates.map((d) => <col key={d} className={view === "week" ? undefined : "w-[28px]"} />)}<col className={view === "week" ? "w-32 md:w-36" : "w-28"} /></colgroup>
+          <colgroup><col className={view === "week" ? "w-32 md:w-44" : undefined} />{dates.map((d) => <col key={d} className={view === "week" ? undefined : "w-[26px]"} />)}<col className={view === "week" ? "w-32 md:w-36" : "w-28"} /></colgroup>
           <thead><tr>
             <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
             {dates.map((d, i) => (
