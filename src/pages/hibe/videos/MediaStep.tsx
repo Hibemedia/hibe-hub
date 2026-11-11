@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { BoardItem, setVideoStatus, renameVideo, trashVideo } from "@/hooks/useVideos";
 import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
-import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, stepNo, ageTone, fmtSize } from "@/lib/videos";
+import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ export default function MediaStep() {
   const destroy = async (i: BoardItem) => { if (!window.confirm(`"${i.title}" definitief verwijderen, ook uit de opslag?`)) return; try { await invokeVideo({ action: "delete_item", item_id: i.id }); forgetResume(i.id); refresh(); } catch (e: any) { toast.error(e.message); } };
 
   if (!status && !trashView) return <div className="p-8"><EmptyState text="Deze stap bestaat niet." /></div>;
-  const title = trashView ? "Prullenbak" : status === "archived" ? "Archief" : `${stepNo(status!)} ${VIDEO_STATUS_LABEL[status!]}`;
+  const title = trashView ? "Prullenbak" : status === "archived" ? "Archief" : VIDEO_STATUS_LABEL[status!];
   const hint = trashView ? "Verwijderde video's. Zet ze terug of verwijder ze definitief." : STEP_HINT[status!];
   const all = list.length > 0 && list.every((i) => sel.has(i.id));
 
@@ -140,7 +140,7 @@ export default function MediaStep() {
                       <DropdownMenuTrigger asChild><button aria-label="Meer acties" className="round-btn h-8 w-8"><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {!trashView && <DropdownMenuSub><DropdownMenuSubTrigger>Verplaats naar</DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent>{ALL.filter((s) => s !== i.status).map((s) => <DropdownMenuItem key={s} onClick={() => move([i.id], s)}>{s === "archived" ? "Archief" : `${stepNo(s)} ${VIDEO_STATUS_LABEL[s]}`}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>}
+                          <DropdownMenuSubContent>{ALL.filter((s) => s !== i.status).map((s) => <DropdownMenuItem key={s} onClick={() => move([i.id], s)}>{s === "archived" ? "Archief" : VIDEO_STATUS_LABEL[s]}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>}
                         <DropdownMenuItem onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => rename(i)}>Hernoem</DropdownMenuItem>
                         <DropdownMenuSeparator />

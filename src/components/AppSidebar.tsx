@@ -3,7 +3,7 @@ import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Bui
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { STEPS, STEP_SLUG, VIDEO_STATUS_LABEL, stepNo, VideoStatus } from "@/lib/videos";
+import { STEPS, STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus } from "@/lib/videos";
 import { useQuery } from "@tanstack/react-query";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -33,7 +33,7 @@ const HIBE_MENU: Item[] = [
 const MEDIA_OPEN_KEY = "hibe.sidebar.media";
 export const MEDIA_SUB: { title: string; url: string; status?: VideoStatus | "trash" }[] = [
   { title: "Overzicht", url: "/hibe/videos" },
-  ...STEPS.map((s) => ({ title: `${stepNo(s)} ${VIDEO_STATUS_LABEL[s]}`, url: `/hibe/videos/stap/${STEP_SLUG[s]}`, status: s as VideoStatus })),
+  ...STEPS.map((s) => ({ title: VIDEO_STATUS_LABEL[s], url: `/hibe/videos/stap/${STEP_SLUG[s]}`, status: s as VideoStatus })),
   { title: "Archief", url: "/hibe/videos/stap/archief", status: "archived" as VideoStatus },
   { title: "Prullenbak", url: "/hibe/videos/stap/prullenbak", status: "trash" as const },
 ];

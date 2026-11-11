@@ -6,7 +6,7 @@ import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useM
 import { useSendToClient } from "@/components/videos/SendDialog";
 import { UploadProgress } from "@/components/UploadProgress";
 import { useVideoActivity, useOpenClientFeedback } from "@/hooks/useVideos";
-import { STEPS, STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, stepNo, worstTone, ageTone, fmtAge, clientsReadyToSend } from "@/lib/videos";
+import { STEPS, STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, worstTone, ageTone, fmtAge, clientsReadyToSend } from "@/lib/videos";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ export default function MediaOverview() {
           const t = s === "scheduled" ? "ok" : worstTone(inStep.map((i) => i.status_changed_at));
           return (
             <button key={s} onClick={() => go(s)} className={cn("flex flex-col gap-2 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-popover", tone[t])}>
-              <span className="text-xs text-muted-foreground"><b className="text-foreground">{stepNo(s)}</b> {VIDEO_STATUS_LABEL[s]}</span>
+              <span className="text-xs text-muted-foreground">{VIDEO_STATUS_LABEL[s]}</span>
               <span className="text-3xl font-light leading-none tabular">{inStep.length}</span>
             </button>
           );
@@ -68,7 +68,7 @@ export default function MediaOverview() {
             <table className="w-full min-w-[760px] text-sm">
               <thead><tr className="text-left text-xs text-muted-foreground">
                 <th className="px-2 py-2 font-medium">{sortBtn("name", "Klant")}</th>
-                {STEPS.map((s) => <th key={s} className="px-2 py-2 text-center font-medium" title={VIDEO_STATUS_LABEL[s]}>{sortBtn(s, <span className="text-left leading-tight">{stepNo(s)} {VIDEO_STATUS_LABEL[s]}</span>)}</th>)}
+                {STEPS.map((s) => <th key={s} className="px-2 py-2 text-center font-medium" title={VIDEO_STATUS_LABEL[s]}>{sortBtn(s, <span className="text-left leading-tight">{VIDEO_STATUS_LABEL[s]}</span>)}</th>)}
                 <th className="px-2 py-2 text-right font-medium">{sortBtn("total", "Totaal lopend")}</th>
               </tr></thead>
               <tbody className="divide-y divide-border">

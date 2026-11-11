@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { useVideoItem, useItemComments, usePlayUrl, setVideoStatus, VideoComment } from "@/hooks/useVideos";
 import { downloadVideo } from "./MediaStep";
 import { startUpload } from "@/lib/uploadStore";
-import { STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, fmtTime, stepNo } from "@/lib/videos";
+import { STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, fmtTime } from "@/lib/videos";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -89,7 +89,7 @@ export default function HibeReview() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-muted-foreground">{m.clientName(item.client_id)}</p>
           <p className="flex min-w-0 items-center gap-2"><span className="truncate font-semibold">{item.title}</span><span className="text-sm text-muted-foreground">V{version?.version ?? item.current_version}</span>
-            <StatusLabel status={item.status} label={`${stepNo(item.status) || ""} ${VIDEO_STATUS_LABEL[item.status]}`.trim()} /></p>
+            <StatusLabel status={item.status} label={VIDEO_STATUS_LABEL[item.status]} /></p>
         </div>
         <Button variant="outline" disabled={busy || openCount === 0} title={openCount === 0 ? "Plaats eerst minstens één opmerking" : undefined} onClick={() => decide("feedback")}>Terug naar editor</Button>
         <Button disabled={busy} onClick={() => decide("approved_internal")}>Goedkeuren</Button>
