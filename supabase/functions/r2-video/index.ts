@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
     const { data: isAdmin } = await user.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
     if (!isAdmin) return json({ error: "Alleen HIBE" }, 403);
 
+
     if (b.action === "create") {
       let itemId = b.item_id, clientId = b.client_id;
       if (itemId) {
