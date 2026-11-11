@@ -25,7 +25,7 @@ const dow = (d: string) => (new Date(d + "T00:00:00").getDay() + 6) % 7; // 0 = 
 export function SocialsWeekGrid() {
   const qc = useQueryClient();
   const { clients: hibeClients } = useClient();
-  const [view, setView] = useState<"week" | "month">("week");
+  const [view, setView] = useState<"week" | "month">("month");
   const [offset, setOffset] = useState(0);
   const [openOnly, setOpenOnly] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
