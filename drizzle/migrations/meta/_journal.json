@@ -169,6 +169,13 @@
       "when": 1794435074109,
       "tag": "0023_calendar_events",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794435275071,
+      "tag": "0024_team_roles",
+      "breakpoints": true
     }
   ]
 }

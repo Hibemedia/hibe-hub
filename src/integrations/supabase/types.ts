@@ -823,6 +823,27 @@ export type Database = {
           },
         ]
       }
+      team_roles: {
+        Row: {
+          role: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          role?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          role?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1153,6 +1174,7 @@ export type Database = {
       }
       current_client_id: { Args: never; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_beheerder: { Args: { _user_id: string }; Returns: boolean }
       is_chat_member: {
         Args: { _room: string; _user: string }
         Returns: boolean
