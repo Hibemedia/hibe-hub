@@ -28,10 +28,10 @@ const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Edits", url: "/hibe/edits", icon: Scissors },
-  { title: "Chat", url: "/hibe/chat", icon: MessagesSquare },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
+  { title: "Chat", url: "/hibe/chat", icon: MessagesSquare },
   { title: "Team", url: "/hibe/gebruikers", icon: Users },
 ];
 const MEDIA_OPEN_KEY = "hibe.sidebar.media";
