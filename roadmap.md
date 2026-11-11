@@ -23,3 +23,8 @@
 - [x] Zet de compacte Top 5 video's links naast de weerkaart op het HIBE-dashboard; behoud de stijl en cijfers.
 - [x] Verwijder het grote Top 5-blok verder op de pagina en los horizontale scroll op 375px op.
 - [x] Controleer desktop, mobiel en alle HIBE-routes op afkapping.
+
+# Checklist op het dashboard
+- [x] Toon de Socials-checklist van deze week (ma-zo) als compacte kaart op /hibe, live vanaf dezelfde rijen als Review Hub.
+- [x] Deel de checklist-helpers tussen kaart en volledige pagina; klik een vakje om de status te zetten, knop naar de volledige checklist.
+- [x] Test de kaart als HIBE-admin op desktop en 375px zonder afkapping; controleer dat de volledige pagina nog werkt.

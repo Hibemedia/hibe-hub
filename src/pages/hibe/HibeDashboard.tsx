@@ -44,7 +44,7 @@ export default function HibeDashboard() {
         <div className="min-w-0 xl:col-span-1">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
 
-      <SocialsChecklistCard />
+      <SocialsChecklistCard className="p-4 md:p-7" />
 
       <PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />
 
