@@ -66,7 +66,7 @@ export default function HibeDashboard() {
             </Link>
           );
         })}
-        <div className="lg:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} className="h-full" />}</div>
+        <div className="lg:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
 
         {/* Rij 2: checklist + top 5 */}
         <SocialsChecklistCard className="h-full p-4 md:p-6 lg:col-span-8" />
