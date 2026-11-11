@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +17,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  useEffect(() => { if (user) navigate("/", { replace: true }); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  const from = (useLocation().state as { from?: string } | null)?.from;
+  useEffect(() => { if (user) navigate(from ?? "/", { replace: true }); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -26,7 +27,7 @@ const Login = () => {
       const result = await signInUser(email,password);
       if(result.success){
         const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", result.session.user.id).eq("role", "admin").maybeSingle();
-        navigate(role ? "/hibe" : "/");
+        navigate(from && (role ? from.startsWith("/hibe") : !from.startsWith("/hibe")) ? from : role ? "/hibe" : "/");
       } else {
         setError("E-mailadres of wachtwoord klopt niet.");
       }
