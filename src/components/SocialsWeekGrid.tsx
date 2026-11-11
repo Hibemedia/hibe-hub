@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Link2, Plus, Trash2, Unlink } from "lucide-react";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,6 +31,26 @@ const statusBarCls = (s: PostStatus) =>
   : s === "client_check" ? "border-l-[hsl(var(--social-cyan-fg))]"
   : s === "in_progress" ? "border-l-[hsl(var(--social-blue-fg))]"
   : "border-l-[hsl(var(--social-purple-fg))]"; // to_schedule
+
+/** Name + link fields of a checklist cell, saved together with one explicit button. */
+function PostFields({ title, note, onSave }: { title: string; note: string; onSave: (title: string, note: string) => void }) {
+  const [t, setT] = useState(title);
+  const [n, setN] = useState(note);
+  const dirty = t !== title || n !== note;
+  return (
+    <div className="space-y-2">
+      <div className="space-y-1">
+        <Label className="text-xs">Naam van de video</Label>
+        <Input value={t} onChange={(e) => setT(e.target.value)} placeholder="Bijv. Behind the scenes" />
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Link van de video</Label>
+        <Input value={n} onChange={(e) => setN(e.target.value)} placeholder="https://…" />
+      </div>
+      <Button size="sm" className="w-full" disabled={!dirty} onClick={() => onSave(t, n)}>Opslaan</Button>
+    </div>
+  );
+}
 
 /** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
 export function SocialsWeekGrid() {
