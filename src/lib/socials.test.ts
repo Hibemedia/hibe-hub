@@ -1,3 +1,4 @@
+// @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
 import { mondayOf, ymd, statusOf } from "./socials";
 describe("socials", () => {
