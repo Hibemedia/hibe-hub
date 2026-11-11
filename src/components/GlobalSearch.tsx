@@ -36,7 +36,7 @@ export function GlobalSearch({ variant }: { variant: "client" | "hibe" }) {
       <button type="button" onClick={() => setOpen(true)} aria-label="Zoeken"
         className="flex h-9 w-9 items-center justify-center gap-2 rounded-md border border-border bg-popover text-sm text-muted-foreground transition-colors hover:text-foreground md:w-full md:max-w-md md:justify-start md:px-3">
         <Search className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="hidden flex-1 text-left md:inline">{variant === "hibe" ? "Zoek klanten en video's" : "Zoek video's"}</span>
+        <span className="hidden min-w-0 flex-1 truncate whitespace-nowrap text-left md:inline">{variant === "hibe" ? "Zoek klanten en video's" : "Zoek video's"}</span>
         <kbd className="hidden rounded border border-border px-1.5 text-[11px] font-medium md:inline">{isMac ? "⌘" : "Ctrl"} K</kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>

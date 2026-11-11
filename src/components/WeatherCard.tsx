@@ -27,9 +27,9 @@ export function WeatherCard({ lat, lon, place, className }: { lat: number; lon: 
     },
   });
 
-  if (isLoading) return <Skeleton className={cn("aspect-square rounded-lg", className)} />;
+  if (isLoading) return <Skeleton className={cn("aspect-square w-full max-sm:max-w-[180px] rounded-lg", className)} />;
   if (isError || !data)
-    return <section className={cn("rounded-lg bg-card p-4 text-xs text-muted-foreground", className)}>Het weer kon niet geladen worden.</section>;
+    return <section className={cn("aspect-square w-full max-sm:max-w-[180px] rounded-lg bg-card p-4 text-xs text-muted-foreground", className)}>Het weer kon niet geladen worden.</section>;
 
   const cur = weatherInfo(data.current.weather_code);
   const rain = data.daily.precipitation_probability_max[0] ?? 0;
@@ -38,13 +38,13 @@ export function WeatherCard({ lat, lon, place, className }: { lat: number; lon: 
   return (
     <section
       aria-label={`Weer in ${place}`}
-      className={cn("flex flex-col justify-between gap-3 rounded-lg bg-card p-4 xl:aspect-square", className)}
+      className={cn("flex aspect-square w-full max-sm:max-w-[180px] flex-col justify-between gap-3 rounded-lg bg-card p-4", className)}
     >
       <p className="truncate text-xs text-muted-foreground">Vandaag in {place}</p>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 xl:flex-col xl:items-start xl:gap-1.5">
-        <span className="flex items-center gap-2">
-          <cur.icon className="h-8 w-8 shrink-0" strokeWidth={1.4} aria-hidden />
-          <span className="text-4xl font-light leading-none tabular">{Math.round(data.current.temperature_2m)}°</span>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="flex min-w-0 items-center gap-2">
+          <cur.icon className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" strokeWidth={1.4} aria-hidden />
+          <span className="text-3xl font-light leading-none tabular sm:text-4xl">{Math.round(data.current.temperature_2m)}°</span>
         </span>
         <span className="text-sm">{cur.label}</span>
       </div>

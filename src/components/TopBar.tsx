@@ -23,7 +23,7 @@ export function FrameTopBar({ variant }: { variant: "client" | "hibe" }) {
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background px-4 md:px-6">
       <div ref={setTitleEl} className="min-w-0 flex-1" />
-      <div className="flex flex-none justify-center md:flex-1"><GlobalSearch variant={variant} /></div>
+      <div className="flex min-w-0 flex-none justify-center md:flex-1"><GlobalSearch variant={variant} /></div>
       <div className="flex flex-none items-center justify-end gap-3 md:flex-1">
         <div ref={setActionEl} className="flex items-center" />
         {variant === "hibe" && <NotificationBell />}
