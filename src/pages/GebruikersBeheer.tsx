@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTeamRoles, useMyTeamRole } from "@/hooks/useTeamRole";
 
 interface Row { id: string; email: string; full_name: string | null; client_id: string | null; created_at: string; role: string }
 
@@ -27,6 +29,14 @@ export default function GebruikersBeheer() {
   const [busy, setBusy] = useState(false);
   const [toDelete, setToDelete] = useState<Row | null>(null);
   const [filter, setFilter] = useState("all");
+  const { data: teamRoles = {} } = useTeamRoles();
+  const { role: myRole } = useMyTeamRole();
+  const qc = useQueryClient();
+  const setTeamRole = async (id: string, role: string) => {
+    const { error } = await (supabase as any).from("team_roles").upsert({ user_id: id, role });
+    if (error) return toast.error("Alleen een Beheerder kan rollen aanpassen");
+    toast.success("Rol aangepast"); qc.invalidateQueries({ queryKey: ["team-roles"] });
+  };
 
   const load = async () => {
     const [{ data: users }, { data: roles }] = await Promise.all([
@@ -89,7 +99,12 @@ export default function GebruikersBeheer() {
               .sort((a, b) => (a.role + clientName(a.client_id)).localeCompare(b.role + clientName(b.client_id))).map((r) => (
               <TableRow key={r.id}>
                 <TableCell><div className="flex items-center gap-3"><UserAvatar userId={r.id} size={32} /><div><div className="font-medium">{r.full_name || r.email}</div>{r.full_name && <div className="text-xs text-muted-foreground">{r.email}</div>}</div></div></TableCell>
-                <TableCell><Badge variant={r.role === "admin" ? "default" : "secondary"}>{r.role === "admin" ? "HIBE (admin)" : "Klant"}</Badge></TableCell>
+                <TableCell>{r.role !== "admin" ? <Badge variant="secondary">Klant</Badge> : myRole === "beheerder" && r.id !== user?.id ? (
+                  <Select value={teamRoles[r.id] ?? "editor"} onValueChange={(v) => setTeamRole(r.id, v)}>
+                    <SelectTrigger aria-label="Teamrol" className="h-8 w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent><SelectItem value="beheerder">Beheerder</SelectItem><SelectItem value="editor">Editor</SelectItem></SelectContent>
+                  </Select>
+                ) : <Badge>{(teamRoles[r.id] ?? "editor") === "beheerder" ? "Beheerder" : "Editor"}</Badge>}</TableCell>
                 <TableCell>{r.role === "admin" ? "Alle klanten" : clientName(r.client_id)}</TableCell>
                 <TableCell>{new Date(r.created_at).toLocaleDateString("nl-NL")}</TableCell>
                 <TableCell className="flex gap-1">
