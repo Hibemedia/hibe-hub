@@ -18,3 +18,5 @@
 - Video's (review board) store files in Cloudflare R2, never Lovable storage: browser uploads multipart via presigned URLs from the r2-video function and plays via short-lived signed GETs — keeps multi-GB files off the backend.
 - Video status order and client visibility live in src/lib/videos.ts (tested); clients only change status via video_client_action() and never see internal comments (RLS).
 - App frame: pages render their title and single primary action through <PageHeader>/<PrimaryAction> (portals into the fixed top bar) instead of in-page headings — keeps the main button in the same place on every page.
+- Media Management (HIBE video's) is step-based: one page per status at /hibe/videos/stap/:slug, overview at /hibe/videos, review at /hibe/videos/:id; trash = video_items.archived_at (no extra status) — keeps the existing statuses and RLS untouched.
+- Client-scope routes use :videoId for nested video pages so they never shadow /hibe/klant/:id.

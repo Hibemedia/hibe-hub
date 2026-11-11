@@ -20,8 +20,10 @@ import HibeKlanten from "./pages/hibe/HibeKlanten";
 import HibeContentmomenten from "./pages/hibe/HibeContentmomenten";
 import HibeSocials from "./pages/hibe/HibeSocials";
 import HibeInstellingen from "./pages/hibe/HibeInstellingen";
-import HibeVideos from "./pages/hibe/HibeVideos";
-import VideoReview from "./pages/videos/VideoReview";
+import MediaOverview from "./pages/hibe/videos/MediaOverview";
+import MediaStep from "./pages/hibe/videos/MediaStep";
+import HibeReview from "./pages/hibe/videos/HibeReview";
+import ClientReview from "./pages/videos/ClientReview";
 import ClientVideos from "./pages/videos/ClientVideos";
 import { ClientProvider } from "@/context/ClientContext";
 import { ClientEnv, HibeEnv, HibeClientScope } from "@/components/EnvRoutes";
@@ -37,7 +39,7 @@ const clientPages = (
     <Route path="branding" element={<Branding />} />
     <Route path="medals" element={<Medals />} />
     <Route path="videos" element={<ClientVideos />} />
-    <Route path="videos/:id" element={<VideoReview />} />
+    <Route path="videos/:videoId" element={<ClientReview />} />
   </>
 );
 
@@ -62,8 +64,9 @@ const App = () => (
                 <Route path="goedkeuringen" element={<Navigate to="/hibe/videos" replace />} />
                 <Route path="contentmomenten" element={<HibeContentmomenten />} />
                 <Route path="socials" element={<HibeSocials />} />
-                <Route path="videos" element={<HibeVideos />} />
-                <Route path="videos/:id" element={<VideoReview />} />
+                <Route path="videos" element={<MediaOverview />} />
+                <Route path="videos/stap/:step" element={<MediaStep />} />
+                <Route path="videos/:id" element={<HibeReview />} />
                 <Route path="gebruikers" element={<GebruikersBeheer />} />
                 <Route path="instellingen" element={<HibeInstellingen />} />
                 <Route path="*" element={<NotFound />} />
