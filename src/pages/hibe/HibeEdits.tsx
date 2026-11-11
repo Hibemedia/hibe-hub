@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Plus, Upload, MessageSquareWarning, Film, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +80,13 @@ export default function HibeEdits() {
   const [f, setF] = useFilters();
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [creating, setCreating] = useState(false);
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    if (!params.has("nieuw") && !params.has("status")) return;
+    if (params.get("nieuw")) setCreating(true);
+    const st = params.get("status"); if (st) setF({ status: st, client: "all", editor: "all", mine: false });
+    setParams({}, { replace: true });
+  }, []);
   const [deliver, setDeliver] = useState<Row | null>(null);
   const [open, setOpen] = useState<Row | null>(null);
   const member = (id: string | null) => team.find((t) => t.id === id);

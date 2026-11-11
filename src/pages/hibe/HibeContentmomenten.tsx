@@ -1,5 +1,6 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,8 @@ export default function HibeContentmomenten() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Moment | null>(null);
   const [creating, setCreating] = useState<null | "choose" | string>(null);
+  const [params, setParams] = useSearchParams();
+  useEffect(() => { if (params.get("nieuw")) { setCreating("choose"); setParams({}, { replace: true }); } }, []);
   const [chosen, setChosen] = useState("");
   const [person, setPerson] = useState("all");
 
