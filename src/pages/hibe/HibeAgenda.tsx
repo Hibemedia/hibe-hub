@@ -15,7 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { AgendaEntry, AgendaKind, absentOn, entriesOn, monthGrid, ymd } from "@/lib/agenda";
+import { AgendaEntry, AgendaKind, absentOn, entriesOn, monthGrid, shootRow, ymd } from "@/lib/agenda";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const db = supabase as any;
 const KIND_LABEL: Record<AgendaKind, string> = { shoot: "Draaidag", meeting: "Meeting", vacation: "Vrij" };
@@ -27,7 +28,7 @@ const KIND_CLS: Record<AgendaKind, string> = {
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 type Ev = { id: string; kind: "meeting" | "vacation"; title: string; start_date: string; end_date: string; start_time: string | null; end_time: string | null; location: string | null; notes: string | null; person_id: string | null; attendees: { user_id: string }[] };
-type Form = { id?: string; kind: "meeting" | "vacation"; title: string; start_date: string; end_date: string; start_time: string; end_time: string; location: string; notes: string; people: string[] };
+type Form = { id?: string; kind: AgendaKind; title: string; start_date: string; end_date: string; start_time: string; end_time: string; location: string; notes: string; people: string[]; client_id: string };
 
 function useAgenda(from: string, to: string) {
   return useQuery({
@@ -60,7 +61,7 @@ export default function HibeAgenda() {
   const name = (id: string) => team.find((t) => t.id === id)?.name ?? "Teamlid";
 
   const entries: AgendaEntry[] = useMemo(() => [
-    ...(data?.moments ?? []).filter((m) => m.date && m.status !== "cancelled").map((m) => ({
+    ...(data?.moments ?? []).filter((m) => m.date && m.status !== "cancelled" && m.status !== "geannuleerd").map((m) => ({
       id: m.id, kind: "shoot" as const, start: m.date, end: m.date, time: m.start_time?.slice(0, 5),
       title: `${clients.find((c) => c.id === m.client_id)?.name ?? "Klant"} · ${m.title}`, people: (m.crew ?? []).map((c: any) => c.user_id),
     })),
@@ -71,15 +72,16 @@ export default function HibeAgenda() {
     })),
   ], [data, clients, team]);
 
-  const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [] });
+  const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [], client_id: "" });
   const open = (e: AgendaEntry) => {
     if (e.kind === "shoot") return nav("/hibe/contentmomenten");
     const ev = data?.events.find((x) => x.id === e.id); if (!ev) return;
-    setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id) });
+    setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id), client_id: "" });
   };
 
-  const absent = form && form.kind === "meeting" ? absentOn(form.start_date, entries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
-  const busyShoot = form && form.kind === "meeting" ? entries.filter((e) => e.kind === "shoot" && e.start === form.start_date && e.people.some((p) => form.people.includes(p))) : [];
+  const warn = !!form && form.kind !== "vacation";
+  const absent = warn ? absentOn(form.start_date, entries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
+  const busyShoot = warn ? entries.filter((e) => e.kind === "shoot" && e.start === form.start_date && e.people.some((p) => form.people.includes(p))) : [];
 
   const save = async () => {
     if (!form) return;
@@ -87,6 +89,22 @@ export default function HibeAgenda() {
     if (form.end_date < form.start_date) return toast.error("Einddatum ligt voor de begindatum");
     setSaving(true);
     try {
+      if (form.kind === "shoot") {
+        if (!form.client_id) return toast.error("Kies een klant");
+        const { data: ins, error } = await db.from("content_moments").insert(shootRow({ title: form.title, client_id: form.client_id, date: form.start_date, start_time: form.start_time, location: form.location, notes: form.notes }, me)).select("id").single();
+        if (error) throw error;
+        const mid = (ins as any).id as string;
+        if (form.people.length) {
+          const { error: ce } = await db.from("moment_crew").insert(form.people.map((u) => ({ moment_id: mid, user_id: u, created_by: me || null })));
+          if (ce) throw ce;
+        }
+        toast.success("Draaidag toegevoegd");
+        setForm(null);
+        qc.invalidateQueries({ queryKey: ["agenda"] });
+        qc.invalidateQueries({ queryKey: ["content-moments"] });
+        qc.invalidateQueries({ queryKey: ["moment-crew"] });
+        return;
+      }
       const row = { kind: form.kind, title: form.title.trim(), start_date: form.start_date, end_date: form.kind === "meeting" ? form.start_date : form.end_date, start_time: form.start_time || null, end_time: form.end_time || null, location: form.location || null, notes: form.notes || null, person_id: form.kind === "vacation" ? (form.people[0] ?? me) : null };
       let id = form.id;
       if (id) { const { error } = await db.from("calendar_events").update(row).eq("id", id); if (error) throw error; }
@@ -159,28 +177,36 @@ export default function HibeAgenda() {
           {form && <>
             <DialogHeader><DialogTitle>{form.id ? "Bewerken" : "Nieuw in de agenda"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              {!form.id && <div className="flex gap-2">
-                {(["meeting", "vacation"] as const).map((k) => <button key={k} onClick={() => setForm({ ...blank(form.start_date, k) })} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "meeting" ? "Meeting" : "Vakantie / vrij"}</button>)}
+              {!form.id && <div className="flex flex-wrap gap-2">
+                {(["shoot", "meeting", "vacation"] as const).map((k) => <button key={k} onClick={() => setForm({ ...blank(form.start_date, k) })} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : "Vakantie / vrij"}</button>)}
               </div>}
-              <div className="space-y-1.5"><Label htmlFor="ag-title">Titel</Label><Input id="ag-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={form.kind === "meeting" ? "Bijv. Weekstart" : "Vakantie"} /></div>
+              {form.kind === "shoot" && <div className="space-y-1.5">
+                <Label>Voor welke klant?</Label>
+                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
+                  <SelectTrigger aria-label="Kies klant"><SelectValue placeholder="Kies een klant" /></SelectTrigger>
+                  <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>}
+              <div className="space-y-1.5"><Label htmlFor="ag-title">Titel</Label><Input id="ag-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={form.kind === "shoot" ? "Bijv. Shoot najaarscollectie" : form.kind === "meeting" ? "Bijv. Weekstart" : "Vakantie"} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label htmlFor="ag-start">{form.kind === "meeting" ? "Datum" : "Van"}</Label><Input id="ag-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value, end_date: form.end_date < e.target.value ? e.target.value : form.end_date })} /></div>
+                <div className="space-y-1.5"><Label htmlFor="ag-start">{form.kind === "vacation" ? "Van" : "Datum"}</Label><Input id="ag-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value, end_date: form.end_date < e.target.value ? e.target.value : form.end_date })} /></div>
                 {form.kind === "vacation" && <div className="space-y-1.5"><Label htmlFor="ag-end">Tot en met</Label><Input id="ag-end" type="date" value={form.end_date} min={form.start_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} /></div>}
+                {form.kind === "shoot" && <div className="space-y-1.5"><Label htmlFor="ag-st">Starttijd</Label><Input id="ag-st" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></div>}
                 {form.kind === "meeting" && <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5"><Label htmlFor="ag-t1">Van</Label><Input id="ag-t1" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></div>
                   <div className="space-y-1.5"><Label htmlFor="ag-t2">Tot</Label><Input id="ag-t2" type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} /></div>
                 </div>}
               </div>
-              {form.kind === "meeting" && <div className="space-y-1.5"><Label htmlFor="ag-loc">Locatie of link</Label><Input id="ag-loc" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>}
+              {form.kind !== "vacation" && <div className="space-y-1.5"><Label htmlFor="ag-loc">{form.kind === "shoot" ? "Locatie" : "Locatie of link"}</Label><Input id="ag-loc" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>}
               <div className="space-y-1.5">
-                <Label>{form.kind === "meeting" ? "Deelnemers (krijgen een melding)" : "Wie is er vrij?"}</Label>
+                <Label>{form.kind === "shoot" ? "Crew (krijgen een melding)" : form.kind === "meeting" ? "Deelnemers (krijgen een melding)" : "Wie is er vrij?"}</Label>
                 <div className="flex flex-wrap gap-2">
                   {team.map((t) => <button key={t.id} type="button" onClick={() => toggle(t.id)} className={cn("flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-3 text-sm", form.people.includes(t.id) ? "bg-foreground text-background" : "bg-popover hover:bg-muted")}><UserAvatar userId={t.id} size={22} />{t.name}</button>)}
                 </div>
               </div>
               {(absent.length > 0 || busyShoot.length > 0) && <div className="flex gap-2 rounded-md bg-muted p-3 text-sm">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>{absent.length > 0 && <p>{absent.map(name).join(", ")} {absent.length > 1 ? "zijn" : "is"} die dag vrij.</p>}{busyShoot.length > 0 && <p>Er is die dag een draaidag: {busyShoot.map((s) => s.title).join(", ")}.</p>}<p className="text-muted-foreground">Je kunt het toch opslaan.</p></div>
+                <div>{absent.length > 0 && <p>{absent.map(name).join(", ")} {absent.length > 1 ? "zijn" : "is"} die dag vrij.</p>}{busyShoot.length > 0 && <p>{form.kind === "shoot" ? "Iemand staat die dag al op een andere draaidag" : "Er is die dag een draaidag"}: {busyShoot.map((s) => s.title).join(", ")}.</p>}<p className="text-muted-foreground">Je kunt het toch opslaan.</p></div>
               </div>}
               <div className="space-y-1.5"><Label htmlFor="ag-notes">Notities</Label><Textarea id="ag-notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
             </div>
