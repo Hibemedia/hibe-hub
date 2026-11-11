@@ -259,17 +259,21 @@ export function SocialsWeekGrid() {
     );
   };
 
-  /** Month view: one read-only summary cell per week for a weekly-tracked client. */
+  /** Month view: one read-only summary cell per week for a weekly-tracked client, spanning that week's days in the month. */
   const monthWeekCell = (c: SClient, ws: string) => {
     const items = weekItems(weeks.get(`${c.id}_${ws}`));
     const done = items.filter((i) => i.status === "scheduled").length;
     const target = c.weekly_target;
     const monday = new Date(ws + "T00:00:00");
+    const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6);
+    const start = ws < from ? new Date(from + "T00:00:00") : monday;
+    const end = ymd(sunday) > to ? new Date(to + "T00:00:00") : sunday;
+    const span = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
     const cls = items.length === 0 ? "bg-card text-muted-foreground"
       : done >= target ? "bg-[hsl(var(--social-green-bg))] text-[hsl(var(--social-green-fg))]"
       : "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]";
     return (
-      <td key={ws} className="border border-border p-0" title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
+      <td key={ws} colSpan={span} className="border border-border p-0" title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
         <div className={cn("flex h-8 w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
       </td>
     );
