@@ -125,18 +125,16 @@ export function SocialsWeekGrid() {
       </div>
 
       <div className="-mx-1 overflow-x-auto px-1">
-        <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0.5 text-xs">
+        <table className="w-full min-w-[640px] table-fixed border-collapse text-xs">
           <colgroup><col className="w-32 md:w-44" />{dates.map((d) => <col key={d} />)}<col className="w-32 md:w-36" /></colgroup>
           <thead><tr>
-            <th className="sticky left-0 z-10 bg-card px-2 text-left font-medium text-muted-foreground">Klant</th>
+            <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
             {dates.map((d, i) => (
-              <th key={d} className="p-0.5 font-medium">
-                <div className={cn("rounded-md px-1 py-0.5", d === today ? "bg-foreground text-background" : "text-muted-foreground")}>
-                  <div>{DAYS[i]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
-                </div>
+              <th key={d} className={cn("border border-border px-1 py-1 font-medium", d === today ? "bg-foreground text-background" : "bg-background text-muted-foreground")}>
+                <div>{DAYS[i]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
               </th>
             ))}
-            <th className="px-1 text-left font-medium text-muted-foreground">Deze week</th>
+            <th className="border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Deze week</th>
           </tr></thead>
           <tbody>
             {rows.map((c) => {
@@ -144,9 +142,9 @@ export function SocialsWeekGrid() {
               const [done, planned] = progress(c);
               return (
                 <tr key={c.id}>
-                  <td className="sticky left-0 z-10 bg-card px-2 font-medium" title={c.name}><span className="block truncate">{c.name}</span></td>
+                  <td className="sticky left-0 z-10 border border-border bg-card px-2 py-1 font-medium" title={c.name}><span className="block truncate">{c.name}</span></td>
                   {dates.map((d) => {
-                    if (weeklyMode) return <td key={d}><div className="h-9 rounded-md bg-background/50" /></td>;
+                    if (weeklyMode) return <td key={d} className="border border-border bg-background/50" />;
                     const k = `${c.id}_${d}`;
                     const l = linkFor(c.id, d);
                     const video = l ? videos.find((v) => v.id === l.video_item_id) : null;
@@ -155,7 +153,7 @@ export function SocialsWeekGrid() {
                     const st = statusOf(eff);
                     const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [p?.title, p?.note].filter(Boolean).join(" · ");
                     return (
-                      <td key={d} className={cn(d === today && "rounded-md ring-1 ring-inset ring-foreground/25")}>
+                      <td key={d} className={cn("border border-border p-0", d === today && "ring-2 ring-inset ring-foreground")}>
                         <Popover open={menu === k} onOpenChange={(o) => { if (!o && menu === k) setMenu(null); }}>
                           <PopoverTrigger asChild>
                             <button
@@ -167,7 +165,7 @@ export function SocialsWeekGrid() {
                               onPointerUp={endPress}
                               onPointerLeave={endPress}
                               onPointerMove={endPress}
-                              className={cn("relative flex h-9 w-full items-center justify-center rounded-md font-bold", cellCls(eff))}>
+                              className={cn("relative flex h-9 w-full items-center justify-center font-bold transition hover:brightness-95", cellCls(eff))}>
                               {st.symbol}
                               {(p?.note || p?.title) && !l && <span className="absolute right-0.5 top-0.5 h-1 w-1 rounded-full bg-current" />}
                               {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
@@ -205,7 +203,7 @@ export function SocialsWeekGrid() {
                       </td>
                     );
                   })}
-                  <td className="px-1">
+                  <td className="border border-border px-2 py-1">
                     {weeklyMode ? (
                       <Popover open={menu === `week_${c.id}`} onOpenChange={(o) => { if (!o && menu === `week_${c.id}`) setMenu(null); }}>
                         <PopoverTrigger asChild>
