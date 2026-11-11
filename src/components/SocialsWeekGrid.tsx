@@ -274,7 +274,7 @@ export function SocialsWeekGrid() {
       : "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]";
     return (
       <td key={ws} colSpan={span} className="border border-border p-0" title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
-        <div className={cn("flex w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
+        <div className={cn("flex min-h-[30px] w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
       </td>
     );
   };
