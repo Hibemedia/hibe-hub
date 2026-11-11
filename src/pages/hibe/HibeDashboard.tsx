@@ -130,9 +130,9 @@ export default function HibeDashboard() {
 
         {data && <ViewsChart data={data} names={names} />}
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-          {data && <Ranking rows={data.summaries} className="xl:col-span-3" logos={logos} />}
-          <ActionNeeded className="xl:col-span-2" actions={actions} />
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          {data && <Ranking rows={data.summaries} className="xl:col-span-2" logos={logos} />}
+          <ActionNeeded className="xl:col-span-1" actions={actions} />
         </div>
       </>}
       {up.ui}
@@ -309,8 +309,8 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
   return (
     <Section title="Ranglijst klanten" className={className}>
       <div className="relative -mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
-        <table className="w-full min-w-[600px] table-fixed text-sm tabular">
-          <colgroup><col /><col className="w-[104px]" /><col className="w-[88px]" /><col className="w-[96px]" /><col className="w-[88px]" /></colgroup>
+        <table className="w-full min-w-[560px] table-fixed text-sm tabular">
+          <colgroup><col /><col className="w-[96px]" /><col className="w-[84px]" /><col className="w-[84px]" /><col className="w-[84px]" /></colgroup>
           <thead><tr className="text-xs text-muted-foreground"><Th k="name" label="Klant" /><Th k="views" label="Weergaven" right /><Th k="viewsChange" label="Groei" right /><Th k="followers" label="Volgers" right /><th className="pb-2 text-right font-normal">Deze week</th></tr></thead>
           <tbody>
             {list.map(({ c, s }) => (
