@@ -76,11 +76,12 @@ export default function HibeAgenda() {
   const open = (e: AgendaEntry) => {
     if (e.kind === "shoot") return nav("/hibe/contentmomenten");
     const ev = data?.events.find((x) => x.id === e.id); if (!ev) return;
-    setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id) });
+    setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id), client_id: "" });
   };
 
-  const absent = form && form.kind === "meeting" ? absentOn(form.start_date, entries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
-  const busyShoot = form && form.kind === "meeting" ? entries.filter((e) => e.kind === "shoot" && e.start === form.start_date && e.people.some((p) => form.people.includes(p))) : [];
+  const warn = !!form && form.kind !== "vacation";
+  const absent = warn ? absentOn(form.start_date, entries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
+  const busyShoot = warn ? entries.filter((e) => e.kind === "shoot" && e.start === form.start_date && e.people.some((p) => form.people.includes(p))) : [];
 
   const save = async () => {
     if (!form) return;
@@ -88,6 +89,22 @@ export default function HibeAgenda() {
     if (form.end_date < form.start_date) return toast.error("Einddatum ligt voor de begindatum");
     setSaving(true);
     try {
+      if (form.kind === "shoot") {
+        if (!form.client_id) return toast.error("Kies een klant");
+        const { data: ins, error } = await db.from("content_moments").insert(shootRow({ title: form.title, client_id: form.client_id, date: form.start_date, start_time: form.start_time, location: form.location, notes: form.notes }, me)).select("id").single();
+        if (error) throw error;
+        const mid = (ins as any).id as string;
+        if (form.people.length) {
+          const { error: ce } = await db.from("moment_crew").insert(form.people.map((u) => ({ moment_id: mid, user_id: u, created_by: me || null })));
+          if (ce) throw ce;
+        }
+        toast.success("Draaidag toegevoegd");
+        setForm(null);
+        qc.invalidateQueries({ queryKey: ["agenda"] });
+        qc.invalidateQueries({ queryKey: ["content-moments"] });
+        qc.invalidateQueries({ queryKey: ["moment-crew"] });
+        return;
+      }
       const row = { kind: form.kind, title: form.title.trim(), start_date: form.start_date, end_date: form.kind === "meeting" ? form.start_date : form.end_date, start_time: form.start_time || null, end_time: form.end_time || null, location: form.location || null, notes: form.notes || null, person_id: form.kind === "vacation" ? (form.people[0] ?? me) : null };
       let id = form.id;
       if (id) { const { error } = await db.from("calendar_events").update(row).eq("id", id); if (error) throw error; }
