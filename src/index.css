@@ -53,6 +53,9 @@
     --success: 142 60% 30%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 45%;
+    --avatar-fg: 0 0% 8%;
+    --avatar-1: 76 86% 58%; --avatar-2: 199 80% 72%; --avatar-3: 28 92% 70%; --avatar-4: 262 60% 80%;
+    --avatar-5: 345 75% 78%; --avatar-6: 160 55% 65%; --avatar-7: 45 95% 65%; --avatar-8: 220 15% 75%;
     --warning-foreground: 0 0% 5%;
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
