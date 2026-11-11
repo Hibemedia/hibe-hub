@@ -15,3 +15,5 @@
 - Two environments: client users use "/" (ClientEnv), admins use "/hibe" (HibeEnv); /hibe/klant/:id reuses the client pages by setting ClientContext.clientId, and in-page links use useBase().
 - The client overview composes existing statistics with read-only client-scoped review counts and upcoming content moments; overview selection helpers are tested separately so the Performance calculations and sync remain unchanged.
 - The HIBE Socials checklist (/hibe/socials) reads and writes the HIBE Review Hub social_* tables live via the admin-only socials-proxy function — one shared source so both sites always match; never copy that data locally.
+- Video's (review board) store files in Cloudflare R2, never Lovable storage: browser uploads multipart via presigned URLs from the r2-video function and plays via short-lived signed GETs — keeps multi-GB files off the backend.
+- Video status order and client visibility live in src/lib/videos.ts (tested); clients only change status via video_client_action() and never see internal comments (RLS).

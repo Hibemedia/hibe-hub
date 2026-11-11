@@ -22,6 +22,9 @@ import HibeGoedkeuringen from "./pages/hibe/HibeGoedkeuringen";
 import HibeContentmomenten from "./pages/hibe/HibeContentmomenten";
 import HibeSocials from "./pages/hibe/HibeSocials";
 import HibeInstellingen from "./pages/hibe/HibeInstellingen";
+import HibeVideos from "./pages/hibe/HibeVideos";
+import VideoReview from "./pages/videos/VideoReview";
+import ClientVideos from "./pages/videos/ClientVideos";
 import { ClientProvider } from "@/context/ClientContext";
 import { ClientEnv, HibeEnv, HibeClientScope } from "@/components/EnvRoutes";
 
@@ -35,6 +38,8 @@ const clientPages = (
     <Route path="content-moments" element={<ContentMoments />} />
     <Route path="branding" element={<Branding />} />
     <Route path="medals" element={<Medals />} />
+    <Route path="videos" element={<ClientVideos />} />
+    <Route path="videos/:id" element={<VideoReview />} />
   </>
 );
 
@@ -59,6 +64,8 @@ const App = () => (
                 <Route path="goedkeuringen" element={<HibeGoedkeuringen />} />
                 <Route path="contentmomenten" element={<HibeContentmomenten />} />
                 <Route path="socials" element={<HibeSocials />} />
+                <Route path="videos" element={<HibeVideos />} />
+                <Route path="videos/:id" element={<VideoReview />} />
                 <Route path="gebruikers" element={<GebruikersBeheer />} />
                 <Route path="instellingen" element={<HibeInstellingen />} />
                 <Route path="*" element={<NotFound />} />
