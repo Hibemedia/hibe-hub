@@ -10,7 +10,7 @@ import { useHibeOverview, useHibeActions, useTopVideosLastWeek, ClientSummary, t
 import { useMySettings } from "@/hooks/useMySettings";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { useVideoItems } from "@/hooks/useVideos";
-import { VIDEO_STATUS_LABEL, VideoStatus } from "@/lib/videos";
+import type { VideoStatus } from "@/lib/videos";
 import { Moment, MOMENT_TYPES, STATUS_STYLE, MOMENT_STATUS } from "@/pages/ContentMoments";
 import { PeriodSelect } from "@/components/PeriodSelect";
 import { Section, EmptyState, Change } from "@/components/StatsOverview";
