@@ -137,7 +137,7 @@ export default function HibeEdits() {
                     {e.video_item_id && e.video?.status !== "feedback" && <Link to={`/hibe/videos/${e.video_item_id}`} aria-label="Open video" className="shrink-0 text-muted-foreground hover:text-foreground"><Film className="h-3.5 w-3.5" /></Link>}
                   </div>
                   <Select value={e.editor_id ?? "none"} onValueChange={(v) => update(e, { editor_id: v === "none" ? null : v })}>
-                    <SelectTrigger aria-label={`Editor voor ${e.title}`} className="h-8 border-transparent px-2 hover:border-border"><span className="flex min-w-0 items-center gap-2"><Avatar m={member(e.editor_id)} size={22} /><span className="truncate text-sm">{member(e.editor_id)?.name ?? "Geen editor"}</span></span></SelectTrigger>
+                    <SelectTrigger aria-label={`Editor voor ${e.title}`} className="h-8 border-transparent px-2 hover:border-border"><div className="flex min-w-0 items-center gap-2"><Avatar m={member(e.editor_id)} size={22} /><div className="truncate text-sm">{member(e.editor_id)?.name ?? "Geen editor"}</div></div></SelectTrigger>
                     <SelectContent><SelectItem value="none">Geen editor</SelectItem>{team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
                   </Select>
                   <Select value={e.status} onValueChange={(v) => update(e, { status: v as EditStatus })}>
