@@ -5,7 +5,7 @@ export function UploadProgress() {
   const jobs = useUploads();
   if (!jobs.length) return null;
   return (
-    <section className="space-y-3 rounded-[20px] bg-card p-4" aria-label="Uploads">
+    <section className="space-y-3 rounded-lg bg-card p-4" aria-label="Uploads">
       {jobs.map((j) => (
         <div key={j.id} className="space-y-1.5">
           <div className="flex items-center justify-between gap-3 text-sm">

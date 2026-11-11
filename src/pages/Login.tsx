@@ -55,7 +55,7 @@ const Login = () => {
         <p className="mt-2 text-muted-foreground">Log in op het HIBE Klantportaal.</p>
         {sent ? (
           <div className="mt-8 space-y-4">
-            <p className="rounded-2xl bg-popover p-4 text-sm">Als <span className="font-semibold">{email}</span> bij ons bekend is, staat er nu een e-mail met een resetlink in je inbox. Open de link om een nieuw wachtwoord in te stellen.</p>
+            <p className="rounded-lg bg-popover p-4 text-sm">Als <span className="font-semibold">{email}</span> bij ons bekend is, staat er nu een e-mail met een resetlink in je inbox. Open de link om een nieuw wachtwoord in te stellen.</p>
             <Button variant="outline" onClick={() => setSent(false)}>Terug naar inloggen</Button>
           </div>
         ) : (

@@ -121,7 +121,7 @@ export function ItemThumb({ item }: { item: ReviewItem }) {
   }, [item.storage_path]);
   const path = (item.storage_path ?? "").toLowerCase();
   return (
-    <div className="aspect-[4/3] w-full overflow-hidden rounded-[16px] bg-muted">
+    <div className="aspect-[4/3] w-full overflow-hidden rounded-md bg-muted">
       {url && /\.(mp4|mov)$/.test(path) && <video src={url + "#t=0.5"} preload="metadata" muted playsInline className="h-full w-full object-cover" />}
       {url && /\.(jpe?g|png|webp)$/.test(path) && <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" />}
       {!url && <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{item.external_link ? "Link" : "Geen media"}</div>}

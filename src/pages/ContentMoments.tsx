@@ -155,7 +155,7 @@ export function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () =>
           <ol className="mb-3 space-y-2 text-sm">
             {comments.length === 0 && <li className="text-muted-foreground">Nog geen opmerkingen.</li>}
             {comments.map((c) => (
-              <li key={c.id} className="rounded-2xl bg-popover p-3">
+              <li key={c.id} className="rounded-lg bg-popover p-3">
                 <p className="text-xs text-muted-foreground">{names[c.user_id] ?? "Gebruiker"} · {new Date(c.created_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                 <p className="whitespace-pre-line">{c.text}</p>
               </li>

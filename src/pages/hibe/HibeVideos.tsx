@@ -78,7 +78,7 @@ export default function HibeVideos() {
       </div>
 
       {ready.map((r) => (
-        <div key={r.client_id} role="status" className="flex flex-wrap items-center gap-3 rounded-[20px] bg-foreground px-5 py-3 text-background">
+        <div key={r.client_id} role="status" className="flex flex-wrap items-center gap-3 rounded-lg bg-foreground px-5 py-3 text-background">
           <Bell className="h-4 w-4" />
           <span className="text-sm"><b>{name(r.client_id)}</b>: {r.count} video's staan klaar in "Mag naar klant".</span>
           <button onClick={() => setClient(r.client_id)} className="ml-auto rounded-full bg-lime px-4 py-1.5 text-sm font-medium text-lime-foreground">Bekijk</button>
@@ -87,7 +87,7 @@ export default function HibeVideos() {
 
       <UploadProgress />
 
-      {fileOver && <div className="pointer-events-none fixed inset-4 z-40 flex items-center justify-center rounded-[24px] border-2 border-dashed border-foreground bg-background/80 text-xl font-semibold">Laat los om te uploaden</div>}
+      {fileOver && <div className="pointer-events-none fixed inset-4 z-40 flex items-center justify-center rounded-lg border-2 border-dashed border-foreground bg-background/80 text-xl font-semibold">Laat los om te uploaden</div>}
 
       <div className="-mx-4 overflow-x-auto px-4 pb-4 md:-mx-8 md:px-8">
         <div className="flex gap-3">
@@ -98,7 +98,7 @@ export default function HibeVideos() {
                 onDragOver={(e) => { if (dragId) { e.preventDefault(); setOver(s); } }}
                 onDragLeave={() => setOver((o) => (o === s ? null : o))}
                 onDrop={(e) => { if (!dragId) return; e.preventDefault(); e.stopPropagation(); const it = items.find((i) => i.id === dragId); setDragId(null); setOver(null); if (it) move(it, s); }}
-                className={`flex w-72 shrink-0 flex-col gap-2 rounded-[20px] bg-card p-3 transition-colors ${over === s ? "bg-popover outline outline-2 outline-foreground" : ""}`}>
+                className={`flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-card p-3 transition-colors ${over === s ? "bg-popover outline outline-2 outline-foreground" : ""}`}>
                 <header className="flex items-center justify-between px-1 py-1">
                   <h2 className="text-sm font-semibold">{VIDEO_STATUS_LABEL[s]}</h2>
                   <span className="chip tabular">{col.length}</span>
@@ -106,7 +106,7 @@ export default function HibeVideos() {
                 {isLoading ? <p className="px-1 text-sm text-muted-foreground">Laden…</p> : col.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted-foreground">Leeg</p>}
                 {col.map((i) => (
                   <article key={i.id} draggable onDragStart={(e) => { setDragId(i.id); e.dataTransfer.effectAllowed = "move"; }} onDragEnd={() => { setDragId(null); setOver(null); }}
-                    className={`group cursor-grab rounded-2xl bg-background p-3 active:cursor-grabbing ${dragId === i.id ? "opacity-50" : ""}`}>
+                    className={`group cursor-grab rounded-lg bg-background p-3 active:cursor-grabbing ${dragId === i.id ? "opacity-50" : ""}`}>
                     <div className="mb-2 flex flex-wrap gap-1.5"><span className="chip">{name(i.client_id)}</span>{i.current_version > 0 ? <span className="chip">V{i.current_version}</span> : <span className="chip">Uploaden…</span>}</div>
                     <button onClick={() => nav(`/hibe/videos/${i.id}`)} className="flex w-full items-start justify-between gap-2 text-left">
                       <span className="line-clamp-2 font-semibold leading-snug">{i.title}</span>

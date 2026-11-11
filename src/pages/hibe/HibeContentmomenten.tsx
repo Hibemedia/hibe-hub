@@ -61,7 +61,7 @@ export default function HibeContentmomenten() {
           <ul className="space-y-2">
             {ms.map((m) => (
               <li key={m.id}>
-                <button onClick={() => setOpenId(m.id)} className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl bg-popover px-4 py-3 text-left hover:bg-background">
+                <button onClick={() => setOpenId(m.id)} className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-popover px-4 py-3 text-left hover:bg-background">
                   <span className="w-20 shrink-0 text-sm font-semibold tabular">{m.date ? new Date(m.date + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric" }) : "–"}{m.start_time && <span className="block text-xs font-normal text-muted-foreground">{m.start_time.slice(0, 5)}</span>}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{m.title}</span>
                   <span className="flex flex-wrap gap-1.5">

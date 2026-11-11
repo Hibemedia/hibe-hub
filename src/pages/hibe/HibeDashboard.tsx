@@ -84,7 +84,7 @@ function TopVideosSmall({ videos, names, className }: { videos: TopVideo[]; name
       {videos.length === 0 ? <EmptyState text="Geen video's gepubliceerd vorige week." /> : (
         <ol className="space-y-2.5">
           {videos.map((v) => (
-            <li key={v.id} className="flex items-center gap-3 rounded-2xl bg-popover p-2.5">
+            <li key={v.id} className="flex items-center gap-3 rounded-lg bg-popover p-2.5">
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-muted">
                 {v.thumbnail_url && <img src={v.thumbnail_url} alt="" loading="lazy" className="h-full w-full object-cover" />}
               </div>

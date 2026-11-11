@@ -91,7 +91,7 @@ export default function Branding() {
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {shown.map((f) => (
             <li key={f.id} className="flex flex-col gap-3 rounded-lg bg-card p-3">
-              <button onClick={() => (isImg(f) || isPdf(f) ? open(f) : download(f))} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[16px] bg-muted text-sm font-semibold uppercase text-muted-foreground" aria-label={`Bekijk ${f.file_name}`}>
+              <button onClick={() => (isImg(f) || isPdf(f) ? open(f) : download(f))} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-md bg-muted text-sm font-semibold uppercase text-muted-foreground" aria-label={`Bekijk ${f.file_name}`}>
                 {data?.urls[f.id] ? <img src={data.urls[f.id]} alt="" loading="lazy" className="h-full w-full object-cover" /> : (f.file_name.split(".").pop() ?? "bestand")}
               </button>
               <div className="px-1">
@@ -113,8 +113,8 @@ export default function Branding() {
           <DialogContent className="max-w-4xl">
             <DialogHeader><DialogTitle className="truncate pr-6">{preview.f.file_name}</DialogTitle></DialogHeader>
             {isPdf(preview.f)
-              ? <iframe src={preview.url} title={preview.f.file_name} className="h-[70vh] w-full rounded-2xl bg-popover" />
-              : <img src={preview.url} alt={preview.f.file_name} className="max-h-[70vh] w-full rounded-2xl bg-popover object-contain" />}
+              ? <iframe src={preview.url} title={preview.f.file_name} className="h-[70vh] w-full rounded-lg bg-popover" />
+              : <img src={preview.url} alt={preview.f.file_name} className="max-h-[70vh] w-full rounded-lg bg-popover object-contain" />}
             <Button onClick={() => download(preview.f)} className="w-fit"><Download className="h-4 w-4" /> Download</Button>
           </DialogContent>
         </Dialog>
