@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { AwsClient } from "npm:aws4fetch@1.0.20";
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
     if (b.action === "set_cors") {
       const origins = ["https://hibe-hub.lovable.app", "https://id-preview--1094f6b7-1b74-424e-946e-2a00ae7157d1.lovable.app", "http://localhost:8080"];
       const xml = `<CORSConfiguration><CORSRule>${origins.map((o) => `<AllowedOrigin>${o}</AllowedOrigin>`).join("")}<AllowedMethod>GET</AllowedMethod><AllowedMethod>PUT</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>`;
-      const md5 = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("MD5", new TextEncoder().encode(xml)))));
+      const md5 = createHash("md5").update(xml).digest("base64");
       const { aws, base } = r2();
       const res = await aws.fetch(`${base}?cors`, { method: "PUT", body: xml, headers: { "Content-MD5": md5, "Content-Type": "application/xml" } });
       return json({ status: res.status, body: (await res.text()).slice(0, 500) });
