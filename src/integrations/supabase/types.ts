@@ -774,8 +774,11 @@ export type Database = {
           client_id: string | null
           created_at: string
           email: string
+          first_name: string | null
           full_name: string | null
           id: string
+          job_title: string | null
+          last_name: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -783,8 +786,11 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           email: string
+          first_name?: string | null
           full_name?: string | null
           id: string
+          job_title?: string | null
+          last_name?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -792,8 +798,11 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           email?: string
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          job_title?: string | null
+          last_name?: string | null
         }
         Relationships: [
           {
@@ -1124,6 +1133,14 @@ export type Database = {
         }
       }
       video_client_visible: { Args: { _item_id: string }; Returns: boolean }
+      visible_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          id: string
+          name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
