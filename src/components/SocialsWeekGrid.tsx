@@ -13,32 +13,48 @@ import { VIDEO_STATUS_LABEL } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 import {
   Item, Post, PostStatus, SClient, STATUSES, WEEKLY, Week,
-  callSocials, cellCls, linkSocialVideo, nextStatus, statusOf, unlinkSocialVideo,
+  callSocials, cellCls, linkSocialVideo, mondayOf, nextStatus, statusOf, unlinkSocialVideo,
   useSocialVideoLinks, videoToPostStatus, weekDates, weekItems, ymd,
 } from "@/lib/socials";
 
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
+const DOW_LETTERS = ["m", "d", "w", "d", "v", "z", "z"];
+const dow = (d: string) => (new Date(d + "T00:00:00").getDay() + 6) % 7; // 0 = maandag
 
-/** Full week table of the Review Hub checklist: same layout as the original, plus progress and video links. */
+/** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
 export function SocialsWeekGrid() {
   const qc = useQueryClient();
   const { clients: hibeClients } = useClient();
+  const [view, setView] = useState<"week" | "month">("week");
   const [offset, setOffset] = useState(0);
   const [openOnly, setOpenOnly] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const press = useRef<{ t?: ReturnType<typeof setTimeout>; long?: boolean }>({});
 
-  const base = new Date();
-  base.setDate(base.getDate() + offset * 7);
-  const dates = weekDates(base);
-  const from = dates[0], to = dates[6], today = ymd(new Date());
-  const isCurrentWeek = from <= today && today <= to;
-  const todayIdx = isCurrentWeek ? dates.indexOf(today) : -1;
-  const key = ["socials-week", from];
+  const today = ymd(new Date());
+  const { dates, from, to, weekFrom, label } = useMemo(() => {
+    if (view === "week") {
+      const base = new Date();
+      base.setDate(base.getDate() + offset * 7);
+      const ds = weekDates(base);
+      const monday = new Date(ds[0] + "T00:00:00");
+      return { dates: ds, from: ds[0], to: ds[6], weekFrom: ds[0], label: `week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}` };
+    }
+    const base = new Date();
+    base.setDate(1);
+    base.setMonth(base.getMonth() + offset);
+    const first = new Date(base.getFullYear(), base.getMonth(), 1);
+    const last = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+    const ds = Array.from({ length: last.getDate() }, (_, i) => ymd(new Date(base.getFullYear(), base.getMonth(), i + 1)));
+    return { dates: ds, from: ymd(first), to: ymd(last), weekFrom: ymd(mondayOf(first)), label: base.toLocaleString("nl-NL", { month: "long", year: "numeric" }) };
+  }, [view, offset]);
+
+  const isCurrent = from <= today && today <= to;
+  const key = ["socials", view, from];
 
   const { data, isLoading, error } = useQuery({
     queryKey: key,
-    queryFn: () => callSocials<{ clients: SClient[]; posts: Post[]; weeks: Week[] }>({ action: "load", from, to, weekFrom: from }),
+    queryFn: () => callSocials<{ clients: SClient[]; posts: Post[]; weeks: Week[] }>({ action: "load", from, to, weekFrom }),
     refetchInterval: 30000,
   });
   const { data: links = [] } = useSocialVideoLinks();
@@ -54,6 +70,14 @@ export function SocialsWeekGrid() {
     if (l) { const v = videos.find((x) => x.id === l.video_item_id); return v ? videoToPostStatus(v.status) : "none"; }
     return posts.get(`${cid}_${d}`)?.status ?? "none";
   };
+
+  /** Mondays of the weeks overlapping the visible range (for weekly-tracked clients in month view). */
+  const rangeWeeks = useMemo(() => {
+    const out: string[] = [];
+    const m = mondayOf(new Date(from + "T00:00:00"));
+    while (ymd(m) <= to) { out.push(ymd(m)); m.setDate(m.getDate() + 7); }
+    return out;
+  }, [from, to]);
 
   const savePost = async (c: string, date: string, patch: Partial<Post>) => {
     const cur = posts.get(`${c}_${date}`) ?? { client_id: c, post_date: date, status: "none" as PostStatus, note: null, title: null };
@@ -76,11 +100,12 @@ export function SocialsWeekGrid() {
     catch { toast.error("Loskoppelen mislukt"); }
   };
 
-  /** Progress per client: [done, planned]. */
+  /** Progress per client over the visible range: [done, planned]. */
   const progress = (c: SClient): [number, number] => {
     if (c.tracking_mode === "weekly") {
-      const items = weekItems(weeks.get(`${c.id}_${from}`));
-      return [items.filter((i) => i.status === "scheduled").length, c.weekly_target];
+      const ws = view === "week" ? [from] : rangeWeeks;
+      const done = ws.reduce((n, w) => n + weekItems(weeks.get(`${c.id}_${w}`)).filter((i) => i.status === "scheduled").length, 0);
+      return [done, c.weekly_target * ws.length];
     }
     const sts = dates.map((d) => effStatus(c.id, d));
     return [sts.filter((s) => s === "scheduled").length, sts.filter((s) => s !== "none").length];
@@ -95,11 +120,10 @@ export function SocialsWeekGrid() {
   const weeklyClients = active.filter((c) => c.tracking_mode === "weekly" && visible(c));
   const [totDone, totPlanned] = active.reduce<[number, number]>((a, c) => { const [d, p] = progress(c); return [a[0] + d, a[1] + p]; }, [0, 0]);
 
-  const monday = new Date(from + "T00:00:00");
-  const weekLabel = `${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}`;
+  const lateInPeriod = to < today || (isCurrent && dow(today) >= 4);
   const barCls = (done: number, planned: number) =>
     planned > 0 && done >= planned ? "bg-[hsl(var(--success))]"
-    : done === 0 && (to < today || (isCurrentWeek && todayIdx >= 4)) ? "bg-destructive"
+    : done === 0 && lateInPeriod ? "bg-destructive"
     : "bg-lime";
 
   const startPress = (k: string) => {
@@ -112,9 +136,10 @@ export function SocialsWeekGrid() {
   if (error) return <EmptyState text={"De checklist kon niet worden geladen: " + (error as Error).message} />;
   if (active.length === 0) return <EmptyState text="Nog geen klanten in de checklist." />;
 
+  const colSpan = 1 + (view === "week" ? 7 : dates.length) + 1;
   const groupHeader = (label: string, sub: string) => (
     <tr key={label} className="bg-muted/60">
-      <td colSpan={9} className="sticky left-0 border border-border px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <td colSpan={colSpan} className="sticky left-0 border border-border px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label} <span className="font-normal normal-case">— {sub}</span>
       </td>
     </tr>
@@ -127,14 +152,14 @@ export function SocialsWeekGrid() {
     </td>
   );
 
-  const dayCell = (c: SClient, d: string, i: number) => {
+  const dayCell = (c: SClient, d: string) => {
     const k = `${c.id}_${d}`;
     const l = linkFor(c.id, d);
     const video = l ? videos.find((v) => v.id === l.video_item_id) : null;
     const p = posts.get(k);
     const eff = effStatus(c.id, d);
     const st = statusOf(eff);
-    const weekend = i >= 5;
+    const weekend = dow(d) >= 5;
     const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [st.label, p?.title, p?.note].filter(Boolean).join(" — ");
     return (
       <td key={d} className={cn("border border-border p-0", d === today && "ring-2 ring-inset ring-foreground")}>
@@ -149,7 +174,7 @@ export function SocialsWeekGrid() {
               onPointerUp={endPress}
               onPointerLeave={endPress}
               onPointerMove={endPress}
-              className={cn("relative flex h-9 w-full items-center justify-center font-bold transition hover:brightness-95", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
+              className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "h-8 text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
               {st.symbol}
               {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
               {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
@@ -188,6 +213,7 @@ export function SocialsWeekGrid() {
     );
   };
 
+  /** Week view: the editable item slots of a weekly-tracked client. */
   const weekBar = (c: SClient) => {
     const items = weekItems(weeks.get(`${c.id}_${from}`));
     const slots = Math.max(c.weekly_target, items.length);
@@ -233,31 +259,52 @@ export function SocialsWeekGrid() {
     );
   };
 
+  /** Month view: one read-only summary cell per week for a weekly-tracked client. */
+  const monthWeekCell = (c: SClient, ws: string) => {
+    const items = weekItems(weeks.get(`${c.id}_${ws}`));
+    const done = items.filter((i) => i.status === "scheduled").length;
+    const target = c.weekly_target;
+    const monday = new Date(ws + "T00:00:00");
+    const cls = items.length === 0 ? "bg-card text-muted-foreground"
+      : done >= target ? "bg-[hsl(var(--social-green-bg))] text-[hsl(var(--social-green-fg))]"
+      : "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]";
+    return (
+      <td key={ws} className="border border-border p-0" title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
+        <div className={cn("flex h-8 w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
+      </td>
+    );
+  };
+
+  const periodWord = view === "week" ? "deze week" : "deze maand";
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <button aria-label="Vorige week" className="round-btn h-8 w-8" onClick={() => setOffset(offset - 1)}><ChevronLeft className="h-4 w-4" /></button>
-        <span className="chip">week van {weekLabel}</span>
-        <button aria-label="Volgende week" className="round-btn h-8 w-8" onClick={() => setOffset(offset + 1)}><ChevronRight className="h-4 w-4" /></button>
-        <button className="chip-filter h-8 px-3 text-xs" aria-pressed={offset === 0} onClick={() => setOffset(0)}>Deze week</button>
+        <button aria-label={view === "week" ? "Vorige week" : "Vorige maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset - 1)}><ChevronLeft className="h-4 w-4" /></button>
+        <span className="chip">{label}</span>
+        <button aria-label={view === "week" ? "Volgende week" : "Volgende maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset + 1)}><ChevronRight className="h-4 w-4" /></button>
+        <div className="flex overflow-hidden rounded-full border border-border">
+          <button className={cn("h-8 px-3 text-xs font-medium transition", view === "week" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "week"} onClick={() => { setView("week"); setOffset(0); }}>Deze week</button>
+          <button className={cn("h-8 px-3 text-xs font-medium transition", view === "month" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "month"} onClick={() => { setView("month"); setOffset(0); }}>Deze maand</button>
+        </div>
         <button className="chip-filter h-8 px-3 text-xs" aria-pressed={openOnly} onClick={() => setOpenOnly(!openOnly)}>Alleen open</button>
-        <span className="ml-auto text-sm text-muted-foreground tabular"><b className="text-foreground">{totDone}</b> van {totPlanned} posts ingepland deze week</span>
+        <span className="ml-auto text-sm text-muted-foreground tabular"><b className="text-foreground">{totDone}</b> van {totPlanned} posts ingepland {periodWord}</span>
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {STATUSES.slice(1).map((s) => <span key={s.key} className="inline-flex items-center gap-1.5"><span className={cn("flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold", cellCls(s.key))}>{s.symbol}</span>{s.label}</span>)}
       </div>
 
       <div className="-mx-1 overflow-x-auto px-1">
-        <table className="w-full min-w-[640px] table-fixed border-collapse text-xs">
+        <table className={cn("w-full table-fixed border-collapse text-xs", view === "week" ? "min-w-[640px]" : "min-w-[1100px]")}>
           <colgroup><col className="w-32 md:w-44" />{dates.map((d) => <col key={d} />)}<col className="w-32 md:w-36" /></colgroup>
           <thead><tr>
             <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
             {dates.map((d, i) => (
-              <th key={d} className={cn("border border-border px-1 py-1 font-medium", d === today ? "bg-foreground text-background" : i >= 5 ? "bg-muted text-muted-foreground" : "bg-background text-muted-foreground")}>
-                <div>{DAYS[i]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
+              <th key={d} className={cn("border border-border px-1 py-1 font-medium", d === today ? "bg-foreground text-background" : dow(d) >= 5 ? "bg-muted text-muted-foreground" : "bg-background text-muted-foreground")}>
+                <div>{view === "week" ? DAYS[i] : DOW_LETTERS[dow(d)]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
               </th>
             ))}
-            <th className="border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Deze week</th>
+            <th className="border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">{view === "week" ? "Deze week" : "Deze maand"}</th>
           </tr></thead>
           <tbody>
             {daily.length > 0 && groupHeader("Wij plannen in", "planning per dag")}
@@ -266,18 +313,18 @@ export function SocialsWeekGrid() {
               return (
                 <tr key={c.id}>
                   {nameCell(c)}
-                  {dates.map((d, i) => dayCell(c, d, i))}
+                  {dates.map((d) => dayCell(c, d))}
                   <td className="border border-border px-2 py-1"><WeekBar done={done} planned={planned} barCls={barCls(done, planned)} /></td>
                 </tr>
               );
             })}
-            {weeklyClients.length > 0 && groupHeader("Afleveren", "aantal edits per week")}
+            {weeklyClients.length > 0 && groupHeader("Afleveren", view === "week" ? "aantal edits per week" : "edits per week, samengevat")}
             {weeklyClients.map((c) => {
               const [done, planned] = progress(c);
               return (
                 <tr key={c.id}>
                   {nameCell(c)}
-                  {weekBar(c)}
+                  {view === "week" ? weekBar(c) : rangeWeeks.map((ws) => monthWeekCell(c, ws))}
                   <td className="border border-border px-2 py-1"><WeekBar done={done} planned={planned} barCls={barCls(done, planned)} /></td>
                 </tr>
               );
