@@ -30,7 +30,7 @@ export const weekItems = (w?: Week): Item[] => w?.items?.length ? w.items : Arra
 /** Cell colours, shared by the checklist page and the dashboard card. */
 export const cellCls = (s: PostStatus) =>
   s === "scheduled" ? "bg-primary text-primary-foreground"
-  : s === "none" ? "bg-background"
+  : s === "none" ? "bg-card"
   : s === "to_post" ? "bg-foreground/10 text-foreground"
   : s === "in_progress" ? "bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground))]"
   : s === "internal_check" ? "bg-[hsl(var(--social-orange))] text-white"

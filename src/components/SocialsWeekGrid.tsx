@@ -165,7 +165,7 @@ export function SocialsWeekGrid() {
                               onPointerUp={endPress}
                               onPointerLeave={endPress}
                               onPointerMove={endPress}
-                              className={cn("relative flex h-9 w-full items-center justify-center font-bold", cellCls(eff))}>
+                              className={cn("relative flex h-9 w-full items-center justify-center font-bold transition hover:brightness-95", cellCls(eff))}>
                               {st.symbol}
                               {(p?.note || p?.title) && !l && <span className="absolute right-0.5 top-0.5 h-1 w-1 rounded-full bg-current" />}
                               {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
