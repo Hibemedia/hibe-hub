@@ -177,28 +177,36 @@ export default function HibeAgenda() {
           {form && <>
             <DialogHeader><DialogTitle>{form.id ? "Bewerken" : "Nieuw in de agenda"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              {!form.id && <div className="flex gap-2">
-                {(["meeting", "vacation"] as const).map((k) => <button key={k} onClick={() => setForm({ ...blank(form.start_date, k) })} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "meeting" ? "Meeting" : "Vakantie / vrij"}</button>)}
+              {!form.id && <div className="flex flex-wrap gap-2">
+                {(["shoot", "meeting", "vacation"] as const).map((k) => <button key={k} onClick={() => setForm({ ...blank(form.start_date, k) })} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : "Vakantie / vrij"}</button>)}
               </div>}
-              <div className="space-y-1.5"><Label htmlFor="ag-title">Titel</Label><Input id="ag-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={form.kind === "meeting" ? "Bijv. Weekstart" : "Vakantie"} /></div>
+              {form.kind === "shoot" && <div className="space-y-1.5">
+                <Label>Voor welke klant?</Label>
+                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
+                  <SelectTrigger aria-label="Kies klant"><SelectValue placeholder="Kies een klant" /></SelectTrigger>
+                  <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>}
+              <div className="space-y-1.5"><Label htmlFor="ag-title">Titel</Label><Input id="ag-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={form.kind === "shoot" ? "Bijv. Shoot najaarscollectie" : form.kind === "meeting" ? "Bijv. Weekstart" : "Vakantie"} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5"><Label htmlFor="ag-start">{form.kind === "meeting" ? "Datum" : "Van"}</Label><Input id="ag-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value, end_date: form.end_date < e.target.value ? e.target.value : form.end_date })} /></div>
                 {form.kind === "vacation" && <div className="space-y-1.5"><Label htmlFor="ag-end">Tot en met</Label><Input id="ag-end" type="date" value={form.end_date} min={form.start_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} /></div>}
+                {form.kind === "shoot" && <div className="space-y-1.5"><Label htmlFor="ag-st">Starttijd</Label><Input id="ag-st" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></div>}
                 {form.kind === "meeting" && <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5"><Label htmlFor="ag-t1">Van</Label><Input id="ag-t1" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></div>
                   <div className="space-y-1.5"><Label htmlFor="ag-t2">Tot</Label><Input id="ag-t2" type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} /></div>
                 </div>}
               </div>
-              {form.kind === "meeting" && <div className="space-y-1.5"><Label htmlFor="ag-loc">Locatie of link</Label><Input id="ag-loc" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>}
+              {form.kind !== "vacation" && <div className="space-y-1.5"><Label htmlFor="ag-loc">{form.kind === "shoot" ? "Locatie" : "Locatie of link"}</Label><Input id="ag-loc" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>}
               <div className="space-y-1.5">
-                <Label>{form.kind === "meeting" ? "Deelnemers (krijgen een melding)" : "Wie is er vrij?"}</Label>
+                <Label>{form.kind === "shoot" ? "Crew (krijgen een melding)" : form.kind === "meeting" ? "Deelnemers (krijgen een melding)" : "Wie is er vrij?"}</Label>
                 <div className="flex flex-wrap gap-2">
                   {team.map((t) => <button key={t.id} type="button" onClick={() => toggle(t.id)} className={cn("flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-3 text-sm", form.people.includes(t.id) ? "bg-foreground text-background" : "bg-popover hover:bg-muted")}><UserAvatar userId={t.id} size={22} />{t.name}</button>)}
                 </div>
               </div>
               {(absent.length > 0 || busyShoot.length > 0) && <div className="flex gap-2 rounded-md bg-muted p-3 text-sm">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>{absent.length > 0 && <p>{absent.map(name).join(", ")} {absent.length > 1 ? "zijn" : "is"} die dag vrij.</p>}{busyShoot.length > 0 && <p>Er is die dag een draaidag: {busyShoot.map((s) => s.title).join(", ")}.</p>}<p className="text-muted-foreground">Je kunt het toch opslaan.</p></div>
+                <div>{absent.length > 0 && <p>{absent.map(name).join(", ")} {absent.length > 1 ? "zijn" : "is"} die dag vrij.</p>}{busyShoot.length > 0 && <p>{form.kind === "shoot" ? "Iemand staat die dag al op een andere draaidag" : "Er is die dag een draaidag"}: {busyShoot.map((s) => s.title).join(", ")}.</p>}<p className="text-muted-foreground">Je kunt het toch opslaan.</p></div>
               </div>}
               <div className="space-y-1.5"><Label htmlFor="ag-notes">Notities</Label><Textarea id="ag-notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
             </div>
