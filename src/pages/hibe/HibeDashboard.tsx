@@ -10,7 +10,7 @@ import { useHibeOverview, useHibeActions, useTopVideosLastWeek, ClientSummary, t
 import { useMySettings } from "@/hooks/useMySettings";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { useVideoItems } from "@/hooks/useVideos";
-import type { VideoStatus } from "@/lib/videos";
+import { STEP_SLUG, type VideoStatus } from "@/lib/videos";
 import { Moment, MOMENT_TYPES, STATUS_STYLE, MOMENT_STATUS } from "@/pages/ContentMoments";
 import { PeriodSelect } from "@/components/PeriodSelect";
 import { Section, EmptyState, Change } from "@/components/StatsOverview";
@@ -56,7 +56,7 @@ export default function HibeDashboard() {
         {counters.map((c) => {
           const n = videos.filter((v) => v.status === c.status).length;
           return (
-            <Link key={c.status} to={`/hibe/videos?status=${c.status}`}
+            <Link key={c.status} to={`/hibe/videos/stap/${STEP_SLUG[c.status as VideoStatus]}`}
               className="group flex h-full flex-col justify-between gap-4 rounded-lg bg-card p-5 transition-colors hover:bg-popover sm:col-span-1 lg:col-span-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm text-muted-foreground">{c.label}</span>
@@ -265,8 +265,8 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
   const pending = Object.entries(actions.pending).sort((a, b) => b[1] - a[1]);
   const fmt = (d: string | null) => d ? new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "nooit";
   const groups = [
-    { title: "Ter controle bij klant", to: "/hibe/videos?status=client_review", items: pending.map(([id, n]) => ({ key: id, text: name(id), badge: String(n) })) },
-    { title: "Feedback verwerken", to: "/hibe/videos?status=feedback", items: actions.changes.map((i) => ({ key: i.id, text: `${name(i.client_id)} · ${i.title}` })) },
+    { title: "Ter controle bij klant", to: "/hibe/videos/stap/ter-controle-bij-klant", items: pending.map(([id, n]) => ({ key: id, text: name(id), badge: String(n) })) },
+    { title: "Feedback verwerken", to: "/hibe/videos/stap/feedback-verwerken", items: actions.changes.map((i) => ({ key: i.id, text: `${name(i.client_id)} · ${i.title}` })) },
     { title: "Aangevraagde contentmomenten", to: "/hibe/contentmomenten", items: actions.requested.map((m) => ({ key: m.id, text: `${name(m.client_id)} · ${m.title}` })) },
     { title: "Sync-problemen", to: "/hibe/klanten/beheer", items: actions.syncIssues.map((s) => ({ key: s.client_id, text: `${name(s.client_id)} · ${s.reason === "failed" ? "mislukt" : s.reason === "never" ? "nog nooit gesynct" : `laatste sync ${fmt(s.finished_at ?? s.started_at)}`}` })) },
   ];
