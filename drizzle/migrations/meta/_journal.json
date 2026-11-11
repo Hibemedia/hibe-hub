@@ -120,6 +120,13 @@
       "when": 1794432344509,
       "tag": "0016_create_edits",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794432604629,
+      "tag": "0017_create_team_chat",
+      "breakpoints": true
     }
   ]
 }

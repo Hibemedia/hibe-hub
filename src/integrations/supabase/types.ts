@@ -14,6 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_members: {
+        Row: {
+          joined_at: string
+          last_read_at: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          last_read_at?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          last_read_at?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          edited_at: string | null
+          id: string
+          image_path: string | null
+          mentions: string[]
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          edited_at?: string | null
+          id?: string
+          image_path?: string | null
+          mentions?: string[]
+          room_id: string
+          user_id?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          edited_at?: string | null
+          id?: string
+          image_path?: string | null
+          mentions?: string[]
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          message_id: string | null
+          preview: string
+          read_at: string | null
+          recipient_id: string
+          room_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          message_id?: string | null
+          preview?: string
+          read_at?: string | null
+          recipient_id: string
+          room_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message_id?: string | null
+          preview?: string
+          read_at?: string | null
+          recipient_id?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_notifications_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_notifications_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           created_at: string
@@ -830,8 +975,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      chat_open_dm: { Args: { _other: string }; Returns: string }
+      chat_unread: {
+        Args: never
+        Returns: {
+          room_id: string
+          unread: number
+        }[]
+      }
       current_client_id: { Args: never; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_chat_member: {
+        Args: { _room: string; _user: string }
+        Returns: boolean
+      }
       review_action: {
         Args: {
           _action: string
