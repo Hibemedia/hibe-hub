@@ -232,6 +232,7 @@ export type Database = {
           notes: string | null
           requested_by: string | null
           script: string | null
+          show_crew_to_client: boolean
           start_time: string | null
           status: string
           title: string
@@ -247,6 +248,7 @@ export type Database = {
           notes?: string | null
           requested_by?: string | null
           script?: string | null
+          show_crew_to_client?: boolean
           start_time?: string | null
           status?: string
           title: string
@@ -262,6 +264,7 @@ export type Database = {
           notes?: string | null
           requested_by?: string | null
           script?: string | null
+          show_crew_to_client?: boolean
           start_time?: string | null
           status?: string
           title?: string
@@ -396,6 +399,7 @@ export type Database = {
           id: string
           item_id: string | null
           kind: string
+          moment_id: string | null
           read_at: string | null
           recipient_id: string | null
           video_title: string
@@ -408,6 +412,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           kind: string
+          moment_id?: string | null
           read_at?: string | null
           recipient_id?: string | null
           video_title: string
@@ -420,6 +425,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           kind?: string
+          moment_id?: string | null
           read_at?: string | null
           recipient_id?: string | null
           video_title?: string
@@ -444,6 +450,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "video_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hibe_notifications_moment_id_fkey"
+            columns: ["moment_id"]
+            isOneToOne: false
+            referencedRelation: "content_moments"
             referencedColumns: ["id"]
           },
         ]
@@ -491,6 +504,38 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moment_crew: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          moment_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          moment_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          moment_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moment_crew_moment_id_fkey"
+            columns: ["moment_id"]
+            isOneToOne: false
+            referencedRelation: "content_moments"
             referencedColumns: ["id"]
           },
         ]
@@ -1010,6 +1055,14 @@ export type Database = {
         Returns: {
           room_id: string
           unread: number
+        }[]
+      }
+      client_moment_crew: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          first_name: string
+          moment_id: string
         }[]
       }
       current_client_id: { Args: never; Returns: string }
