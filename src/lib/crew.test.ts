@@ -1,4 +1,5 @@
 // @ts-ignore bun types not installed in app tsconfig
+import { describe, expect, test } from "bun:test";
 import { crewConflicts, needsCrew, shootDaysOf } from "./crew";
 
 const ms = [
