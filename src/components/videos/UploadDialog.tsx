@@ -26,7 +26,8 @@ export function UploadDialog({ files, open, onOpenChange, defaultClient, onPick 
   const qc = useQueryClient();
   const [client, setClient] = useState(defaultClient ?? "");
   const [titles, setTitles] = useState<string[]>([]);
-  useEffect(() => { if (open) { setClient(defaultClient ?? ""); setTitles(files.map((f) => f.name.replace(/\.[^.]+$/, ""))); } }, [open, files]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open) setClient(defaultClient ?? ""); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setTitles(files.map((f) => f.name.replace(/\.[^.]+$/, ""))); }, [files]);
   const go = () => {
     files.forEach((f, i) => startUpload({ file: f, clientId: client, title: titles[i]?.trim() || f.name, onDone: () => { qc.invalidateQueries({ queryKey: ["video-items"] }); toast.success(`${titles[i]} staat in Interne controle`); } }));
     onOpenChange(false);

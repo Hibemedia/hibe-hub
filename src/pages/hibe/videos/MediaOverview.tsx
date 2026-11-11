@@ -68,7 +68,7 @@ export default function MediaOverview() {
             <table className="w-full min-w-[760px] text-sm">
               <thead><tr className="text-left text-xs text-muted-foreground">
                 <th className="px-2 py-2 font-medium">{sortBtn("name", "Klant")}</th>
-                {STEPS.map((s) => <th key={s} className="px-2 py-2 text-center font-medium" title={VIDEO_STATUS_LABEL[s]}>{sortBtn(s, <span className="whitespace-nowrap">{stepNo(s)} {VIDEO_STATUS_LABEL[s].split(" ")[0]}</span>)}</th>)}
+                {STEPS.map((s) => <th key={s} className="px-2 py-2 text-center font-medium" title={VIDEO_STATUS_LABEL[s]}>{sortBtn(s, <span className="text-left leading-tight">{stepNo(s)} {VIDEO_STATUS_LABEL[s]}</span>)}</th>)}
                 <th className="px-2 py-2 text-right font-medium">{sortBtn("total", "Totaal lopend")}</th>
               </tr></thead>
               <tbody className="divide-y divide-border">
