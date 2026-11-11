@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Upload, Send, ArrowUpDown } from "lucide-react";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useMedia";
@@ -14,6 +14,7 @@ const tone = { ok: "", warn: "border-warning text-warning", late: "border-destru
 const KIND = { upload: "uploadde", approved: "keurde goed", feedback: "gaf feedback op", sent: "Verstuurd naar klant:" };
 
 export default function MediaOverview() {
+  const [params] = useSearchParams();
   const m = useMedia();
   const nav = useNavigate();
   const [, setF] = useSavedFilters();
@@ -41,6 +42,8 @@ export default function MediaOverview() {
     ...running.filter((i) => ageTone(i.status_changed_at) === "late").map((i) => ({ key: "o" + i.id, client: i.client_id, text: `"${i.title}" staat al ${fmtAge(i.status_changed_at)} in ${VIDEO_STATUS_LABEL[i.status]}`, to: i.id })),
   ].slice(0, 10) as { key: string; client: string; text: string; to?: string; send?: typeof m.live }[];
 
+  const legacy = params.get("status") as VideoStatus | null;
+  if (legacy && STEP_SLUG[legacy]) return <Navigate to={`/hibe/videos/stap/${STEP_SLUG[legacy]}`} replace />;
   return (
     <div className="space-y-5 p-4 md:p-8" {...up.dropProps}>
       <PageHeader title="Media Management" action={<PrimaryAction icon={Upload} onClick={up.openPicker}>Video uploaden</PrimaryAction>} />

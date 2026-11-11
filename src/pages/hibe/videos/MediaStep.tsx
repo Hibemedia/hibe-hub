@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { MEDIA_SUB } from "@/components/AppSidebar";
 import { toast } from "sonner";
 
 const ALL: VideoStatus[] = [...STEPS, "archived"];
@@ -74,6 +75,10 @@ export default function MediaStep() {
   return (
     <div className="space-y-4 p-4 md:p-8" {...up.dropProps}>
       <PageHeader title={title} action={<PrimaryAction icon={Upload} onClick={up.openPicker}>Video uploaden</PrimaryAction>} />
+      <Select value={trashView ? "/hibe/videos/stap/prullenbak" : `/hibe/videos/stap/${step}`} onValueChange={(v) => nav(v)}>
+        <SelectTrigger aria-label="Kies stap" className="md:hidden"><SelectValue /></SelectTrigger>
+        <SelectContent>{MEDIA_SUB.map((s) => <SelectItem key={s.url} value={s.url}>{s.title}</SelectItem>)}</SelectContent>
+      </Select>
       <div><h1 className="text-2xl font-semibold tracking-tight">{title}</h1><p className="text-sm text-muted-foreground">{hint}</p></div>
 
       <div className="flex flex-wrap items-center gap-2">

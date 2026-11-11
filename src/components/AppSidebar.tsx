@@ -219,7 +219,7 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
 
 function BottomLink({ item, badge }: { item: Item; badge?: number }) {
   const active = useActive(item);
-  const short = item.title.replace("-checklist", "").replace(" & Archief", "").replace("Contentmomenten", "Momenten");
+  const short = item.title.replace("-checklist", "").replace(" & Archief", "").replace("Contentmomenten", "Momenten").replace("Media Management", "Media");
   return (
     <NavLink to={item.url} end className={cn("relative flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium", active ? "text-foreground" : "text-muted-foreground")}>
       <span className={cn("flex h-7 w-11 items-center justify-center rounded-md", active && "bg-foreground text-background")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
