@@ -357,7 +357,7 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
             <Link to={g.to} className="group flex items-center justify-between gap-2 text-sm">
               <span className={cn("min-w-0 truncate font-semibold group-hover:underline", !g.items.length && "font-medium text-muted-foreground")}>{g.title}</span>
               {g.items.length ? <span className="min-w-6 rounded-full bg-foreground px-2 text-center text-xs font-bold leading-6 text-background tabular">{g.items.length}</span>
-                : <span className="text-xs text-muted-foreground">Niets open</span>}
+                : <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">Niets open</span>}
             </Link>
             {g.items.length > 0 && (
               <ul className="mt-2 space-y-1">
