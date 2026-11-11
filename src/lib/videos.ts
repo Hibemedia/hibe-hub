@@ -5,7 +5,7 @@ export const VIDEO_STATUSES: VideoStatus[] = ["internal_review", "feedback", "ap
 export const VIDEO_STATUS_LABEL: Record<VideoStatus, string> = {
   internal_review: "Interne controle",
   feedback: "Feedback verwerken",
-  approved_internal: "Goedgekeurd (intern)",
+  approved_internal: "CapCut",
   ready_for_client: "Mag naar klant",
   client_review: "Ter controle bij klant",
   approved_client: "Goedgekeurd (klant)",
@@ -94,7 +94,7 @@ export const ROW_ACTION: Record<VideoStatus, RowAction> = {
   ready_for_client: null, client_review: "remind", approved_client: "schedule", scheduled: null, archived: null,
 };
 export const ROW_ACTION_LABEL: Record<Exclude<RowAction, null>, string> = {
-  review: "Beoordeel", new_version: "Upload nieuwe versie", ready: "Klaar voor klant", remind: "Herinner klant", schedule: "Markeer als ingepland",
+  review: "Beoordeel", new_version: "Upload nieuwe versie", ready: "Upload final", remind: "Herinner klant", schedule: "Markeer als ingepland",
 };
 
 /** Short WhatsApp message with the link to the client's start screen. */
@@ -112,14 +112,14 @@ export function clientColorSlot(id: string) {
 export const STEPS: VideoStatus[] = ["internal_review", "feedback", "approved_internal", "ready_for_client", "client_review", "approved_client", "scheduled"];
 export const stepNo = (s: VideoStatus) => STEPS.indexOf(s) + 1; // 0 for archived
 export const STEP_SLUG: Record<VideoStatus, string> = {
-  internal_review: "interne-controle", feedback: "feedback-verwerken", approved_internal: "goedgekeurd-intern", ready_for_client: "mag-naar-klant",
+  internal_review: "interne-controle", feedback: "feedback-verwerken", approved_internal: "capcut", ready_for_client: "mag-naar-klant",
   client_review: "ter-controle-bij-klant", approved_client: "goedgekeurd-klant", scheduled: "ingepland", archived: "archief",
 };
-export const statusFromSlug = (slug?: string) => (Object.keys(STEP_SLUG) as VideoStatus[]).find((s) => STEP_SLUG[s] === slug) ?? null;
+export const statusFromSlug = (slug?: string) => (Object.keys(STEP_SLUG) as VideoStatus[]).find((s) => STEP_SLUG[s] === slug) ?? (slug === "goedgekeurd-intern" ? "approved_internal" : null);
 export const STEP_HINT: Record<VideoStatus, string> = {
   internal_review: "Klaar met monteren? Upload je video hier.",
   feedback: "Bekijk de feedback, maak een nieuwe versie en upload die bij de video.",
-  approved_internal: "Inhoudelijk goedgekeurd. Voeg ondertiteling toe en zet door naar Mag naar klant.",
+  approved_internal: "Intern goedgekeurd. Download de video, voeg in CapCut de ondertiteling toe en upload de final: die gaat dan door naar Mag naar klant.",
   ready_for_client: "Klaar om te versturen. Bij 3 video's per klant kan het setje naar de klant.",
   client_review: "Verstuurd naar de klant, wacht op reactie.",
   approved_client: "Goedgekeurd door de klant. Moet nog worden ingepland.",
@@ -129,7 +129,7 @@ export const STEP_HINT: Record<VideoStatus, string> = {
 export const STEP_ACTION: Partial<Record<VideoStatus, { label: string; kind: "review" | "new_version" | "move" | "remind"; to?: VideoStatus }>> = {
   internal_review: { label: "Beoordeel", kind: "review" },
   feedback: { label: "Upload nieuwe versie", kind: "new_version" },
-  approved_internal: { label: "Naar Mag naar klant", kind: "move", to: "ready_for_client" },
+  approved_internal: { label: "Upload final", kind: "new_version" },
   client_review: { label: "Herinner klant", kind: "remind" },
   approved_client: { label: "Markeer als ingepland", kind: "move", to: "scheduled" },
 };

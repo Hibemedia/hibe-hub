@@ -64,7 +64,7 @@ import { STEPS, stepNo, statusFromSlug, STEP_ACTION, worstTone } from "./videos"
 describe("media management steps", () => {
   it("has seven numbered steps", () => { expect(STEPS.length).toBe(7); expect(stepNo("internal_review")).toBe(1); expect(stepNo("scheduled")).toBe(7); expect(stepNo("archived")).toBe(0); });
   it("slugs round-trip", () => { expect(statusFromSlug("mag-naar-klant")).toBe("ready_for_client"); expect(statusFromSlug("x")).toBeNull(); });
-  it("Goedgekeurd (intern) moves to Mag naar klant", () => { expect(STEP_ACTION.approved_internal?.to).toBe("ready_for_client"); expect(STEP_ACTION.ready_for_client).toBeUndefined(); });
+  it("CapCut step asks for a final upload", () => { expect(STEP_ACTION.approved_internal?.kind).toBe("new_version"); expect(STEP_ACTION.ready_for_client).toBeUndefined(); });
   it("counter tone takes the oldest video", () => {
     const now = Date.parse("2026-11-11T12:00:00Z");
     expect(worstTone(["2026-11-11T00:00:00Z", "2026-11-03T00:00:00Z"], now)).toBe("late");

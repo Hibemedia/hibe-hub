@@ -135,7 +135,7 @@ export default function MediaStep() {
                   <span className={cn("hidden w-16 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtDate(i.status_changed_at)}</span>
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     {trashView ? <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>
-                      : a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}
+                      : <>{status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</Button>}{a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}</>}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><button aria-label="Meer acties" className="round-btn h-8 w-8"><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -157,7 +157,7 @@ export default function MediaStep() {
       </section>
       <input ref={verInput} type="file" accept="video/*" className="hidden" onChange={(e) => {
         const file = e.target.files?.[0]; e.target.value = "";
-        if (file && verFor) startUpload({ file, itemId: verFor.id, onDone: () => { refresh(); toast.success(`V${verFor.current_version + 1} van ${verFor.title} staat in Interne controle`); } });
+        if (file && verFor) startUpload({ file, itemId: verFor.id, onDone: () => { refresh(); toast.success(`V${verFor.current_version + 1} van ${verFor.title} staat in ${verFor.status === "approved_internal" ? "Mag naar klant" : "Interne controle"}`); } });
       }} />
       {up.ui}{sender.dialog}
     </div>
