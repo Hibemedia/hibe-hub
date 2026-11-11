@@ -71,3 +71,8 @@ describe("media management steps", () => {
     expect(worstTone([], now)).toBe("ok");
   });
 });
+
+describe("CapCut final skips Mag naar klant", () => {
+  it("no Mag naar klant step", () => expect(STEPS.includes("ready_for_client")).toBe(false));
+  it("approve from CapCut goes to client", () => expect(hibeNext("approved_internal", "approve")).toBe("client_review"));
+});
