@@ -25,6 +25,7 @@ import MediaStep from "./pages/hibe/videos/MediaStep";
 import HibeReview from "./pages/hibe/videos/HibeReview";
 import HibeEdits from "./pages/hibe/HibeEdits";
 import HibeChat from "./pages/hibe/HibeChat";
+import HibeAgenda from "./pages/hibe/HibeAgenda";
 import ClientReview from "./pages/videos/ClientReview";
 import ClientVideos from "./pages/videos/ClientVideos";
 import { ClientProvider } from "@/context/ClientContext";
@@ -71,6 +72,7 @@ const App = () => (
                 <Route path="socials" element={<HibeSocials />} />
                 <Route path="edits" element={<HibeEdits />} />
                 <Route path="chat" element={<HibeChat />} />
+                <Route path="agenda" element={<HibeAgenda />} />
                 <Route path="videos" element={<MediaOverview />} />
                 <Route path="videos/stap/:step" element={<MediaStep />} />
                 <Route path="videos/:id" element={<HibeReview />} />
