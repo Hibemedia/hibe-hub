@@ -113,12 +113,12 @@ export default function HibeEdits() {
       </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : groups.length === 0 ? (
-        <div className="card flex flex-col items-start gap-3 p-6 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card flex flex-col items-start gap-3 p-6 text-sm text-muted-foreground">
           {edits.length ? "Geen edits voor deze filters." : "Nog geen edits. Plak een lijst titels om de montageplanning te starten."}
           {!edits.length && <Button onClick={() => setCreating(true)}><Plus className="mr-1 h-4 w-4" />Nieuwe edit</Button>}
         </div>
       ) : groups.map((g) => (
-        <section key={g.id} className="card overflow-hidden p-0">
+        <section key={g.id} className="rounded-lg border border-border bg-card overflow-hidden p-0">
           <button onClick={() => setClosed((c) => ({ ...c, [g.id]: !c[g.id] }))} aria-expanded={!closed[g.id]} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/50">
             <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", closed[g.id] && "-rotate-90")} />
             <ClientMark id={g.id} name={g.name} url={logos[g.id]} size={28} />
