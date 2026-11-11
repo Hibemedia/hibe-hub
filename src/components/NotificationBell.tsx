@@ -27,25 +27,40 @@ export function NotificationBell() {
       return (data ?? []) as unknown as Note[];
     },
   });
+  const { data: invites = [] } = useQuery({
+    queryKey: ["agenda-invites", me],
+    enabled: !!me,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("calendar_attendees").select("event_id,created_at,seen_at,invited_by,event:calendar_events(title,start_date,start_time)").eq("user_id", me).order("created_at", { ascending: false }).limit(20);
+      if (error) throw error;
+      return ((data ?? []) as any[]).filter((r) => r.event).map((r) => ({ id: `inv:${r.event_id}`, event_id: r.event_id as string, created_at: r.created_at as string, read_at: r.seen_at as string | null, actor_id: r.invited_by as string | null, title: r.event.title as string, date: r.event.start_date as string, time: (r.event.start_time ?? "").slice(0, 5) }));
+    },
+  });
   const { data: team = [] } = useTeamMembers();
   const person = (id: string | null) => team.find((t) => t.id === id)?.name ?? "Iemand";
   useChatLive(me, person);
   const { data: chat = [] } = useChatNotes(me);
-  const unread = [...notes.filter((n) => !n.read_at), ...chat.filter((n) => !n.read_at)];
+  const unread = [...notes.filter((n) => !n.read_at), ...chat.filter((n) => !n.read_at), ...invites.filter((n) => !n.read_at)];
   const name = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
   const markRead = async (ids: string[]) => {
     if (!ids.length) return;
     const now = new Date().toISOString();
+    const inv = ids.filter((i) => i.startsWith("inv:")).map((i) => i.slice(4));
+    ids = ids.filter((i) => !i.startsWith("inv:"));
     await Promise.all([
+      inv.length ? (supabase as any).from("calendar_attendees").update({ seen_at: now }).eq("user_id", me).in("event_id", inv) : null,
       supabase.from("hibe_notifications" as any).update({ read_at: now }).in("id", ids),
       supabase.from("chat_notifications" as any).update({ read_at: now }).in("id", ids),
     ]);
     qc.invalidateQueries({ queryKey: ["hibe-notifications"] });
     qc.invalidateQueries({ queryKey: ["chat-notes"] });
+    qc.invalidateQueries({ queryKey: ["agenda-invites"] });
   };
   const all = [
     ...notes.map((n) => ({ at: n.created_at, el: { n, chat: false as const } })),
     ...chat.map((c) => ({ at: c.created_at, el: { c, chat: true as const } })),
+    ...invites.map((v) => ({ at: v.created_at, el: { v, chat: "inv" as const } })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30);
   const when = (d: string) => new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return (
@@ -63,7 +78,15 @@ export function NotificationBell() {
         </div>
         {all.length === 0 ? <p className="px-4 py-6 text-center text-sm text-muted-foreground">Hier zie je feedback van klanten, nieuwe edits en chatberichten voor jou.</p> : (
           <ul className="max-h-96 overflow-y-auto">
-            {all.map(({ el }) => el.chat ? (
+            {all.map(({ el }) => el.chat === "inv" ? (
+              <li key={el.v.id}>
+                <button onClick={() => { markRead([el.v.id]); nav("/hibe/agenda"); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
+                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${el.v.read_at ? "bg-transparent" : "bg-lime"}`} />{el.v.actor_id && <UserAvatar userId={el.v.actor_id} size={28} />}
+                  <span className="min-w-0"><b>{person(el.v.actor_id)}</b> heeft je uitgenodigd voor <span className="font-medium">{el.v.title}</span>
+                    <span className="block text-xs text-muted-foreground">{new Date(el.v.date).toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" })}{el.v.time ? ` om ${el.v.time}` : ""}</span></span>
+                </button>
+              </li>
+            ) : el.chat ? (
               <li key={el.c.id}>
                 <button onClick={() => { markRead([el.c.id]); nav(`/hibe/chat?room=${el.c.room_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
                   <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${el.c.read_at ? "bg-transparent" : "bg-lime"}`} /><UserAvatar userId={el.c.actor_id} size={28} />

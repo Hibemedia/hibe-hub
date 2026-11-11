@@ -1,7 +1,7 @@
 import hibeLogoUrl from "@/assets/hibe-logo.png";
 const hibeLogo = { url: hibeLogoUrl };
 import { useState } from "react";
-import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -32,6 +32,7 @@ const HIBE_MENU: Item[] = [
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Edits", url: "/hibe/edits", icon: Scissors },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
+  { title: "Agenda", url: "/hibe/agenda", icon: CalendarDays },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
   { title: "Chat", url: "/hibe/chat", icon: MessagesSquare },

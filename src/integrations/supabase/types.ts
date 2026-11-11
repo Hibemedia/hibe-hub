@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_attendees: {
+        Row: {
+          created_at: string
+          event_id: string
+          invited_by: string | null
+          seen_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          invited_by?: string | null
+          seen_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          invited_by?: string | null
+          seen_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string
+          end_time: string | null
+          id: string
+          kind: string
+          location: string | null
+          notes: string | null
+          person_id: string | null
+          start_date: string
+          start_time: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          end_time?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          notes?: string | null
+          person_id?: string | null
+          start_date: string
+          start_time?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          end_time?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          notes?: string | null
+          person_id?: string | null
+          start_date?: string
+          start_time?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       chat_members: {
         Row: {
           joined_at: string
