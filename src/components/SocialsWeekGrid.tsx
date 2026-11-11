@@ -212,14 +212,13 @@ export function SocialsWeekGrid() {
               <>
                 <div className="overflow-hidden rounded-md border border-border">
                   {STATUSES.map((s) => (
-                    <button key={s.key} onClick={() => { savePost(c.id, d, { status: s.key }); setMenu(null); }}
+                    <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })}
                       className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
                       <b className="w-4 text-center">{s.symbol || "–"}</b>{s.label}
                     </button>
                   ))}
                 </div>
-                <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={p?.title ?? ""} onBlur={(e) => e.target.value !== (p?.title ?? "") && savePost(c.id, d, { title: e.target.value })} /></div>
-                <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={p?.note ?? ""} onBlur={(e) => e.target.value !== (p?.note ?? "") && savePost(c.id, d, { note: e.target.value })} /></div>
+                <PostFields title={p?.title ?? ""} note={p?.note ?? ""} onSave={(t, n) => savePost(c.id, d, { title: t || null, note: n || null })} />
                 <div className="space-y-1">
                   <Label className="text-xs">Koppel een video uit Video's</Label>
                   <Select onValueChange={(v) => { link(c.id, d, v); setMenu(null); }}>
