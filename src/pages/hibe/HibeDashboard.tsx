@@ -2,7 +2,14 @@ import { PageHeader } from "@/components/PageHeader";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, ArrowUpDown, ClipboardCheck, Hourglass, MessageSquare } from "lucide-react";
+import { ArrowUpRight, ArrowUpDown, ClipboardCheck, Hourglass, MessageSquare, Plus, Upload, Scissors, CalendarPlus, UserX, MessagesSquare, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useUploader } from "@/components/videos/useMedia";
+import { useUnread } from "@/hooks/useChat";
+import { useMyTeamRole } from "@/hooks/useTeamRole";
+import { MyDay } from "@/components/dashboard/MyDay";
+import { callSocials, weekDates, weekItems, type SClient, type Post, type Week } from "@/lib/socials";
+import { canSeeTotals, isNewGrowth, normName, weekBehind, weekElapsed } from "@/lib/dashboard";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
@@ -40,68 +47,127 @@ export default function HibeDashboard() {
   const t = data?.totals;
   const names = Object.fromEntries(clients.map((c) => [c.id, c.name]));
 
-  const counters: { label: string; status: VideoStatus; icon: typeof Hourglass }[] = [
-    { label: "Te beoordelen door HIBE", status: "internal_review", icon: ClipboardCheck },
-    { label: "Wacht op klant", status: "client_review", icon: Hourglass },
-    { label: "Feedback te verwerken", status: "feedback", icon: MessageSquare },
+  const { role, me: myId } = useMyTeamRole();
+  const full = canSeeTotals(role);
+  const up = useUploader();
+  const { data: unread = {} } = useUnread();
+  const { data: unassigned = 0 } = useQuery({
+    queryKey: ["edits", "unassigned-count"],
+    queryFn: async () => {
+      const { count, error } = await (supabase as any).from("edits").select("id", { count: "exact", head: true }).neq("status", "delivered").or("editor_id.is.null,status.eq.assign");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+  const unreadTotal = Object.values(unread).reduce((a, b) => a + b, 0);
+  const vc = (s: VideoStatus) => videos.filter((v) => v.status === s).length;
+  const counters: { label: string; n: number; to: string; icon: typeof Hourglass }[] = [
+    { label: "Te beoordelen door HIBE", n: vc("internal_review"), to: `/hibe/videos/stap/${STEP_SLUG.internal_review}`, icon: ClipboardCheck },
+    { label: "Wacht op klant", n: vc("client_review"), to: `/hibe/videos/stap/${STEP_SLUG.client_review}`, icon: Hourglass },
+    { label: "Feedback te verwerken", n: vc("feedback"), to: `/hibe/videos/stap/${STEP_SLUG.feedback}`, icon: MessageSquare },
+    { label: "Edits zonder editor", n: unassigned, to: "/hibe/edits?status=assign", icon: UserX },
+    { label: "Ongelezen berichten", n: unreadTotal, to: "/hibe/chat", icon: MessagesSquare },
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 p-4 md:space-y-5 md:p-8">
-      <PageHeader title="Dashboard" />
-      <p className="text-xl"><span className="font-semibold">{greeting()}{me?.name ? ` ${me.name}` : ""}</span> <span className="text-muted-foreground">· {today}</span></p>
+    <div className="mx-auto max-w-7xl space-y-4 p-4 md:space-y-5 md:p-8" {...up.dropProps}>
+      <PageHeader title="Dashboard" action={
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85">
+            <Plus className="h-4 w-4" aria-hidden /><span>Nieuw</span><ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onSelect={up.openPicker}><Upload className="mr-2 h-4 w-4" />Video uploaden</DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/hibe/edits?nieuw=1"><Scissors className="mr-2 h-4 w-4" />Nieuwe edit</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/hibe/contentmomenten?nieuw=1"><CalendarPlus className="mr-2 h-4 w-4" />Contentmoment toevoegen</Link></DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      } />
+      <p className="truncate text-xl"><span className="font-semibold">{greeting()}{me?.name ? ` ${me.name}` : ""}</span> <span className="text-muted-foreground">· {today}</span></p>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
-        {/* Rij 1: tellers + weer */}
-        {counters.map((c) => {
-          const n = videos.filter((v) => v.status === c.status).length;
-          return (
-            <Link key={c.status} to={`/hibe/videos/stap/${STEP_SLUG[c.status as VideoStatus]}`}
-              className="group flex h-full flex-col justify-between gap-4 rounded-lg bg-card p-5 transition-colors hover:bg-popover sm:col-span-1 lg:col-span-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-muted-foreground">{c.label}</span>
-                <c.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" aria-hidden />
-              </div>
-              <span className="text-[40px] font-light leading-none tracking-tight tabular">{n}</span>
-            </Link>
-          );
-        })}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <MyDay me={myId} className="lg:col-span-9" />
         <div className="lg:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
+      </div>
 
-        {/* Rij 2: checklist + top 5 */}
-        <SocialsChecklistCard className="h-full p-4 md:p-6 lg:col-span-8" />
-        {weekVideos && <TopVideosSmall videos={weekVideos} names={names} className="h-full lg:col-span-4" />}
-
-        {/* Rij 3: totalen + contentmomenten */}
-        <Section title="Totaal alle kanalen" className="h-full lg:col-span-6" aside={<PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />}>
-          {isLoading || !t ? <Skeleton className="h-32 rounded-lg" /> : (
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Weergaven", value: t.views, change: <Change value={t.viewsChange} /> },
-                { label: "Volgers", value: t.followers, change: <span className="text-muted-foreground">alle kanalen</span> },
-                { label: "Nieuwe volgers", value: t.newFollowers, change: <Change value={t.newFollowers} suffix="" /> },
-                { label: "Posts", value: t.posts, change: <Change value={t.postsChange} /> },
-              ].map((it) => (
-                <div key={it.label} className="rounded-lg bg-popover p-4">
-                  <p className="text-[28px] font-light leading-none tracking-tight tabular">{formatNumber(it.value)}</p>
-                  <p className="mt-1.5 text-xs text-muted-foreground">{it.label}</p>
-                  <div className="mt-2 text-xs tabular">{it.change}</div>
-                </div>
-              ))}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 md:gap-4">
+        {counters.map((c) => (
+          <Link key={c.label} to={c.to} className="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-lg bg-card p-4 transition-colors hover:bg-popover md:p-5">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <span className="min-w-0 text-sm leading-snug text-muted-foreground">{c.label}</span>
+              <c.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" aria-hidden />
             </div>
-          )}
-        </Section>
-        <UpcomingMoments names={names} className="h-full lg:col-span-6" />
+            <span className="text-[36px] font-light leading-none tracking-tight tabular md:text-[40px]">{c.n}</span>
+          </Link>
+        ))}
       </div>
 
-      {data && <ViewsChart data={data} names={names} />}
+      <SocialsChecklistCard weekOnly className="p-4 md:p-6" />
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        {data && <Ranking rows={data.summaries} className="xl:col-span-3" logos={logos} />}
-        <ActionNeeded className="xl:col-span-2" actions={actions} />
-      </div>
+      {full && <>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <Section title="Totaal alle kanalen" className="h-full lg:col-span-6" aside={<PeriodSelect value={period} onChange={setPeriod} only={["7d", "30d", "90d"]} />}>
+            {isLoading || !t ? <Skeleton className="h-32 rounded-lg" /> : (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Weergaven", value: t.views, change: <Change value={t.viewsChange} /> },
+                  { label: "Volgers", value: t.followers, change: <span className="text-muted-foreground">alle kanalen</span> },
+                  { label: "Nieuwe volgers", value: t.newFollowers, change: <Change value={t.newFollowers} suffix="" /> },
+                  { label: "Posts", value: t.posts, change: <Change value={t.postsChange} /> },
+                ].map((it) => (
+                  <div key={it.label} className="min-w-0 rounded-lg bg-popover p-4">
+                    <p className="truncate text-[28px] font-light leading-none tracking-tight tabular">{formatNumber(it.value)}</p>
+                    <p className="mt-1.5 truncate text-xs text-muted-foreground">{it.label}</p>
+                    <div className="mt-2 text-xs tabular">{it.change}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+          {weekVideos && <TopVideosSmall videos={weekVideos} names={names} className="h-full lg:col-span-6" />}
+          <UpcomingMoments names={names} className="h-full lg:col-span-12" />
+        </div>
+
+        {data && <ViewsChart data={data} names={names} />}
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+          {data && <Ranking rows={data.summaries} className="xl:col-span-3" logos={logos} />}
+          <ActionNeeded className="xl:col-span-2" actions={actions} />
+        </div>
+      </>}
+      {up.ui}
     </div>
   );
+}
+
+/** Scheduled vs target per HIBE client for the current week, from the shared checklist. */
+function useWeekTargets() {
+  const { clients } = useClient();
+  return useQuery({
+    queryKey: ["socials", "dashboard-week"],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const ds = weekDates(new Date());
+      const r = await callSocials<{ clients: SClient[]; posts: Post[]; weeks: Week[] }>({ action: "load", from: ds[0], to: ds[6], weekFrom: ds[0] });
+      const out: Record<string, { done: number; target: number }> = {};
+      for (const sc of r.clients.filter((c) => c.is_active)) {
+        const hc = clients.find((c) => normName(c.name) === normName(sc.name));
+        if (!hc) continue;
+        let done: number, target: number;
+        if (sc.tracking_mode === "weekly") {
+          done = weekItems(r.weeks.find((w) => w.client_id === sc.id && w.week_start === ds[0])).filter((i) => i.status === "scheduled").length;
+          target = sc.weekly_target;
+        } else {
+          const ps = r.posts.filter((p) => p.client_id === sc.id && p.status !== "none");
+          done = ps.filter((p) => p.status === "scheduled").length;
+          target = ps.length;
+        }
+        out[hc.id] = { done, target };
+      }
+      return out;
+    },
+    enabled: clients.length > 0,
+  });
 }
 
 function UpcomingMoments({ names, className }: { names: Record<string, string>; className?: string }) {
@@ -228,6 +294,8 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
   const { clients } = useClient();
   const nav = useNavigate();
   const [sort, setSort] = useState<{ k: SortKey; desc: boolean }>({ k: "views", desc: true });
+  const { data: targets } = useWeekTargets();
+  const elapsed = weekElapsed();
   const list = clients.map((c) => ({ c, s: rows.find((r) => r.clientId === c.id) }));
   const val = (x: (typeof list)[number]) => sort.k === "name" ? x.c.name.toLowerCase() : (x.s?.[sort.k] ?? -Infinity);
   list.sort((a, b) => { const A = val(a), B = val(b); const r = A < B ? -1 : A > B ? 1 : 0; return sort.desc ? -r : r; });
@@ -241,9 +309,9 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
   return (
     <Section title="Ranglijst klanten" className={className}>
       <div className="relative -mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
-        <table className="w-full min-w-[520px] table-fixed text-sm tabular">
-          <colgroup><col /><col className="w-[104px]" /><col className="w-[100px]" /><col className="w-[96px]" /></colgroup>
-          <thead><tr className="text-xs text-muted-foreground"><Th k="name" label="Klant" /><Th k="views" label="Weergaven" right /><Th k="viewsChange" label="Groei" right /><Th k="followers" label="Volgers" right /></tr></thead>
+        <table className="w-full min-w-[600px] table-fixed text-sm tabular">
+          <colgroup><col /><col className="w-[104px]" /><col className="w-[88px]" /><col className="w-[96px]" /><col className="w-[88px]" /></colgroup>
+          <thead><tr className="text-xs text-muted-foreground"><Th k="name" label="Klant" /><Th k="views" label="Weergaven" right /><Th k="viewsChange" label="Groei" right /><Th k="followers" label="Volgers" right /><th className="pb-2 text-right font-normal">Deze week</th></tr></thead>
           <tbody>
             {list.map(({ c, s }) => (
               <tr key={c.id} onClick={() => nav(`/hibe/klant/${c.id}`)} className="cursor-pointer border-t border-border/70 hover:bg-popover">
@@ -253,14 +321,16 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
                   </Link>
                 </td>
                 <td className="py-2.5 text-right">{formatNumber(s?.views ?? null)}</td>
-                <td className="py-2.5 text-right">{s?.viewsChange == null ? "–" : <Change value={s.viewsChange} />}</td>
+                <td className="py-2.5 text-right">{s?.viewsChange == null ? "–" : isNewGrowth(s.viewsChange) ? <span className="rounded-full bg-lime px-2 py-0.5 text-xs font-semibold text-lime-foreground">nieuw</span> : <Change value={s.viewsChange} />}</td>
                 <td className="py-2.5 text-right">{formatNumber(s?.followers ?? null)}</td>
+                <td className="py-2.5 text-right">{(() => { const w = targets?.[c.id]; if (!w || !w.target) return <span className="text-muted-foreground">–</span>; const bad = weekBehind(w.done, w.target, elapsed);
+                  return <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs font-semibold", bad ? "bg-destructive/15 text-destructive" : "bg-muted")} title={`${w.done} van ${w.target} ingepland deze week`}>{w.done}/{w.target}</span>; })()}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Groei = weergaven t.o.v. de vorige periode.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Groei = weergaven t.o.v. de vorige periode. Deze week = ingepland t.o.v. het weektarget in de checklist.</p>
     </Section>
   );
 }
