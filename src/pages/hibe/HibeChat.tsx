@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const db = supabase as any;
+const HIBBY_ID = "00000000-0000-4000-8000-00000000b1bb";
+const HIBBY: Member = { id: HIBBY_ID, name: "Hibby", avatar_url: null };
+const isInfo = (r: Room) => r.kind === "channel" && r.name === "Informatie";
 const ASKED = "hibe.chat.notifyAsked";
 
 function Avatar({ m, size = 32 }: { m?: Member; size?: number }) {
@@ -135,6 +138,10 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         if (error) throw error;
       }
       const { error } = await db.from("chat_messages").insert({ room_id: room.id, user_id: me, body, image_path, mentions: extractMentions(body, roomTeam) });
+      if (!error && isInfo(room) && body.trim()) {
+        setHibbyBusy(true);
+        supabase.functions.invoke("hibby", { body: { room_id: room.id } }).finally(() => { setHibbyBusy(false); qc.invalidateQueries({ queryKey: ["chat-messages", room.id] }); });
+      }
       if (error) throw error;
       setText(""); setImg(null);
       qc.invalidateQueries({ queryKey: ["chat-messages", room.id] });
@@ -159,7 +166,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         {msgs.map((m) => {
           const day = new Date(m.created_at).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
           const showDay = day !== lastDay; lastDay = day;
-          const author = team.find((t) => t.id === m.user_id);
+          const author = m.user_id === HIBBY_ID ? HIBBY : team.find((t) => t.id === m.user_id);
           return (
             <div key={m.id}>
               {showDay && <p className="my-3 text-center text-xs font-medium text-muted-foreground">{day}</p>}

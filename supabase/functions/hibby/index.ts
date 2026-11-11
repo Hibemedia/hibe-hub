@@ -8,7 +8,7 @@ const admin = () => createClient(URL_, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 const ams = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
 const amsHour = () => Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hourCycle: 'h23' }).format(new Date()))
-const STATUS: Record<string, string> = { internal_review: 'Interne controle', feedback: 'Feedback verwerken', approved_internal: 'Goedgekeurd (intern)', ready_for_client: 'Mag naar klant', client_review: 'Ter controle bij klant', client_approved: 'Goedgekeurd (klant)', scheduled: 'Ingepland' }
+const STATUS: Record<string, string> = { internal_review: 'Interne controle', feedback: 'Feedback verwerken', approved_internal: 'CapCut (goedgekeurd intern)', ready_for_client: 'Mag naar klant', client_review: 'Ter controle bij klant', approved_client: 'Goedgekeurd (klant)', scheduled: 'Ingepland' }
 
 async function infoRoom(db: any) {
   const { data } = await db.from('chat_rooms').select('id').eq('kind', 'channel').eq('name', 'Informatie').limit(1).maybeSingle()
