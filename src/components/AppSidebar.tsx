@@ -1,9 +1,14 @@
-import { BarChart3, Calendar, CheckCircle, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, type LucideIcon } from "lucide-react";
+import { useState } from "react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { usePendingReviewCount } from "@/hooks/useReviews";
+import { useClient } from "@/context/ClientContext";
+import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 
 type Item = { title: string; url: string; icon: LucideIcon; prefix?: string };
 export const CLIENT_MENU: Item[] = [
@@ -15,75 +20,148 @@ export const CLIENT_MENU: Item[] = [
   { title: "Medailles", url: "/medals", icon: Award },
 ];
 const HIBE_MENU: Item[] = [
-  { title: "HIBE Dashboard", url: "/hibe", icon: LayoutGrid },
-  { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
-  { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
+  { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Video's", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
-  { title: "Socials", url: "/hibe/socials", icon: ListChecks },
-  { title: "Gebruikers", url: "/hibe/gebruikers", icon: Users },
+  { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
+  { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
+  { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
+  { title: "Team", url: "/hibe/gebruikers", icon: Users },
 ];
+const COLLAPSE_KEY = "hibe.sidebar.collapsed";
 
-function RoundLink({ item, side = "right", badge }: { item: Item; side?: "right" | "top"; badge?: number }) {
+/** HIBE: videos waiting for an internal check. */
+function useHibeWaitingCount(enabled: boolean) {
+  return useQuery({
+    queryKey: ["video-items", "hibe-waiting-count"],
+    enabled,
+    queryFn: async () => {
+      const { count, error } = await supabase.from("video_items" as any).select("id", { count: "exact", head: true }).eq("status", "internal_review");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
+function useActive(item: Item) {
   const path = useLocation().pathname;
-  const active = path === item.url || (!!item.prefix && path.startsWith(item.prefix));
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <NavLink to={item.url} end aria-label={item.title}
-          className={cn("relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors",
-            active ? "bg-foreground text-background" : "bg-card text-foreground hover:bg-popover")}>
-          <item.icon className="h-5 w-5" strokeWidth={1.6} />
-          {active && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-lime" aria-hidden />}
-          {!!badge && badge > 0 && (
-            <span className="absolute -bottom-1 -right-1 min-w-5 rounded-full bg-lime px-1.5 text-center text-[11px] font-bold leading-5 text-lime-foreground tabular" aria-label={`${badge} te beoordelen`}>{badge}</span>
-          )}
-        </NavLink>
-      </TooltipTrigger>
-      <TooltipContent side={side}>{item.title}</TooltipContent>
-    </Tooltip>
+  return path === item.url || (!!item.prefix && path.startsWith(item.prefix));
+}
+
+function Badge({ n }: { n?: number }) {
+  if (!n) return null;
+  return <span className="ml-auto min-w-5 rounded-full bg-lime px-1.5 text-center text-[11px] font-bold leading-5 text-lime-foreground tabular" aria-label={`${n} wachtend`}>{n}</span>;
+}
+
+function SideLink({ item, collapsed, badge }: { item: Item; collapsed: boolean; badge?: number }) {
+  const active = useActive(item);
+  const link = (
+    <NavLink to={item.url} end aria-label={collapsed ? item.title : undefined}
+      className={cn("relative flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
+        active ? "bg-foreground text-background" : "text-foreground hover:bg-muted")}>
+      <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+      {!collapsed && <span className="truncate">{item.title}</span>}
+      {!collapsed ? <Badge n={badge} /> : !!badge && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" aria-label={`${badge} wachtend`} />}
+    </NavLink>
   );
+  if (!collapsed) return link;
+  return <Tooltip><TooltipTrigger asChild>{link}</TooltipTrigger><TooltipContent side="right">{item.title}{badge ? ` (${badge})` : ""}</TooltipContent></Tooltip>;
 }
 
 const logout = () => supabase.auth.signOut();
 
-function LogoutBtn({ side = "right" }: { side?: "right" | "top" }) {
+function LogoutLink({ collapsed }: { collapsed: boolean }) {
+  const btn = (
+    <button onClick={logout} aria-label={collapsed ? "Uitloggen" : undefined} className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+      <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />{!collapsed && "Uitloggen"}
+    </button>
+  );
+  if (!collapsed) return btn;
+  return <Tooltip><TooltipTrigger asChild>{btn}</TooltipTrigger><TooltipContent side="right">Uitloggen</TooltipContent></Tooltip>;
+}
+
+function Brand({ variant, collapsed }: { variant: "client" | "hibe"; collapsed: boolean }) {
+  const { client } = useClient();
+  const logos = useLogoUrls([variant === "client" ? client?.logo_url : null]);
+  if (variant === "client" && client) {
+    return (
+      <div className="flex min-w-0 items-center gap-2.5">
+        <ClientLogo url={client.logo_url ? logos[client.logo_url] : null} name={client.name} size={32} />
+        {!collapsed && <div className="min-w-0"><p className="truncate text-sm font-semibold leading-tight">{client.name}</p><p className="text-xs text-muted-foreground">HIBE Klantportaal</p></div>}
+      </div>
+    );
+  }
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button onClick={logout} aria-label="Log uit" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-card hover:bg-popover">
-          <LogOut className="h-5 w-5" strokeWidth={1.6} />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side={side}>Log uit</TooltipContent>
-    </Tooltip>
+    <div className="flex min-w-0 items-center gap-2.5">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-extrabold text-background">H</span>
+      {!collapsed && <span className="truncate text-base font-extrabold tracking-tight">HIBE <span className="font-medium text-muted-foreground">Hub</span></span>}
+    </div>
   );
 }
 
 export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
-  const { data: pending = 0 } = usePendingReviewCount();
+  const { data: clientPending = 0 } = usePendingReviewCount();
+  const { data: hibeWaiting = 0 } = useHibeWaitingCount(variant === "hibe");
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1");
+  const [more, setMore] = useState(false);
+  const toggle = () => setCollapsed((c) => { localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1"); return !c; });
   const items = variant === "hibe" ? HIBE_MENU : CLIENT_MENU;
   const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Instellingen", url: "/settings", icon: Settings };
-  const badgeFor = (i: Item) => (variant === "client" && i.url === "/videos" ? pending : undefined);
+  const badgeFor = (i: Item) => (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined);
+  const primary = items.slice(0, 5);
+  const rest = [...items.slice(5), settings];
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-20 shrink-0 flex-col items-center gap-3 py-5 md:flex">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-foreground">
-          <span className="text-lg font-extrabold text-background">H</span>
+      <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-popover transition-[width] duration-200 md:flex", collapsed ? "w-16" : "w-[220px]")}>
+        <div className={cn("flex h-14 items-center border-b border-border", collapsed ? "justify-center px-2" : "justify-between gap-2 px-3")}>
+          {!collapsed && <Brand variant={variant} collapsed={false} />}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button onClick={toggle} aria-label={collapsed ? "Menu uitklappen" : "Menu inklappen"} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">{collapsed ? "Uitklappen" : "Inklappen"}</TooltipContent>
+          </Tooltip>
         </div>
-        <nav className="flex flex-1 flex-col items-center gap-2" aria-label="Hoofdmenu">
-          {items.map((i) => <RoundLink key={i.url} item={i} badge={badgeFor(i)} />)}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2" aria-label="Hoofdmenu">
+          {items.map((i) => <SideLink key={i.url} item={i} collapsed={collapsed} badge={badgeFor(i)} />)}
         </nav>
-        <RoundLink item={settings} />
-        <LogoutBtn />
+        <div className="flex flex-col gap-1 border-t border-border p-2">
+          <SideLink item={settings} collapsed={collapsed} />
+          <LogoutLink collapsed={collapsed} />
+        </div>
       </aside>
 
-      <nav aria-label="Hoofdmenu" className="fixed inset-x-0 bottom-0 z-50 bg-background/95 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 md:hidden">
-        <div className="flex gap-2 overflow-x-auto">
-          {[...items, settings].map((i) => <RoundLink key={i.url} item={i} side="top" badge={badgeFor(i)} />)}
-          <LogoutBtn side="top" />
+      <nav aria-label="Hoofdmenu" className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-popover pb-[env(safe-area-inset-bottom)] md:hidden">
+        <div className="grid grid-cols-6">
+          {primary.map((i) => <BottomLink key={i.url} item={i} badge={badgeFor(i)} />)}
+          <button onClick={() => setMore(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground">
+            <MoreHorizontal className="h-5 w-5" />Meer
+          </button>
         </div>
       </nav>
+      <Sheet open={more} onOpenChange={setMore}>
+        <SheetContent side="bottom" className="rounded-t-lg">
+          <SheetHeader><SheetTitle className="text-left text-base">Meer</SheetTitle></SheetHeader>
+          <div className="mt-3 flex flex-col gap-1" onClick={() => setMore(false)}>
+            {rest.map((i) => <SideLink key={i.url} item={i} collapsed={false} badge={badgeFor(i)} />)}
+            <LogoutLink collapsed={false} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
+  );
+}
+
+function BottomLink({ item, badge }: { item: Item; badge?: number }) {
+  const active = useActive(item);
+  const short = item.title.replace("-checklist", "").replace(" & Archief", "").replace("Contentmomenten", "Momenten");
+  return (
+    <NavLink to={item.url} end className={cn("relative flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium", active ? "text-foreground" : "text-muted-foreground")}>
+      <span className={cn("flex h-7 w-11 items-center justify-center rounded-md", active && "bg-foreground text-background")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
+      <span className="max-w-full truncate">{short}</span>
+      {!!badge && <span className="absolute right-[calc(50%-24px)] top-2 min-w-4 rounded-full bg-lime px-1 text-center text-[10px] font-bold leading-4 text-lime-foreground tabular">{badge}</span>}
+    </NavLink>
   );
 }
