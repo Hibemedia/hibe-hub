@@ -20,3 +20,4 @@
 - App frame: pages render their title and single primary action through <PageHeader>/<PrimaryAction> (portals into the fixed top bar) instead of in-page headings — keeps the main button in the same place on every page.
 - Media Management (HIBE video's) is step-based: one page per status at /hibe/videos/stap/:slug, overview at /hibe/videos, review at /hibe/videos/:id; trash = video_items.archived_at (no extra status) — keeps the existing statuses and RLS untouched.
 - Client-scope routes use :videoId for nested video pages so they never shadow /hibe/klant/:id.
+- Edits (/hibe/edits) is admin-only montageplanning in the edits table; delivering uploads through the same r2-video flow (uploader_id = editor) and links edits.video_item_id — the Feedback label is derived from that video's status, never stored.
