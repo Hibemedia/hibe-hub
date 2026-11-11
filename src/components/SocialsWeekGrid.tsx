@@ -39,7 +39,6 @@ export function SocialsWeekGrid() {
   const [offset, setOffset] = useState(0);
   const [openOnly, setOpenOnly] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
-  const press = useRef<{ t?: ReturnType<typeof setTimeout>; long?: boolean }>({});
 
   const today = ymd(new Date());
   const { dates, from, to, weekFrom, label } = useMemo(() => {
@@ -135,12 +134,6 @@ export function SocialsWeekGrid() {
     planned > 0 && done >= planned ? "bg-[hsl(var(--success))]"
     : done === 0 && lateInPeriod ? "bg-destructive"
     : "bg-lime";
-
-  const startPress = (k: string) => {
-    press.current.long = false;
-    press.current.t = setTimeout(() => { press.current.long = true; setMenu(k); }, 550);
-  };
-  const endPress = () => { if (press.current.t) clearTimeout(press.current.t); };
 
   if (isLoading) return <EmptyState text="Laden…" />;
   if (error) return <EmptyState text={"De checklist kon niet worden geladen: " + (error as Error).message} />;
