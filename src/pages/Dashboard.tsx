@@ -76,7 +76,7 @@ export default function Dashboard() {
                   : pending.isLoading ? <Skeleton className="h-36 rounded-lg" />
                   : <div className="flex items-center justify-between gap-4 py-3">
                     <div><p className="text-[56px] font-light leading-none tabular">{pending.data ?? 0}</p><p className="mt-2 text-sm text-muted-foreground">{pending.data === 0 ? "Alles beoordeeld" : pending.data === 1 ? "Video wacht op jouw beoordeling" : "Video's wachten op jouw beoordeling"}</p></div>
-                    <Button asChild size="icon" className="h-12 w-12 shrink-0" title="Bekijk Video Goedkeuring"><Link to={`${base}/video-approval`} aria-label="Bekijk Video Goedkeuring">{pending.data === 0 ? <Check aria-hidden /> : <ArrowRight aria-hidden />}</Link></Button>
+                    <Button asChild size="icon" className="h-12 w-12 shrink-0" title="Bekijk Video's"><Link to={`${base}/videos`} aria-label="Bekijk Video's">{pending.data === 0 ? <Check aria-hidden /> : <ArrowRight aria-hidden />}</Link></Button>
                   </div>}
               </section>
               <section className="space-y-4" aria-labelledby="moments-title">

@@ -9,7 +9,6 @@ type Item = { title: string; url: string; icon: LucideIcon; prefix?: string };
 export const CLIENT_MENU: Item[] = [
   { title: "Overzicht", url: "/", icon: Home },
   { title: "Performance", url: "/performance", icon: BarChart3 },
-  { title: "Video Goedkeuring", url: "/video-approval", icon: CheckCircle },
   { title: "Video's", url: "/videos", icon: Film, prefix: "/videos/" },
   { title: "Contentmomenten", url: "/content-moments", icon: Calendar },
   { title: "Branding & Archief", url: "/branding", icon: Archive },
@@ -18,7 +17,6 @@ export const CLIENT_MENU: Item[] = [
 const HIBE_MENU: Item[] = [
   { title: "HIBE Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
-  { title: "Goedkeuringen", url: "/hibe/goedkeuringen", icon: CheckCircle },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
   { title: "Video's", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Socials", url: "/hibe/socials", icon: ListChecks },
@@ -65,7 +63,7 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const { data: pending = 0 } = usePendingReviewCount();
   const items = variant === "hibe" ? HIBE_MENU : CLIENT_MENU;
   const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Instellingen", url: "/settings", icon: Settings };
-  const badgeFor = (i: Item) => (variant === "client" && i.url === "/video-approval" ? pending : undefined);
+  const badgeFor = (i: Item) => (variant === "client" && i.url === "/videos" ? pending : undefined);
 
   return (
     <>
