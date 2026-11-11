@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, CheckCircle, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, CheckCircle, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const HIBE_MENU: Item[] = [
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
   { title: "Goedkeuringen", url: "/hibe/goedkeuringen", icon: CheckCircle },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
+  { title: "Socials", url: "/hibe/socials", icon: ListChecks },
   { title: "Gebruikers", url: "/hibe/gebruikers", icon: Users },
 ];
 

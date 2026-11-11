@@ -20,6 +20,7 @@ import HibeDashboard from "./pages/hibe/HibeDashboard";
 import HibeKlanten from "./pages/hibe/HibeKlanten";
 import HibeGoedkeuringen from "./pages/hibe/HibeGoedkeuringen";
 import HibeContentmomenten from "./pages/hibe/HibeContentmomenten";
+import HibeSocials from "./pages/hibe/HibeSocials";
 import HibeInstellingen from "./pages/hibe/HibeInstellingen";
 import { ClientProvider } from "@/context/ClientContext";
 import { ClientEnv, HibeEnv, HibeClientScope } from "@/components/EnvRoutes";
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="klant/:id" element={<HibeClientScope />}>{clientPages}</Route>
                 <Route path="goedkeuringen" element={<HibeGoedkeuringen />} />
                 <Route path="contentmomenten" element={<HibeContentmomenten />} />
+                <Route path="socials" element={<HibeSocials />} />
                 <Route path="gebruikers" element={<GebruikersBeheer />} />
                 <Route path="instellingen" element={<HibeInstellingen />} />
                 <Route path="*" element={<NotFound />} />
