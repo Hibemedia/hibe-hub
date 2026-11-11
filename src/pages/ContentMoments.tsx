@@ -14,13 +14,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/components/StatsOverview";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useViewAs } from "@/context/ViewAs";
+import { useCrew, CrewBadge, CrewEditor } from "@/components/MomentCrew";
 
 const TYPES = { shoot: "Shoot", post: "Post", evenement: "Evenement", actie: "Actie", idee: "Idee" } as const;
 const STATUS = { aangevraagd: "Aangevraagd", bevestigd: "Bevestigd", gepland: "Gepland", afgerond: "Afgerond", geannuleerd: "Geannuleerd" } as const;
 type Status = keyof typeof STATUS;
 export type Moment = {
   id: string; client_id: string; title: string; type: keyof typeof TYPES; date: string | null; start_time: string | null;
-  location: string | null; script: string | null; notes: string | null; attendees: string[]; status: Status; requested_by: string | null; created_at: string;
+  location: string | null; script: string | null; notes: string | null; attendees: string[]; status: Status; requested_by: string | null; created_at: string; show_crew_to_client: boolean;
 };
 export const MOMENT_STATUS = STATUS;
 export const MOMENT_TYPES = TYPES;
@@ -51,6 +53,7 @@ export default function ContentMoments() {
   const count = (s: Status) => list.filter((m) => m.status === s).length;
   const shown = filter === "actief" ? list.filter((m) => m.status !== "afgerond" && m.status !== "geannuleerd") : list;
   const selected = list.find((m) => m.id === openId) ?? null;
+  const crew = useCrew(list);
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
@@ -83,20 +86,24 @@ export default function ContentMoments() {
                 <p className="mt-3 line-clamp-2 text-xl font-semibold leading-snug">{m.title}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{fmtDate(m.date)}{m.start_time && ` · ${m.start_time.slice(0, 5)}`}</p>
                 {m.location && <p className="text-sm text-muted-foreground">{m.location}</p>}
+                <div className="mt-3"><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={crew.asClient} showNames={crew.asClient} /></div>
               </button>
             </li>
           ))}
         </ul>
       )}
 
-      {selected && <MomentDialog m={selected} onClose={() => setOpenId(null)} onEdit={() => { setOpenId(null); setEditing(selected); }} />}
+      {selected && <MomentDialog m={selected} allMoments={list} onClose={() => setOpenId(null)} onEdit={() => { setOpenId(null); setEditing(selected); }} />}
       {editing && clientId && <EditDialog clientId={clientId} moment={editing === "new" ? null : editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
 
-export function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () => void; onEdit: () => void }) {
-  const { isAdmin } = useClient();
+export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Moment; allMoments?: Moment[]; onClose: () => void; onEdit: () => void }) {
+  const { isAdmin: admin } = useClient();
+  const viewAs = useViewAs();
+  const isAdmin = admin && !viewAs;
+  const crew = useCrew(allMoments.length ? allMoments : [m]);
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [names, setNames] = useState<Record<string, string>>({});
@@ -130,6 +137,8 @@ export function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () =>
           <p className="text-sm text-muted-foreground">{fmtDate(m.date)}{m.start_time && ` · ${m.start_time.slice(0, 5)}`}{m.location && ` · ${m.location}`}</p>
         </DialogHeader>
         {m.attendees.length > 0 && <div className="flex flex-wrap gap-1.5">{m.attendees.map((a) => <span key={a} className="chip">{a}</span>)}</div>}
+        {!isAdmin && crew.byMoment(m.id).length > 0 && <div><h3 className="mb-1.5 text-sm font-semibold">Wie er komt</h3><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient showNames /></div>}
+        {isAdmin && m.type === "shoot" && <CrewEditor m={m} allMoments={allMoments.length ? allMoments : [m]} />}
         {m.script && <div><h3 className="text-sm font-semibold">Script</h3><p className="whitespace-pre-line text-sm text-foreground/80">{m.script}</p></div>}
         {m.notes && <div><h3 className="text-sm font-semibold">Notities</h3><p className="whitespace-pre-line text-sm text-foreground/80">{m.notes}</p></div>}
 

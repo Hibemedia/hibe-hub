@@ -72,9 +72,9 @@ export function NotificationBell() {
               </li>
             ) : ((n) => (
               <li key={n.id}>
-                <button onClick={() => { markRead([n.id]); if (n.kind === "edit_assigned") nav("/hibe/edits"); else if (n.item_id) nav(`/hibe/videos/${n.item_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
+                <button onClick={() => { markRead([n.id]); if (n.kind === "edit_assigned") nav("/hibe/edits"); else if (n.kind === "crew_assigned") nav("/hibe/contentmomenten"); else if (n.item_id) nav(`/hibe/videos/${n.item_id}`); }} className="flex w-full gap-3 px-4 py-3 text-left text-sm hover:bg-muted">
                   <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-transparent" : "bg-lime"}`} />
-                  <span className="min-w-0">{n.kind === "edit_assigned" ? <>Nieuwe edit voor jou bij <b>{name(n.client_id)}</b>: <span className="font-medium">{n.video_title}</span></> : <><b>{name(n.client_id)}</b> {WHAT[n.kind] ?? n.kind} <span className="font-medium">{n.video_title}</span></>}
+                  <span className="min-w-0">{n.kind === "crew_assigned" ? <>Je staat op een draaidag bij <b>{name(n.client_id)}</b>: <span className="font-medium">{n.video_title}</span></> : n.kind === "edit_assigned" ? <>Nieuwe edit voor jou bij <b>{name(n.client_id)}</b>: <span className="font-medium">{n.video_title}</span></> : <><b>{name(n.client_id)}</b> {WHAT[n.kind] ?? n.kind} <span className="font-medium">{n.video_title}</span></>}
                     <span className="block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></span>
                 </button>
               </li>
