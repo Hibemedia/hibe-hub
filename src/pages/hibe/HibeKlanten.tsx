@@ -1,6 +1,6 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
-import { Link } from "react-router-dom";
-import { Settings2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Settings2, Eye } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { useHibeOverview, useHibeActions } from "@/hooks/useHibeOverview";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
