@@ -102,9 +102,9 @@ export default function HibeEdits() {
   }, [visible, edits, clients]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-8">
       <PageHeader title="Edits" action={<PrimaryAction icon={Plus} onClick={() => setCreating(true)}>Nieuwe edit</PrimaryAction>} />
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 pb-1">
         <FSelect label="Klant" value={f.client} onChange={(v) => setF({ client: v })} options={[["all", "Alle klanten"], ...clients.map((c) => [c.id, c.name] as [string, string])]} />
         <FSelect label="Editor" value={f.editor} onChange={(v) => setF({ editor: v })} options={[["all", "Alle editors"], ["none", "Geen editor"], ...team.map((t) => [t.id, t.name] as [string, string])]} />
         <FSelect label="Status" value={f.status} onChange={(v) => setF({ status: v })} options={[["all", "Alle statussen"], ...EDIT_STATUSES.map((s) => [s, EDIT_STATUS_LABEL[s]] as [string, string])]} />
@@ -119,7 +119,7 @@ export default function HibeEdits() {
         </div>
       ) : groups.map((g) => (
         <section key={g.id} className="rounded-lg border border-border bg-card overflow-hidden p-0">
-          <button onClick={() => setClosed((c) => ({ ...c, [g.id]: !c[g.id] }))} aria-expanded={!closed[g.id]} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/50">
+          <button onClick={() => setClosed((c) => ({ ...c, [g.id]: !c[g.id] }))} aria-expanded={!closed[g.id]} className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-muted/50">
             <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", closed[g.id] && "-rotate-90")} />
             <ClientMark id={g.id} name={g.name} url={logos[g.id]} size={28} />
             <span className="min-w-0 flex-1 truncate font-semibold">{g.name}</span>
@@ -128,8 +128,8 @@ export default function HibeEdits() {
           {!closed[g.id] && (
             <ul className="divide-y divide-border border-t border-border">
               {g.rows.map((e) => (
-                <li key={e.id} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 px-4 py-2.5 md:grid-cols-[minmax(0,1fr)_180px_170px_80px_120px]">
-                  <div className="col-span-2 flex min-w-0 items-center gap-2 md:col-span-1">
+                <li key={e.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 lg:grid-cols-[minmax(0,1fr)_190px_160px_90px_130px]">
+                  <div className="col-span-2 flex min-w-0 items-center gap-2 lg:col-span-1">
                     <button onClick={() => setOpen(e)} className="min-w-0 truncate text-left text-sm font-medium hover:underline">{e.title}</button>
                     {e.video?.status === "feedback" && e.video_item_id && (
                       <Link to={`/hibe/videos/${e.video_item_id}`} className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning"><MessageSquareWarning className="h-3 w-3" />Feedback</Link>
