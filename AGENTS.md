@@ -14,3 +14,4 @@
 - Achievement PNGs are prepared client-side from a fixed-size token-themed composition before download; reuse the existing medal badge and local HIBE logo to keep artwork consistent and avoid private-media requests.
 - Two environments: client users use "/" (ClientEnv), admins use "/hibe" (HibeEnv); /hibe/klant/:id reuses the client pages by setting ClientContext.clientId, and in-page links use useBase().
 - The client overview composes existing statistics with read-only client-scoped review counts and upcoming content moments; overview selection helpers are tested separately so the Performance calculations and sync remain unchanged.
+- The HIBE Socials checklist (/hibe/socials) reads and writes the HIBE Review Hub social_* tables live via the admin-only socials-proxy function — one shared source so both sites always match; never copy that data locally.
