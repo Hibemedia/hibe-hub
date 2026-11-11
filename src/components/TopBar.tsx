@@ -1,57 +1,52 @@
 import { Link, NavLink } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
+import { UserAuth } from "@/context/AuthContext.jsx";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { CLIENT_MENU } from "@/components/AppSidebar";
+import { useHeaderSlots } from "@/components/PageHeader";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { cn } from "@/lib/utils";
 
-/** Client environment: own logo + name, no switcher. */
-export function ClientTopBar() {
-  const { client } = useClient();
-  const logos = useLogoUrls([client?.logo_url]);
+function Avatar() {
+  const { user, session } = UserAuth() as any;
+  const u = user ?? session?.user;
+  const label: string = u?.full_name || u?.user_metadata?.full_name || u?.email || "";
+  const initials = label.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((s: string) => s[0]?.toUpperCase()).join("") || "?";
+  return <span title={label} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">{initials}</span>;
+}
+
+/** 56px top bar on every page: title left, search centre, main action + avatar right. */
+export function FrameTopBar({ variant }: { variant: "client" | "hibe" }) {
+  const { setTitleEl, setActionEl } = useHeaderSlots();
   return (
-    <header className="sticky top-0 z-40 bg-background/95 px-4 pt-4 md:px-8 md:pt-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          {client && <ClientLogo url={client.logo_url ? logos[client.logo_url] : null} name={client.name} />}
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold leading-tight">{client?.name ?? "Klantportaal"}</p>
-            <p className="text-xs text-muted-foreground">HIBE Klantportaal</p>
-          </div>
-        </div>
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background px-4 md:px-6">
+      <div ref={setTitleEl} className="min-w-0 flex-1" />
+      <div className="flex flex-none justify-center md:flex-1"><GlobalSearch variant={variant} /></div>
+      <div className="flex flex-none items-center justify-end gap-3 md:flex-1">
+        <div ref={setActionEl} className="flex items-center" />
+        <Avatar />
       </div>
     </header>
   );
 }
 
-export function HibeTopBar() {
-  return (
-    <header className="sticky top-0 z-40 bg-background/95 px-4 pt-4 md:px-8 md:pt-5">
-      <div className="flex items-center gap-2">
-        <span className="text-base font-extrabold tracking-tight">HIBE</span>
-        <span className="text-sm text-muted-foreground">Studio</span>
-      </div>
-    </header>
-  );
-}
-
-/** Inside /hibe/klant/:id: back capsule + client name + sub-navigation. */
+/** Inside /hibe/klant/:id: back link + client name + sub-navigation, as one row under the top bar. */
 export function ClientScopeBar({ id }: { id: string }) {
   const { clients } = useClient();
   const c = clients.find((x) => x.id === id);
   const logos = useLogoUrls([c?.logo_url]);
   const base = `/hibe/klant/${id}`;
   return (
-    <div className="mx-auto max-w-7xl space-y-3 px-4 pt-4 md:px-8">
-      <Link to="/hibe/klanten" className="capsule-dark h-11 max-w-full pl-1.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><ArrowLeft className="h-4 w-4" /></span>
-        <span>Alle klanten</span>
-        {c && <><span className="opacity-40">/</span><ClientLogo url={c.logo_url ? logos[c.logo_url] : null} name={c.name} size={24} /><span className="truncate font-semibold">{c.name}</span></>}
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 pt-4 md:px-8">
+      <Link to="/hibe/klanten" className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-popover px-2.5 text-sm font-medium">
+        <ArrowLeft className="h-4 w-4" /><span className="sr-only sm:not-sr-only">Klanten</span>
+        {c && <><span className="opacity-40">/</span><ClientLogo url={c.logo_url ? logos[c.logo_url] : null} name={c.name} size={20} /><span className="max-w-40 truncate font-semibold">{c.name}</span></>}
       </Link>
-      <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" aria-label="Klantpagina's">
+      <nav className="-mx-4 flex w-full gap-2 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:px-0" aria-label="Klantpagina's">
         {CLIENT_MENU.map((m) => (
           <NavLink key={m.url} end to={base + (m.url === "/" ? "" : m.url)}
-            className={({ isActive }) => cn("chip-filter shrink-0", isActive && "border-transparent bg-popover font-medium")}>{m.title}</NavLink>
+            className={({ isActive }) => cn("chip-filter shrink-0", isActive && "border-foreground bg-foreground text-background hover:bg-foreground")}>{m.title}</NavLink>
         ))}
       </nav>
     </div>

@@ -14,8 +14,8 @@ export function PlatformDot({ network }: { network: string }) {
   return <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: platformColor(network) }} aria-hidden />;
 }
 
-export function EmptyState({ text = "Nog geen data" }: { text?: string }) {
-  return <div className="py-10 text-center text-sm text-muted-foreground">{text}</div>;
+export function EmptyState({ text = "Nog geen data", action }: { text?: string; action?: React.ReactNode }) {
+  return <div className="flex flex-col items-center gap-3 px-4 py-10 text-center text-sm text-muted-foreground"><p>{text}</p>{action}</div>;
 }
 
 export function Section({ title, aside, children, className }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {

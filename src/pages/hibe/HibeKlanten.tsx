@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { Link } from "react-router-dom";
 import { Settings2 } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
@@ -14,13 +15,7 @@ export default function HibeKlanten() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="wordmark">Klanten</h1>
-        <Link to="/hibe/klanten/beheer" className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Settings2 className="h-4 w-4" /></span>
-          Klanten beheren &amp; sync
-        </Link>
-      </div>
+      <PageHeader title="Klanten" action={<PrimaryAction icon={Settings2} to="/hibe/klanten/beheer">Klanten beheren &amp; sync</PrimaryAction>} />
       {isLoading ? <Skeleton className="h-64 rounded-lg" /> : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {clients.map((c) => {

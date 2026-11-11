@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { Plus, Trash2, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,12 +71,7 @@ export default function GebruikersBeheer() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="wordmark">Gebruikers</h1>
-        <button onClick={() => { setForm({ ...form, client_id: filter !== "all" && filter !== "admin" ? filter : "" }); setOpen(true); }} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>Gebruiker uitnodigen
-        </button>
-      </div>
+      <PageHeader title="Team" action={<PrimaryAction icon={Plus} onClick={() => { setForm({ ...form, client_id: filter !== "all" && filter !== "admin" ? filter : "" }); setOpen(true); }}>Gebruiker uitnodigen</PrimaryAction>} />
       <Select value={filter} onValueChange={setFilter}>
         <SelectTrigger aria-label="Filter op klant" className="h-9 w-auto min-w-48"><SelectValue /></SelectTrigger>
         <SelectContent>

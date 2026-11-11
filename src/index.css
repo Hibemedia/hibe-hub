@@ -6,9 +6,9 @@
 @layer base {
   :root {
     /* HIBE — light grey canvas, lighter cards, black + one lime accent */
-    --background: 60 4% 91%;        /* #E9E9E7 */
+    --background: 60 9% 95%;        /* #F4F4F2 */
     --foreground: 0 0% 7%;          /* #111 */
-    --card: 60 6% 95%;              /* #F3F3F1 */
+    --card: 0 0% 100%;              /* white cards */
     --card-foreground: 0 0% 7%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 7%;
@@ -44,11 +44,11 @@
     --medal-card-shadow: 0 12px 30px hsl(var(--foreground) / 0.08);
     --medal-glow: 0 0 0 5px hsl(var(--medal-lime) / 0.16), 0 6px 22px hsl(var(--medal-lime) / 0.28);
     --interactions: 0 0% 38%;
-    --secondary: 60 3% 86%;
+    --secondary: 60 5% 91%;
     --secondary-foreground: 0 0% 7%;
-    --muted: 60 3% 87%;
+    --muted: 60 6% 93%;
     --muted-foreground: 40 3% 36%;
-    --accent: 60 3% 87%;
+    --accent: 60 6% 93%;
     --accent-foreground: 0 0% 7%;
     --success: 142 60% 30%;
     --success-foreground: 0 0% 100%;
@@ -56,17 +56,17 @@
     --warning-foreground: 0 0% 5%;
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 60 3% 80%;
-    --input: 60 3% 78%;
+    --border: 60 5% 89%;            /* #E6E6E3 */
+    --input: 60 5% 86%;
     --ring: 0 0% 7%;
-    --radius: 1.375rem;
+    --radius: 0.75rem;              /* cards 12px */
     --platform-ig: 330 70% 52%;
     --platform-tt: 180 60% 38%;
     --platform-yt: 0 78% 50%;
     --platform-fb: 214 80% 50%;
     --platform-li: 201 100% 35%;
     --platform-th: 0 0% 20%;
-    --sidebar-background: 60 4% 91%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 7%;
     --sidebar-primary: 0 0% 7%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -260,13 +260,15 @@
 }
 
 @layer components {
+  /* Cards: white with a 1px hairline, no shadow. */
+  .bg-card[class*="rounded-lg"], .bg-card[class*="rounded-["] { border: 1px solid hsl(var(--border)); }
   .wordmark { @apply break-words font-display text-[2.5rem] sm:text-6xl font-extrabold uppercase leading-[0.9] tracking-tight md:text-7xl; }
-  .capsule-dark { @apply inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background; }
+  .capsule-dark { @apply inline-flex items-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background; }
   .chip { @apply inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground; }
-  .chip-filter { @apply inline-flex h-9 items-center rounded-full border border-border px-4 text-sm text-foreground transition-colors hover:bg-card; }
-  .chip-filter[aria-pressed="true"], .chip-filter[aria-selected="true"] { @apply border-transparent bg-popover font-medium; }
+  .chip-filter { @apply inline-flex h-9 items-center rounded-md border border-border bg-popover px-3.5 text-sm text-foreground transition-colors hover:bg-card; }
+  .chip-filter[aria-pressed="true"], .chip-filter[aria-selected="true"] { @apply border-foreground bg-foreground font-medium text-background hover:bg-foreground; }
   .growth { @apply inline-flex items-center gap-0.5 rounded-full bg-lime px-2 py-0.5 text-xs font-semibold text-lime-foreground; }
-  .round-btn { @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-popover text-foreground transition-colors hover:bg-foreground hover:text-background; }
+  .round-btn { @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-popover text-foreground transition-colors hover:bg-foreground hover:text-background; }
 }
 
 /* Playful treatments are deliberately scoped to Medailles. */

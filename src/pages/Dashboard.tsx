@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, Play } from "lucide-react";
@@ -25,12 +26,7 @@ export default function Dashboard() {
   return (
     <div className="mx-auto max-w-7xl space-y-4 p-4 md:space-y-5 md:p-8">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="wordmark">Overzicht</h1>
-          <Button asChild className="gap-3 pr-2" size="lg">
-            <Link to={`${base}/performance`}>Bekijk Performance<span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><ArrowRight aria-hidden /></span></Link>
-          </Button>
-        </div>
+        <PageHeader title="Overzicht" action={<PrimaryAction icon={ArrowRight} to={`${base}/performance`}>Bekijk Performance</PrimaryAction>} />
         <PeriodSelect value={period} onChange={setPeriod} />
       </div>
 

@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,13 +56,8 @@ export default function Settings() {
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="wordmark">Instellingen</h1>
-          <p className="text-muted-foreground mt-1">Beheer je account en voorkeuren</p>
-        </div>
-        <Button onClick={save} disabled={saving}><Save className="h-4 w-4 mr-2" />Opslaan</Button>
-      </div>
+      <PageHeader title="Instellingen" action={<PrimaryAction icon={Save} onClick={save} disabled={saving}>Opslaan</PrimaryAction>} />
+      <p className="text-sm text-muted-foreground">Beheer je account en voorkeuren</p>
 
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Account</CardTitle></CardHeader>

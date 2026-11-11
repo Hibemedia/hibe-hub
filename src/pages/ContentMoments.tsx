@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -53,15 +54,7 @@ export default function ContentMoments() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="wordmark min-w-0">Contentmomenten</h1>
-        {clientId && (
-          <button onClick={() => setEditing("new")} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>
-            {isAdmin ? "Moment toevoegen" : "Moment aanvragen"}
-          </button>
-        )}
-      </div>
+      <PageHeader title="Contentmomenten" action={clientId ? <PrimaryAction icon={Plus} onClick={() => setEditing("new")}>{isAdmin ? "Moment toevoegen" : "Moment aanvragen"}</PrimaryAction> : null} />
 
       <section className="grid grid-cols-3 gap-3">
         {(["gepland", "bevestigd", "aangevraagd"] as Status[]).map((s) => (
@@ -77,7 +70,7 @@ export default function ContentMoments() {
 
       {!clientId && ready ? <section className="rounded-lg bg-card"><EmptyState text="Je account is nog niet aan een klant gekoppeld." /></section>
         : isLoading ? <section className="rounded-lg bg-card"><EmptyState text="Laden…" /></section>
-        : shown.length === 0 ? <section className="rounded-lg bg-card"><EmptyState text="Nog geen contentmomenten – vraag er een aan" /></section>
+        : shown.length === 0 ? <section className="rounded-lg bg-card"><EmptyState text={isAdmin ? "Plan hier shootdagen en andere contentmomenten met deze klant." : "Wil je iets laten vastleggen? Vraag hier je eerste contentmoment aan."} action={<Button size="sm" onClick={() => setEditing("new")}><Plus className="h-4 w-4" />{isAdmin ? "Moment toevoegen" : "Moment aanvragen"}</Button>} /></section>
         : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((m) => (
@@ -155,7 +148,7 @@ export function MomentDialog({ m, onClose, onEdit }: { m: Moment; onClose: () =>
           <ol className="mb-3 space-y-2 text-sm">
             {comments.length === 0 && <li className="text-muted-foreground">Nog geen opmerkingen.</li>}
             {comments.map((c) => (
-              <li key={c.id} className="rounded-2xl bg-popover p-3">
+              <li key={c.id} className="rounded-lg bg-popover p-3">
                 <p className="text-xs text-muted-foreground">{names[c.user_id] ?? "Gebruiker"} · {new Date(c.created_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                 <p className="whitespace-pre-line">{c.text}</p>
               </li>

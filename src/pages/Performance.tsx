@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { useState } from "react";
 import { PeriodSelect } from "@/components/PeriodSelect";
 import { KpiBand, DailyChart, NetworkBreakdown, TopVideoList, EmptyState, PeriodSummary } from "@/components/StatsOverview";
@@ -14,9 +15,7 @@ export default function Performance() {
   return (
     <div className="mx-auto max-w-7xl space-y-4 p-4 md:space-y-5 md:p-8">
       <div className="flex flex-col gap-4">
-        <div>
-                    <h1 className="wordmark">Performance</h1>
-        </div>
+        <PageHeader title="Performance" />
         <div className="flex flex-wrap items-center gap-2"><SyncButtons /><PeriodSelect value={period} onChange={setPeriod} /></div>
       </div>
 

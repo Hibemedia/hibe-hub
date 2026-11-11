@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MetricoolService } from "@/integrations/Metricool.service";
@@ -95,17 +96,14 @@ export default function Klanten() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <h1 className="wordmark flex items-center gap-3"><Building2 className="h-7 w-7" />Klanten</h1>
-        <Button onClick={() => { setEditing({}); setLogoFile(null); }}><Plus className="h-4 w-4 mr-2" />Klant toevoegen</Button>
-      </div>
+      <PageHeader title="Klanten beheren" action={<PrimaryAction icon={Plus} onClick={() => { setEditing({}); setLogoFile(null); }}>Klant toevoegen</PrimaryAction>} />
       <Card><CardContent className="p-0">
         <Table>
           <TableHeader><TableRow>
             <TableHead>Klant</TableHead><TableHead>Metricool-merk</TableHead><TableHead>TikTok</TableHead><TableHead>Laatste sync</TableHead><TableHead className="w-12" />
           </TableRow></TableHeader>
           <TableBody>
-            {clients.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nog geen klanten</TableCell></TableRow>}
+            {clients.length === 0 && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Voeg een klant toe om zijn Metricool-cijfers te synchroniseren. <Button size="sm" className="ml-2" onClick={() => { setEditing({}); setLogoFile(null); }}><Plus className="h-4 w-4" />Klant toevoegen</Button></TableCell></TableRow>}
             {clients.map((c) => {
               const r = runs[c.id];
               return (

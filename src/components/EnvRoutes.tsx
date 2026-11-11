@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { Navigate, Outlet, useParams } from "react-router-dom";
 import { useClient } from "@/context/ClientContext";
 import { AppSidebar } from "@/components/AppSidebar";
-import { ClientTopBar, HibeTopBar, ClientScopeBar } from "@/components/TopBar";
+import { FrameTopBar, ClientScopeBar } from "@/components/TopBar";
+import { PageHeaderProvider } from "@/components/PageHeader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const Loading = () => <div className="p-6 text-sm text-muted-foreground">Laden…</div>;
@@ -13,10 +14,12 @@ export function ClientEnv() {
   return (
     <ProtectedRoute>
       {!ready ? <Loading /> : isAdmin ? <Navigate to="/hibe" replace /> : (
-        <div className="flex min-h-screen w-full">
-          <AppSidebar variant="client" />
-          <main className="min-w-0 flex-1 pb-24 md:pb-0"><ClientTopBar /><Outlet /></main>
-        </div>
+        <PageHeaderProvider>
+          <div className="flex min-h-screen w-full">
+            <AppSidebar variant="client" />
+            <main className="min-w-0 flex-1 pb-20 md:pb-0"><FrameTopBar variant="client" /><Outlet /></main>
+          </div>
+        </PageHeaderProvider>
       )}
     </ProtectedRoute>
   );
@@ -28,10 +31,12 @@ export function HibeEnv() {
   return (
     <ProtectedRoute>
       {!ready ? <Loading /> : !isAdmin ? <Navigate to="/" replace /> : (
-        <div className="flex min-h-screen w-full">
-          <AppSidebar variant="hibe" />
-          <main className="min-w-0 flex-1 pb-24 md:pb-0"><HibeTopBar /><Outlet /></main>
-        </div>
+        <PageHeaderProvider>
+          <div className="flex min-h-screen w-full">
+            <AppSidebar variant="hibe" />
+            <main className="min-w-0 flex-1 pb-20 md:pb-0"><FrameTopBar variant="hibe" /><Outlet /></main>
+          </div>
+        </PageHeaderProvider>
       )}
     </ProtectedRoute>
   );

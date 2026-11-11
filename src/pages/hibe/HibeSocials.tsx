@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
@@ -47,8 +48,8 @@ export default function HibeSocials() {
     <div className="mx-auto max-w-[1600px] space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="wordmark">Socials</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Live gekoppeld aan de checklist in HIBE Review Hub — wijzigingen staan direct op beide sites.</p>
+          <PageHeader title="Socials-checklist" />
+          <p className="text-sm text-muted-foreground">Live gekoppeld aan de checklist in HIBE Review Hub — wijzigingen staan direct op beide sites.</p>
         </div>
         <div className="flex items-center gap-2">
           <button aria-label="Vorige maand" className="round-btn" onClick={() => setCursor(new Date(y, m - 1, 1))}><ChevronLeft className="h-4 w-4" /></button>

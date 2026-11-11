@@ -94,8 +94,8 @@ export default {
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
-				md: '0.875rem',
-				sm: '0.625rem'
+				md: '0.5rem',
+				sm: '0.375rem'
 			},
 			keyframes: {
 				'accordion-down': {

@@ -1,3 +1,4 @@
+import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Download, Trash2 } from "lucide-react";
@@ -64,14 +65,7 @@ export default function Branding() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="wordmark">Branding</h1>
-        {isAdmin && clientId && (
-          <button onClick={() => setUploading(true)} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>Bestand uploaden
-          </button>
-        )}
-      </div>
+      <PageHeader title="Branding & Archief" action={isAdmin && clientId ? <PrimaryAction icon={Plus} onClick={() => setUploading(true)}>Bestand uploaden</PrimaryAction> : null} />
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Categorie">
         <button aria-pressed={cat === "all"} onClick={() => setCat("all")} className="chip-filter shrink-0">Alles <span className="ml-1.5 text-muted-foreground tabular">{files.length}</span></button>
@@ -84,14 +78,14 @@ export default function Branding() {
         : isLoading ? <section className="rounded-lg bg-card"><EmptyState text="Laden…" /></section>
         : shown.length === 0 ? (
           <section className="rounded-lg bg-card px-6 py-12 text-center">
-            <p className="text-lg font-semibold">Nog geen bestanden</p>
-            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">Hier vind je straks je logo's, brandbook, foto's en video's. HIBE zet ze klaar; je kunt ze hier bekijken en downloaden.</p>
+            <p className="mx-auto max-w-md text-sm text-muted-foreground">{isAdmin ? "Zet hier logo's, brandbook, foto's en video's klaar voor deze klant." : "Hier vind je straks je logo's, brandbook, foto's en video's die HIBE voor je klaarzet."}</p>
+            {isAdmin && clientId && <button onClick={() => setUploading(true)} className="mt-4 inline-flex h-9 items-center gap-2 rounded-md bg-foreground px-3.5 text-sm font-medium text-background"><Plus className="h-4 w-4" />Eerste bestand uploaden</button>}
           </section>
         ) : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {shown.map((f) => (
             <li key={f.id} className="flex flex-col gap-3 rounded-lg bg-card p-3">
-              <button onClick={() => (isImg(f) || isPdf(f) ? open(f) : download(f))} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[16px] bg-muted text-sm font-semibold uppercase text-muted-foreground" aria-label={`Bekijk ${f.file_name}`}>
+              <button onClick={() => (isImg(f) || isPdf(f) ? open(f) : download(f))} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-md bg-muted text-sm font-semibold uppercase text-muted-foreground" aria-label={`Bekijk ${f.file_name}`}>
                 {data?.urls[f.id] ? <img src={data.urls[f.id]} alt="" loading="lazy" className="h-full w-full object-cover" /> : (f.file_name.split(".").pop() ?? "bestand")}
               </button>
               <div className="px-1">
@@ -113,8 +107,8 @@ export default function Branding() {
           <DialogContent className="max-w-4xl">
             <DialogHeader><DialogTitle className="truncate pr-6">{preview.f.file_name}</DialogTitle></DialogHeader>
             {isPdf(preview.f)
-              ? <iframe src={preview.url} title={preview.f.file_name} className="h-[70vh] w-full rounded-2xl bg-popover" />
-              : <img src={preview.url} alt={preview.f.file_name} className="max-h-[70vh] w-full rounded-2xl bg-popover object-contain" />}
+              ? <iframe src={preview.url} title={preview.f.file_name} className="h-[70vh] w-full rounded-lg bg-popover" />
+              : <img src={preview.url} alt={preview.f.file_name} className="max-h-[70vh] w-full rounded-lg bg-popover object-contain" />}
             <Button onClick={() => download(preview.f)} className="w-fit"><Download className="h-4 w-4" /> Download</Button>
           </DialogContent>
         </Dialog>

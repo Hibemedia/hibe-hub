@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/PageHeader";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -50,7 +51,7 @@ export default function VideoReview() {
   const seek = (t: number) => { const v = video.current; if (v) { v.currentTime = t; v.pause(); } };
 
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Laden…</div>;
-  if (!item) return <div className="mx-auto max-w-3xl p-8"><section className="rounded-[20px] bg-card"><EmptyState text="Deze video is niet (meer) beschikbaar." /></section></div>;
+  if (!item) return <div className="mx-auto max-w-3xl p-8"><section className="rounded-lg bg-card"><EmptyState text="Deze video is niet (meer) beschikbaar." /></section></div>;
 
   const isCurrent = version?.version === item.current_version;
   const clientCanAct = !isAdmin && item.status === "client_review" && isCurrent;
@@ -106,15 +107,16 @@ export default function VideoReview() {
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-center gap-2">
-        <Link to={back} className="inline-flex h-10 items-center gap-2 rounded-full bg-foreground px-4 text-sm font-medium text-background"><ArrowLeft className="h-4 w-4" />Video's</Link>
+        <PageHeader title="Video bekijken" />
+        <Link to={back} className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-popover px-3 text-sm font-medium"><ArrowLeft className="h-4 w-4" />Video's</Link>
         {isAdmin && clientName && <span className="chip">{clientName}</span>}
         <span className="chip bg-lime text-lime-foreground">{VIDEO_STATUS_LABEL[item.status]}</span>
       </div>
-      <h1 className="break-words text-3xl font-extrabold leading-tight md:text-5xl">{item.title}</h1>
+      <h2 className="break-words text-xl font-semibold leading-tight">{item.title}</h2>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section className="min-w-0 space-y-3">
-          <div className="overflow-hidden rounded-[20px] bg-foreground">
+          <div className="overflow-hidden rounded-lg bg-foreground">
             {version && url ? (
               <video ref={video} src={url} controls playsInline preload="metadata" className="aspect-video w-full bg-foreground"
                 onLoadedMetadata={(e) => setDur(e.currentTarget.duration || 0)} onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} />
@@ -141,7 +143,7 @@ export default function VideoReview() {
           </div>
 
           {isAdmin && (
-            <div className="flex flex-wrap items-center gap-2 rounded-[20px] bg-card p-3">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-card p-3">
               <Select value={item.status} onValueChange={(v) => changeStatus(v as VideoStatus)}>
                 <SelectTrigger aria-label="Status" className="h-10 w-auto min-w-52 rounded-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{VIDEO_STATUSES.map((s) => <SelectItem key={s} value={s}>{VIDEO_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
@@ -154,12 +156,12 @@ export default function VideoReview() {
           <UploadProgress />
         </section>
 
-        <aside className="flex min-w-0 flex-col gap-3 rounded-[20px] bg-card p-4">
+        <aside className="flex min-w-0 flex-col gap-3 rounded-lg bg-card p-4">
           <h2 className="text-lg font-semibold">Opmerkingen {version ? `· V${version.version}` : ""}</h2>
           {comments.length === 0 ? <p className="text-sm text-muted-foreground">Nog geen opmerkingen bij deze versie.</p> : (
             <ol className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">
               {comments.map((c) => (
-                <li key={c.id} className={`rounded-2xl bg-background p-3 ${c.resolved ? "opacity-60" : ""}`}>
+                <li key={c.id} className={`rounded-lg bg-background p-3 ${c.resolved ? "opacity-60" : ""}`}>
                   <div className="flex items-start gap-2">
                     <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-foreground px-1.5 text-xs font-bold text-background">{c.number}</span>
                     <button onClick={() => seek(c.time_seconds)} className="min-w-0 flex-1 text-left">
@@ -181,7 +183,7 @@ export default function VideoReview() {
                 <span className="chip tabular">{fmtTime(stamp ?? now)}</span>
                 <span>{stamp === null ? "Begin met typen; de video pauzeert op dit moment." : "Opmerking hoort bij dit moment."}</span>
               </div>
-              <Textarea value={text} onChange={(e) => startTyping(e.target.value)} maxLength={4000} placeholder="Typ je opmerking…" aria-label="Opmerking" className="min-h-20 rounded-2xl" />
+              <Textarea value={text} onChange={(e) => startTyping(e.target.value)} maxLength={4000} placeholder="Typ je opmerking…" aria-label="Opmerking" className="min-h-20 rounded-lg" />
               <div className="flex items-center justify-between gap-2">
                 {isAdmin ? <label className="flex items-center gap-2 text-xs"><Switch checked={internal} onCheckedChange={setInternal} />Intern (niet zichtbaar voor klant)</label> : <span />}
                 <button type="submit" disabled={busy || !text.trim()} className="inline-flex h-10 items-center rounded-full bg-foreground px-5 text-sm font-medium text-background disabled:opacity-40">Plaatsen</button>
