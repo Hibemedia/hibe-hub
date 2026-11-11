@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Lock, PanelLeftClose, PanelLeftOpen, Download, Upload } from "lucide-react";
@@ -138,6 +139,7 @@ export default function HibeReview() {
             {list.map((c) => (
               <li key={c.id} className={cn("rounded-md border border-border bg-background p-2.5", c.resolved && "opacity-60")}>
                 <div className="flex items-start gap-2">
+                  <UserAvatar userId={c.user_id} name={m.names[c.user_id]} size={24} className="mt-0.5" />
                   <button onClick={() => player.current?.seek(c.time_seconds)} className="min-w-0 flex-1 text-left">
                     <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><b className="text-foreground">{m.names[c.user_id] ?? (c.internal ? "HIBE" : m.clientName(item.client_id))}</b><span className="chip tabular">{fmtTime(c.time_seconds)}</span>{verOf(c) !== version?.version && <span className="chip">V{verOf(c)}</span>}</span>
                     <p className={cn("mt-1 whitespace-pre-wrap break-words text-sm", c.resolved && "line-through")}>{c.text}</p>

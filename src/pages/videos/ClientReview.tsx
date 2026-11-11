@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, MessageSquare, Lock } from "lucide-react";
@@ -137,7 +138,7 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
             <ol className="space-y-2">
               {mine.map((c) => (
                 <li key={c.id}><button onClick={() => player.current?.seek(c.time_seconds)} className="w-full rounded-md border border-border bg-background p-2.5 text-left">
-                  <span className="chip tabular">{fmtTime(c.time_seconds)}</span>{c.resolved && <span className="ml-2 text-xs text-muted-foreground">Verwerkt</span>}
+                  <UserAvatar userId={c.user_id} size={22} className="mr-2 inline-flex align-middle" /><span className="chip tabular">{fmtTime(c.time_seconds)}</span>{c.resolved && <span className="ml-2 text-xs text-muted-foreground">Verwerkt</span>}
                   <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.text}</p></button></li>
               ))}
             </ol>
