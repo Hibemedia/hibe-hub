@@ -27,18 +27,18 @@ export type Week = { client_id: string; week_start: string; count: number; items
 /** Weekly videos: stored items, or the legacy count of already delivered ones. */
 export const weekItems = (w?: Week): Item[] => w?.items?.length ? w.items : Array.from({ length: w?.count ?? 0 }, (_, i) => ({ id: `legacy-${i}`, title: "", status: "scheduled" as PostStatus, note: "" }));
 
-/** Cell colours, shared by the checklist page and the dashboard card. */
+/** Cell colours, shared by the checklist page and the dashboard card. Same soft pastels as Review Hub. */
 export const cellCls = (s: PostStatus) =>
-  s === "scheduled" ? "bg-primary text-primary-foreground"
+  s === "scheduled" ? "bg-[hsl(var(--social-green-bg))] text-[hsl(var(--social-green-fg))]"
   : s === "none" ? "bg-card"
-  : s === "to_post" ? "bg-foreground/10 text-foreground"
-  : s === "in_progress" ? "bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground))]"
-  : s === "internal_check" ? "bg-[hsl(var(--social-orange))] text-white"
-  : s === "client_check" ? "bg-[hsl(var(--social-blue))] text-white"
-  : "bg-lime text-lime-foreground"; // to_schedule
+  : s === "to_post" ? "bg-[hsl(var(--social-amber-bg))] text-[hsl(var(--social-amber-fg))]"
+  : s === "internal_check" ? "bg-[hsl(var(--social-orange-bg))] text-[hsl(var(--social-orange-fg))]"
+  : s === "client_check" ? "bg-[hsl(var(--social-cyan-bg))] text-[hsl(var(--social-cyan-fg))]"
+  : s === "in_progress" ? "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]"
+  : "bg-[hsl(var(--social-purple-bg))] text-[hsl(var(--social-purple-fg))]"; // to_schedule
 
 /** Click cycles a cell to the next status in this order. */
-export const STATUS_CYCLE: PostStatus[] = ["none", "to_post", "in_progress", "internal_check", "client_check", "to_schedule", "scheduled"];
+export const STATUS_CYCLE: PostStatus[] = ["none", "to_post", "internal_check", "client_check", "in_progress", "to_schedule", "scheduled"];
 export const nextStatus = (cur: PostStatus): PostStatus => STATUS_CYCLE[(STATUS_CYCLE.indexOf(cur) + 1) % STATUS_CYCLE.length];
 
 /** A linked checklist cell follows the status of its video in Video's. */

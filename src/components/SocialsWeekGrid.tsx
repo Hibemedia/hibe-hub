@@ -19,7 +19,7 @@ import {
 
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
-/** Full week table of the Review Hub checklist: all clients, day cells, "Deze week" progress. */
+/** Full week table of the Review Hub checklist: same layout as the original, plus progress and video links. */
 export function SocialsWeekGrid() {
   const qc = useQueryClient();
   const { clients: hibeClients } = useClient();
@@ -86,11 +86,13 @@ export function SocialsWeekGrid() {
     return [sts.filter((s) => s === "scheduled").length, sts.filter((s) => s !== "none").length];
   };
 
-  const rows = active.filter((c) => {
+  const visible = (c: SClient) => {
     if (!openOnly) return true;
     const [done, planned] = progress(c);
     return !(planned > 0 && done >= planned);
-  });
+  };
+  const daily = active.filter((c) => c.tracking_mode !== "weekly" && visible(c));
+  const weeklyClients = active.filter((c) => c.tracking_mode === "weekly" && visible(c));
   const [totDone, totPlanned] = active.reduce<[number, number]>((a, c) => { const [d, p] = progress(c); return [a[0] + d, a[1] + p]; }, [0, 0]);
 
   const monday = new Date(from + "T00:00:00");
@@ -109,6 +111,127 @@ export function SocialsWeekGrid() {
   if (isLoading) return <EmptyState text="Laden…" />;
   if (error) return <EmptyState text={"De checklist kon niet worden geladen: " + (error as Error).message} />;
   if (active.length === 0) return <EmptyState text="Nog geen klanten in de checklist." />;
+
+  const groupHeader = (label: string, sub: string) => (
+    <tr key={label} className="bg-muted/60">
+      <td colSpan={9} className="sticky left-0 border border-border px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label} <span className="font-normal normal-case">— {sub}</span>
+      </td>
+    </tr>
+  );
+
+  const nameCell = (c: SClient) => (
+    <td className="sticky left-0 z-10 border border-border bg-card px-2 py-1 font-medium" title={c.name}>
+      <span className="block truncate md:hidden">{c.abbreviation || c.name}</span>
+      <span className="hidden truncate md:block">{c.name}</span>
+    </td>
+  );
+
+  const dayCell = (c: SClient, d: string, i: number) => {
+    const k = `${c.id}_${d}`;
+    const l = linkFor(c.id, d);
+    const video = l ? videos.find((v) => v.id === l.video_item_id) : null;
+    const p = posts.get(k);
+    const eff = effStatus(c.id, d);
+    const st = statusOf(eff);
+    const weekend = i >= 5;
+    const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [st.label, p?.title, p?.note].filter(Boolean).join(" — ");
+    return (
+      <td key={d} className={cn("border border-border p-0", d === today && "ring-2 ring-inset ring-foreground")}>
+        <Popover open={menu === k} onOpenChange={(o) => { if (!o && menu === k) setMenu(null); }}>
+          <PopoverTrigger asChild>
+            <button
+              aria-label={`${c.name} ${d}: ${st.label}`}
+              title={hover}
+              onClick={() => { if (press.current.long) { press.current.long = false; return; } if (l) setMenu(k); else savePost(c.id, d, { status: nextStatus(eff) }); }}
+              onContextMenu={(e) => { e.preventDefault(); setMenu(k); }}
+              onPointerDown={() => startPress(k)}
+              onPointerUp={endPress}
+              onPointerLeave={endPress}
+              onPointerMove={endPress}
+              className={cn("relative flex h-9 w-full items-center justify-center font-bold transition hover:brightness-95", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
+              {st.symbol}
+              {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
+              {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 space-y-3">
+            <p className="text-sm font-semibold">{c.name} · {new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" })}</p>
+            {l ? (
+              <div className="space-y-2 rounded-md bg-background p-2.5">
+                <p className="flex items-center gap-1.5 text-xs font-medium"><Link2 className="h-3.5 w-3.5" />Volgt de status van de video</p>
+                <p className="truncate text-sm font-semibold">{video?.title ?? "Video niet gevonden"}</p>
+                {video && <p className="text-xs text-muted-foreground">{hibeName(video.client_id)} · {VIDEO_STATUS_LABEL[video.status]}</p>}
+                <button onClick={() => { unlink(l.id); setMenu(null); }} className="inline-flex items-center gap-1 text-xs text-destructive"><Unlink className="h-3 w-3" />Koppeling verwijderen</button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-1">
+                  {STATUSES.map((s) => <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s.key), eff === s.key && "ring-2 ring-foreground")}><b className="mr-1">{s.symbol}</b>{s.label}</button>)}
+                </div>
+                <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={p?.title ?? ""} onBlur={(e) => e.target.value !== (p?.title ?? "") && savePost(c.id, d, { title: e.target.value })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={p?.note ?? ""} onBlur={(e) => e.target.value !== (p?.note ?? "") && savePost(c.id, d, { note: e.target.value })} /></div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Koppel een video uit Video's</Label>
+                  <Select onValueChange={(v) => { link(c.id, d, v); setMenu(null); }}>
+                    <SelectTrigger aria-label="Koppel een video" className="h-9"><SelectValue placeholder="Kies een video…" /></SelectTrigger>
+                    <SelectContent>
+                      {videos.filter((v) => v.status !== "archived").map((v) => <SelectItem key={v.id} value={v.id}>{v.title} · {hibeName(v.client_id)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+          </PopoverContent>
+        </Popover>
+      </td>
+    );
+  };
+
+  const weekBar = (c: SClient) => {
+    const items = weekItems(weeks.get(`${c.id}_${from}`));
+    const slots = Math.max(c.weekly_target, items.length);
+    return (
+      <td colSpan={7} className="border border-border p-0">
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${slots + 1}, minmax(0, 1fr))` }}>
+          {Array.from({ length: slots }, (_, idx) => {
+            const it = items[idx];
+            const st = it ? statusOf(it.status) : null;
+            const k = `week_${c.id}_${idx}`;
+            return (
+              <Popover key={it?.id ?? `empty-${idx}`} open={menu === k} onOpenChange={(o) => { if (!o && menu === k) setMenu(null); }}>
+                <PopoverTrigger asChild>
+                  <button
+                    title={it ? `${it.title || "Video"} — ${st?.label}` : "Video toevoegen"}
+                    onClick={() => setMenu(k)}
+                    className={cn("relative flex h-9 w-full flex-col items-center justify-center leading-none transition hover:brightness-95",
+                      it ? cn("font-bold", cellCls(it.status)) : "bg-background/50")}>
+                    {it ? (
+                      <>
+                        <span>{st?.symbol}</span>
+                        {it.title && <span className="mt-0.5 max-w-full truncate px-1 text-[8px] font-medium opacity-80">{it.title}</span>}
+                      </>
+                    ) : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 space-y-3">
+                  <p className="text-sm font-semibold">{c.name} · video {idx + 1}</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {WEEKLY.map((s) => { const x = statusOf(s); return <button key={s} onClick={() => saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, status: s } : v))} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s), it?.status === s && "ring-2 ring-foreground")}><b className="mr-1">{x.symbol}</b>{s === "scheduled" ? "Afgeleverd" : x.label}</button>; })}
+                  </div>
+                  <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={it?.title ?? ""} onBlur={(e) => e.target.value !== (it?.title ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, title: e.target.value } : v))} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={it?.note ?? ""} onBlur={(e) => e.target.value !== (it?.note ?? "") && saveWeek(c.id, from, items.map((v, j) => j === idx ? { ...v, note: e.target.value } : v))} /></div>
+                  {it && <button onClick={() => { saveWeek(c.id, from, items.filter((_, j) => j !== idx)); setMenu(null); }} className="inline-flex items-center gap-1 text-xs text-destructive"><Trash2 className="h-3 w-3" />Verwijderen</button>}
+                </PopoverContent>
+              </Popover>
+            );
+          })}
+          <button aria-label="Video toevoegen" onClick={() => saveWeek(c.id, from, [...items, { id: crypto.randomUUID(), title: "", status: "in_progress", note: "" }])}
+            className="flex h-9 items-center justify-center text-muted-foreground transition hover:bg-background/60"><Plus className="h-3.5 w-3.5" /></button>
+        </div>
+      </td>
+    );
+  };
 
   return (
     <div className="space-y-3">
@@ -130,94 +253,32 @@ export function SocialsWeekGrid() {
           <thead><tr>
             <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
             {dates.map((d, i) => (
-              <th key={d} className={cn("border border-border px-1 py-1 font-medium", d === today ? "bg-foreground text-background" : "bg-background text-muted-foreground")}>
+              <th key={d} className={cn("border border-border px-1 py-1 font-medium", d === today ? "bg-foreground text-background" : i >= 5 ? "bg-muted text-muted-foreground" : "bg-background text-muted-foreground")}>
                 <div>{DAYS[i]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
               </th>
             ))}
             <th className="border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Deze week</th>
           </tr></thead>
           <tbody>
-            {rows.map((c) => {
-              const weeklyMode = c.tracking_mode === "weekly";
+            {daily.length > 0 && groupHeader("Wij plannen in", "planning per dag")}
+            {daily.map((c) => {
               const [done, planned] = progress(c);
               return (
                 <tr key={c.id}>
-                  <td className="sticky left-0 z-10 border border-border bg-card px-2 py-1 font-medium" title={c.name}><span className="block truncate">{c.name}</span></td>
-                  {dates.map((d) => {
-                    if (weeklyMode) return <td key={d} className="border border-border bg-background/50" />;
-                    const k = `${c.id}_${d}`;
-                    const l = linkFor(c.id, d);
-                    const video = l ? videos.find((v) => v.id === l.video_item_id) : null;
-                    const p = posts.get(k);
-                    const eff = effStatus(c.id, d);
-                    const st = statusOf(eff);
-                    const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [p?.title, p?.note].filter(Boolean).join(" · ");
-                    return (
-                      <td key={d} className={cn("border border-border p-0", d === today && "ring-2 ring-inset ring-foreground")}>
-                        <Popover open={menu === k} onOpenChange={(o) => { if (!o && menu === k) setMenu(null); }}>
-                          <PopoverTrigger asChild>
-                            <button
-                              aria-label={`${c.name} ${d}: ${st.label}`}
-                              title={hover || st.label}
-                              onClick={() => { if (press.current.long) { press.current.long = false; return; } if (l) setMenu(k); else savePost(c.id, d, { status: nextStatus(eff) }); }}
-                              onContextMenu={(e) => { e.preventDefault(); setMenu(k); }}
-                              onPointerDown={() => startPress(k)}
-                              onPointerUp={endPress}
-                              onPointerLeave={endPress}
-                              onPointerMove={endPress}
-                              className={cn("relative flex h-9 w-full items-center justify-center font-bold transition hover:brightness-95", cellCls(eff))}>
-                              {st.symbol}
-                              {(p?.note || p?.title) && !l && <span className="absolute right-0.5 top-0.5 h-1 w-1 rounded-full bg-current" />}
-                              {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-72 space-y-3">
-                            <p className="text-sm font-semibold">{c.name} · {new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" })}</p>
-                            {l ? (
-                              <div className="space-y-2 rounded-md bg-background p-2.5">
-                                <p className="flex items-center gap-1.5 text-xs font-medium"><Link2 className="h-3.5 w-3.5" />Volgt de status van de video</p>
-                                <p className="truncate text-sm font-semibold">{video?.title ?? "Video niet gevonden"}</p>
-                                {video && <p className="text-xs text-muted-foreground">{hibeName(video.client_id)} · {VIDEO_STATUS_LABEL[video.status]}</p>}
-                                <button onClick={() => { unlink(l.id); setMenu(null); }} className="inline-flex items-center gap-1 text-xs text-destructive"><Unlink className="h-3 w-3" />Koppeling verwijderen</button>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="grid grid-cols-2 gap-1">
-                                  {STATUSES.map((s) => <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s.key), eff === s.key && "ring-2 ring-foreground")}><b className="mr-1">{s.symbol}</b>{s.label}</button>)}
-                                </div>
-                                <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={p?.title ?? ""} onBlur={(e) => e.target.value !== (p?.title ?? "") && savePost(c.id, d, { title: e.target.value })} /></div>
-                                <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={p?.note ?? ""} onBlur={(e) => e.target.value !== (p?.note ?? "") && savePost(c.id, d, { note: e.target.value })} /></div>
-                                <div className="space-y-1">
-                                  <Label className="text-xs">Koppel een video uit Video's</Label>
-                                  <Select onValueChange={(v) => { link(c.id, d, v); setMenu(null); }}>
-                                    <SelectTrigger aria-label="Koppel een video" className="h-9"><SelectValue placeholder="Kies een video…" /></SelectTrigger>
-                                    <SelectContent>
-                                      {videos.filter((v) => v.status !== "archived").map((v) => <SelectItem key={v.id} value={v.id}>{v.title} · {hibeName(v.client_id)}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </>
-                            )}
-                          </PopoverContent>
-                        </Popover>
-                      </td>
-                    );
-                  })}
-                  <td className="border border-border px-2 py-1">
-                    {weeklyMode ? (
-                      <Popover open={menu === `week_${c.id}`} onOpenChange={(o) => { if (!o && menu === `week_${c.id}`) setMenu(null); }}>
-                        <PopoverTrigger asChild>
-                          <button className="w-full text-left" aria-label={`${c.name}: ${done} van ${planned} deze week`}>
-                            <WeekBar done={done} planned={planned} barCls={barCls(done, planned)} />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 space-y-3">
-                          <p className="text-sm font-semibold">{c.name} · week van {weekLabel}</p>
-                          <WeekItems c={c} ws={from} items={weekItems(weeks.get(`${c.id}_${from}`))} saveWeek={saveWeek} />
-                        </PopoverContent>
-                      </Popover>
-                    ) : <WeekBar done={done} planned={planned} barCls={barCls(done, planned)} />}
-                  </td>
+                  {nameCell(c)}
+                  {dates.map((d, i) => dayCell(c, d, i))}
+                  <td className="border border-border px-2 py-1"><WeekBar done={done} planned={planned} barCls={barCls(done, planned)} /></td>
+                </tr>
+              );
+            })}
+            {weeklyClients.length > 0 && groupHeader("Afleveren", "aantal edits per week")}
+            {weeklyClients.map((c) => {
+              const [done, planned] = progress(c);
+              return (
+                <tr key={c.id}>
+                  {nameCell(c)}
+                  {weekBar(c)}
+                  <td className="border border-border px-2 py-1"><WeekBar done={done} planned={planned} barCls={barCls(done, planned)} /></td>
                 </tr>
               );
             })}
@@ -237,27 +298,6 @@ function WeekBar({ done, planned, barCls }: { done: number; planned: number; bar
         <div className={cn("h-full rounded-full transition-all", barCls)} style={{ width: `${pct}%` }} />
       </div>
       <span className="shrink-0 text-xs tabular text-muted-foreground">{done}/{planned}</span>
-    </div>
-  );
-}
-
-function WeekItems({ c, ws, items, saveWeek }: { c: SClient; ws: string; items: Item[]; saveWeek: (c: string, ws: string, items: Item[]) => void }) {
-  return (
-    <div className="space-y-3">
-      {items.map((it, idx) => { const st = statusOf(it.status); return (
-        <div key={it.id} className="space-y-2 rounded-md bg-background p-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold">Video {idx + 1} · {st.label}</p>
-            <button onClick={() => saveWeek(c.id, ws, items.filter((_, j) => j !== idx))} className="inline-flex items-center gap-1 text-xs text-destructive"><Trash2 className="h-3 w-3" />Verwijderen</button>
-          </div>
-          <div className="grid grid-cols-2 gap-1">
-            {WEEKLY.map((s) => { const x = statusOf(s); return <button key={s} onClick={() => saveWeek(c.id, ws, items.map((v, j) => j === idx ? { ...v, status: s } : v))} className={cn("rounded-md px-2 py-1 text-left text-xs", cellCls(s), it.status === s && "ring-2 ring-foreground")}><b className="mr-1">{x.symbol}</b>{s === "scheduled" ? "Afgeleverd" : x.label}</button>; })}
-          </div>
-          <div className="space-y-1"><Label className="text-xs">Titel</Label><Input defaultValue={it.title} onBlur={(e) => e.target.value !== it.title && saveWeek(c.id, ws, items.map((v, j) => j === idx ? { ...v, title: e.target.value } : v))} /></div>
-          <div className="space-y-1"><Label className="text-xs">Notitie / link</Label><Input defaultValue={it.note} onBlur={(e) => e.target.value !== it.note && saveWeek(c.id, ws, items.map((v, j) => j === idx ? { ...v, note: e.target.value } : v))} /></div>
-        </div>
-      ); })}
-      <button onClick={() => saveWeek(c.id, ws, [...items, { id: crypto.randomUUID(), title: "", status: "in_progress", note: "" }])} className="inline-flex h-8 items-center gap-1.5 rounded-md bg-foreground px-3 text-xs font-medium text-background"><Plus className="h-3.5 w-3.5" />Video toevoegen</button>
     </div>
   );
 }
