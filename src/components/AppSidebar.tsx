@@ -214,12 +214,12 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
       </aside>
 
       <nav aria-label="Hoofdmenu" className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-popover pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className={cn("grid", variant === "client" ? "grid-cols-5" : "grid-cols-6")}>
+        <div className="grid grid-cols-6">
           {primary.map((i) => <BottomLink key={i.url} item={i} badge={badgeFor(i)} />)}
           {variant === "client" ? (
-            <button onClick={() => setMore(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground"><User className="h-5 w-5" />Account</button>
-          ) : <button onClick={() => setMore(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground">
-            <MoreHorizontal className="h-5 w-5" />Meer
+            <button onClick={() => setMore(true)} className="flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-muted-foreground"><User className="h-5 w-5" /><span className="max-w-full truncate">Account</span></button>
+          ) : <button onClick={() => setMore(true)} className="flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-muted-foreground">
+            <MoreHorizontal className="h-5 w-5" /><span className="max-w-full truncate">Meer</span>
           </button>}
         </div>
       </nav>
