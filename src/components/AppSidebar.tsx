@@ -32,6 +32,7 @@ export const CLIENT_MENU: Item[] = [
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
+  { title: "Productieboard", url: "/hibe/pipeline", icon: Columns3 },
   { title: "Edits", url: "/hibe/edits", icon: Scissors },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
   { title: "Agenda", url: "/hibe/agenda", icon: CalendarDays },
