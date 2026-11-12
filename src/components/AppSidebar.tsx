@@ -26,6 +26,8 @@ export const CLIENT_MENU: Item[] = [
   { title: "Planning", url: "/planning", icon: Calendar },
   { title: "Resultaten", url: "/performance", icon: BarChart3 },
   { title: "Medailles", url: "/medals", icon: Award },
+  { title: "Contentmomenten", url: "/content-moments", icon: CalendarDays },
+  { title: "Branding & Archief", url: "/branding", icon: Archive },
 ];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
@@ -184,7 +186,7 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const { data: chatUnread = {} } = useUnread(variant === "hibe");
   const chatCount = Object.values(chatUnread).reduce((a, b) => a + b, 0);
   const badgeFor = (i: Item) => i.icon === MessagesSquare ? chatCount : (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined);
-  const primary = variant === "client" ? items : items.slice(0, 5);
+  const primary = items.slice(0, 5);
   const rest = [...items.slice(5), settings];
   const accountLink = viewAs
     ? <ReadOnlyTip className="block"><span className={cn("flex h-10 cursor-not-allowed items-center gap-3 rounded-md px-3 text-sm font-medium opacity-50")}><User className="h-[18px] w-[18px]" strokeWidth={1.8} />{!collapsed && "Mijn account"}</span></ReadOnlyTip>
@@ -216,18 +218,18 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
       <nav aria-label="Hoofdmenu" className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-popover pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="grid grid-cols-6">
           {primary.map((i) => <BottomLink key={i.url} item={i} badge={badgeFor(i)} />)}
-          {variant === "client" ? (
-            <button onClick={() => setMore(true)} className="flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-muted-foreground"><User className="h-5 w-5" /><span className="max-w-full truncate">Account</span></button>
-          ) : <button onClick={() => setMore(true)} className="flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-muted-foreground">
+          <button onClick={() => setMore(true)} className="flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-muted-foreground">
             <MoreHorizontal className="h-5 w-5" /><span className="max-w-full truncate">Meer</span>
-          </button>}
+          </button>
         </div>
       </nav>
       <Sheet open={more} onOpenChange={setMore}>
         <SheetContent side="bottom" className="rounded-t-lg">
-          <SheetHeader><SheetTitle className="text-left text-base">{variant === "client" ? "Account" : "Meer"}</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle className="text-left text-base">Meer</SheetTitle></SheetHeader>
           <div className="mt-3 flex flex-col gap-1" onClick={() => setMore(false)}>
-            {variant === "client" ? accountLink : rest.map((i) => <SideLink key={i.url} item={i} collapsed={false} badge={badgeFor(i)} />)}
+            {variant === "client"
+              ? <>{items.slice(5).map((i) => <SideLink key={i.url} item={i} collapsed={false} badge={badgeFor(i)} />)}{accountLink}</>
+              : rest.map((i) => <SideLink key={i.url} item={i} collapsed={false} badge={badgeFor(i)} />)}
             {!viewAs && <LogoutLink collapsed={false} />}
           </div>
         </SheetContent>
