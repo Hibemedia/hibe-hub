@@ -26,6 +26,8 @@ export const CLIENT_MENU: Item[] = [
   { title: "Planning", url: "/planning", icon: Calendar },
   { title: "Resultaten", url: "/performance", icon: BarChart3 },
   { title: "Medailles", url: "/medals", icon: Award },
+  { title: "Contentmomenten", url: "/content-moments", icon: CalendarDays },
+  { title: "Branding & Archief", url: "/branding", icon: Archive },
 ];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
