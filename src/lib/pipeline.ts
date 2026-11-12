@@ -60,10 +60,12 @@ export function deliveredThisMonth(videos: { client_id: string; status: string; 
   }
   return counts;
 }
-/** Behind = fewer delivered than the pro-rata share of the target for the elapsed part of the month. */
-export function slaTone(done: number, target: number | null, now: Date = new Date()): "none" | "met" | "ok" | "behind" {
+/** Weekly SLA: target/4 per week, checked only at the end of each finished week (day 7/14/21/28). Running week never counts. Short 1 = attention, 2+ = behind. */
+export type SlaTone = "none" | "met" | "ok" | "attention" | "behind";
+export function slaTone(done: number, target: number | null, now: Date = new Date()): SlaTone {
   if (!target) return "none";
   if (done >= target) return "met";
-  const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  return done >= Math.floor((target * now.getDate()) / days) ? "ok" : "behind";
+  const weeks = Math.min(4, Math.floor((now.getDate() - 1) / 7));
+  const short = Math.round((target * weeks) / 4) - done;
+  return short <= 0 ? "ok" : short === 1 ? "attention" : "behind";
 }

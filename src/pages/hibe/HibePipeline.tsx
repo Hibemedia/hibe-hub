@@ -75,8 +75,8 @@ export default function HibePipeline() {
   );
 }
 
-const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-lime-foreground", ok: "bg-muted text-foreground", behind: "bg-red-100 text-red-700" } as const;
-const SLA_LABEL = { none: "Geen SLA", met: "Gehaald", ok: "Op schema", behind: "Loopt achter" } as const;
+const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-lime-foreground", ok: "bg-muted text-foreground", attention: "bg-orange-100 text-orange-700", behind: "bg-red-100 text-red-700" } as const;
+const SLA_LABEL = { none: "Geen SLA", met: "Gehaald", ok: "Op schema", attention: "Aandacht", behind: "Loopt achter" } as const;
 function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo_url: string | null }[]; logo: (u: string | null) => string | null | undefined }) {
   const qc = useQueryClient();
   const now = new Date();
@@ -113,7 +113,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
                 </p>
                 <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", SLA_TONE[tone])}>{SLA_LABEL[tone]}</span>
               </div>
-              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", tone === "behind" ? "bg-red-500" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
+              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", tone === "behind" ? "bg-red-500" : tone === "attention" ? "bg-orange-500" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
             </div>
           );
         })}
