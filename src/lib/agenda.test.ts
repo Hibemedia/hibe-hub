@@ -31,3 +31,16 @@ describe("agenda", () => {
     expect(shootRow({ title: "X", client_id: "c1", date: "2026-11-20" }, "").requested_by).toBeNull();
   });
 });
+
+import { personDayLoad, teamDayLoad, workWeek } from "./agenda";
+describe("week occupancy", () => {
+  const L = [
+    { id: "1", kind: "shoot" as const, title: "s", start: "2026-11-18", end: "2026-11-18", people: ["a"] },
+    { id: "2", kind: "edit" as const, title: "e", start: "2026-11-18", end: "2026-11-18", people: ["a"] },
+    { id: "3", kind: "vacation" as const, title: "v", start: "2026-11-16", end: "2026-11-20", people: ["b"] },
+  ];
+  it("work week is monday to friday", () => { const w = workWeek(new Date(2026, 10, 18)); expect(w[0].getDate()).toBe(16); expect(w[4].getDate()).toBe(20); });
+  it("shoot plus edit on one day is overloaded", () => expect(personDayLoad("a", "2026-11-18", L).level).toBe("over"));
+  it("empty day is free", () => expect(personDayLoad("a", "2026-11-17", L).level).toBe("free"));
+  it("vacation removes capacity", () => { const t = teamDayLoad(["a", "b"], "2026-11-18", L); expect(t.available).toBe(1); expect(t.capacity).toBe(4); expect(t.load).toBe(5); });
+});
