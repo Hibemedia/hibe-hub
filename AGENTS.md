@@ -29,4 +29,4 @@
 - HIBE Agenda (/hibe/agenda) is admin-only, one view over calendar_events/calendar_attendees (meetings, vacations), content_moments (shoots, never copied), tasks and edits.planned_date; week workload derived in src/lib/agenda.ts; invites use calendar_attendees.seen_at.
 - HIBE team roles (Beheerder/Editor) live in team_roles (no row = Editor), separate from user_roles admin/client; only beheerders (is_beheerder()) can change them. The dashboard hides totals/chart/ranking for editors in the UI only — those stats are still readable by every admin.
 - HIBE Taken (/hibe/taken) use the tasks table; admins read all, only beheerders assign to others.
-- Productieboard (/hibe/pipeline) is read-only, derived live in src/lib/pipeline.ts from existing tables/timestamps — one source of truth.
+- Productieboard is read-only, shown on the Media Management Overzicht page, derived live in src/lib/pipeline.ts — one source of truth.
