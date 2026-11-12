@@ -1,7 +1,7 @@
 import hibeLogoUrl from "@/assets/hibe-logo.png";
 const hibeLogo = { url: hibeLogoUrl };
 import { useState } from "react";
-import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, ListTodo, Columns3, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, ListTodo, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -32,7 +32,6 @@ export const CLIENT_MENU: Item[] = [
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
-  { title: "Productieboard", url: "/hibe/pipeline", icon: Columns3 },
   { title: "Edits", url: "/hibe/edits", icon: Scissors },
   { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
   { title: "Agenda", url: "/hibe/agenda", icon: CalendarDays },
@@ -45,6 +44,7 @@ const HIBE_MENU: Item[] = [
 const MEDIA_OPEN_KEY = "hibe.sidebar.media";
 export const MEDIA_SUB: { title: string; url: string; status?: VideoStatus | "trash" }[] = [
   { title: "Overzicht", url: "/hibe/videos" },
+  { title: "Productieboard", url: "/hibe/pipeline" },
   ...STEPS.map((s) => ({ title: VIDEO_STATUS_LABEL[s], url: `/hibe/videos/stap/${STEP_SLUG[s]}`, status: s as VideoStatus })),
   { title: "Archief", url: "/hibe/videos/stap/archief", status: "archived" as VideoStatus },
   { title: "Prullenbak", url: "/hibe/videos/stap/prullenbak", status: "trash" as const },
@@ -67,7 +67,7 @@ export function useMediaCounts(enabled: boolean) {
 function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   const path = useLocation().pathname;
   const { data: counts = {} } = useMediaCounts(true);
-  const active = path.startsWith("/hibe/videos");
+  const active = path.startsWith("/hibe/videos") || path.startsWith("/hibe/pipeline");
   const [open, setOpen] = useState(() => localStorage.getItem(MEDIA_OPEN_KEY) !== "0");
   const toggle = () => setOpen((o) => { localStorage.setItem(MEDIA_OPEN_KEY, o ? "0" : "1"); return !o; });
   const n = (s?: string) => (s ? counts[s] : undefined);
