@@ -423,6 +423,7 @@ export type Database = {
           editor_id: string | null
           id: string
           notes: string | null
+          planned_date: string | null
           shoot_date: string | null
           status: string
           title: string
@@ -438,6 +439,7 @@ export type Database = {
           editor_id?: string | null
           id?: string
           notes?: string | null
+          planned_date?: string | null
           shoot_date?: string | null
           status?: string
           title: string
@@ -453,6 +455,7 @@ export type Database = {
           editor_id?: string | null
           id?: string
           notes?: string | null
+          planned_date?: string | null
           shoot_date?: string | null
           status?: string
           title?: string

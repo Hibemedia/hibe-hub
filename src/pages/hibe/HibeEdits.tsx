@@ -143,6 +143,7 @@ export default function HibeEdits() {
                     )}
                     {e.video_item_id && e.video?.status !== "feedback" && <Link to={`/hibe/videos/${e.video_item_id}`} aria-label="Open video" className="shrink-0 text-muted-foreground hover:text-foreground"><Film className="h-3.5 w-3.5" /></Link>}
                     {e.drive_link && <a href={e.drive_link} target="_blank" rel="noreferrer" aria-label="Google Drive-link" className="shrink-0 text-muted-foreground hover:text-foreground"><Link2 className="h-3.5 w-3.5" /></a>}
+                    {e.planned_date && <span className="shrink-0 rounded-full bg-foreground/10 px-2 py-0.5 text-xs">Montage {fmtDeadline(e.planned_date)}</span>}
                     {e.shoot_date && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Draaidag {fmtDeadline(e.shoot_date)}</span>}
                   </div>
                   <Select value={e.editor_id ?? "none"} onValueChange={(v) => update(e, { editor_id: v === "none" ? null : v })}>
@@ -266,12 +267,14 @@ function EditDialog({ edit, onClose, onSave, onDelete }: { edit: Row; onClose: (
   const [drive, setDrive] = useState(edit.drive_link ?? "");
   const [shoot, setShoot] = useState(edit.shoot_date ?? "");
   const [notes, setNotes] = useState(edit.notes ?? "");
+  const [planned, setPlanned] = useState(edit.planned_date ?? "");
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader><DialogTitle>Edit bewerken</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5"><Label htmlFor="et">Titel</Label><Input id="et" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label htmlFor="eplan">Montagedag (staat in de agenda)</Label><Input id="eplan" type="date" value={planned} onChange={(e) => setPlanned(e.target.value)} /></div>
           <div className="space-y-1.5"><Label htmlFor="ed">Deadline</Label><Input id="ed" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} /></div>
           <div className="space-y-1.5"><Label htmlFor="edrive">Google Drive-link (materiaal voor de editor)</Label><Input id="edrive" type="url" value={drive} onChange={(e) => setDrive(e.target.value)} placeholder="https://drive.google.com/…" /></div>
           <div className="space-y-1.5"><Label htmlFor="eshoot">Draaidag</Label><Input id="eshoot" type="date" value={shoot} onChange={(e) => setShoot(e.target.value)} /></div>
@@ -279,7 +282,7 @@ function EditDialog({ edit, onClose, onSave, onDelete }: { edit: Row; onClose: (
         </div>
         <DialogFooter className="gap-2 sm:justify-between">
           <Button variant="ghost" onClick={onDelete}><Trash2 className="mr-1 h-4 w-4" />Verwijderen</Button>
-          <Button disabled={!title.trim()} onClick={() => onSave({ title: title.trim(), deadline: deadline || null, notes: notes.trim() || null, drive_link: drive.trim() || null, shoot_date: shoot || null })}>Opslaan</Button>
+          <Button disabled={!title.trim()} onClick={() => onSave({ title: title.trim(), deadline: deadline || null, notes: notes.trim() || null, drive_link: drive.trim() || null, shoot_date: shoot || null, planned_date: planned || null })}>Opslaan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

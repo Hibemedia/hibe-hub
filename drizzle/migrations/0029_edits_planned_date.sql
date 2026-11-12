@@ -1,0 +1,1 @@
+ALTER TABLE public.edits ADD COLUMN IF NOT EXISTS planned_date date;
