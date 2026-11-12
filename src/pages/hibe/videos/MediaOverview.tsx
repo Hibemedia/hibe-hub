@@ -60,7 +60,7 @@ export default function MediaOverview() {
         })}
       </div>
       <Link to="/hibe/pipeline" className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border bg-card px-4 py-2.5 text-sm font-medium hover:bg-popover">
-        <span className="min-w-0 truncate">Productieboard — alle fasen van script tot ingepland</span>
+        <span className="min-w-0 truncate">Productieboard<span className="hidden sm:inline"> — alle fasen van script tot ingepland</span></span>
         <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
       </Link>
       <UploadProgress />
