@@ -92,10 +92,10 @@ function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; n
   return (
     <section className="min-w-0 rounded-[20px] bg-foreground p-3 text-background">
       <header className="mb-3 min-w-0">
-        <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{n}. Ingepland</h2><span className="rounded-full bg-primary px-2 text-xs font-bold text-primary-foreground">{cards.length}</span></div>
+        <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{n}. Ingepland</h2><span className="rounded-full bg-lime px-2 text-xs font-bold text-lime-foreground">{cards.length}</span></div>
         <p className="truncate text-xs text-background/60">Afgerond, laatste 7 dagen</p>
       </header>
-      <div className="mb-3 rounded-2xl bg-primary p-3 text-primary-foreground">
+      <div className="mb-3 rounded-2xl bg-lime p-3 text-lime-foreground">
         <p className="text-3xl font-extrabold leading-none">{cards.length}</p>
         <p className="mt-1 text-xs font-semibold">{cards.length === 1 ? "productie afgerond" : "producties afgerond"} deze week{cards.length >= 5 ? " - sterk bezig" : cards.length > 0 ? " - lekker" : ""}</p>
       </div>
@@ -105,11 +105,11 @@ function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; n
           const cl = c.client_id ? byId.get(c.client_id) : undefined;
           return (
             <Link key={c.id} to={c.href} className="flex min-w-0 items-start gap-2 rounded-2xl bg-background/10 p-2.5 transition-colors hover:bg-background/15">
-              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-[11px] font-black text-primary-foreground">✓</span>
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-lime text-[11px] font-black text-lime-foreground">✓</span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{c.title}</p>
                 {cl && <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-background/70"><ClientLogo url={logo(cl.logo_url) ?? null} name={cl.name} size={16} /><span className="truncate">{cl.name}</span></div>}
-                <p className="mt-1 text-[11px] font-semibold text-primary">{ago(daysIn(c.since, now))}</p>
+                <p className="mt-1 text-[11px] font-semibold text-lime">{ago(daysIn(c.since, now))}</p>
               </div>
             </Link>
           );
