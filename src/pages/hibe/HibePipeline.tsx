@@ -6,7 +6,9 @@ import { useClient } from "@/context/ClientContext";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { PageHeader } from "@/components/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PHASES, ageTone, avgDays, buildCards, daysIn, type Card } from "@/lib/pipeline";
+import { PHASES, ageTone, avgDays, buildCards, daysIn, deliveredThisMonth, slaTone, type Card } from "@/lib/pipeline";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { ymd } from "@/lib/agenda";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +70,55 @@ export default function HibePipeline() {
           })}
         </div>
       </div>
+      <SlaBlock clients={clients.filter((c) => client === "all" || c.id === client)} logo={(u) => (u ? logos[u] : null)} />
     </div>
+  );
+}
+
+const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-lime-foreground", ok: "bg-muted text-foreground", behind: "bg-red-100 text-red-700" } as const;
+const SLA_LABEL = { none: "Geen SLA", met: "Gehaald", ok: "Op schema", behind: "Loopt achter" } as const;
+function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo_url: string | null }[]; logo: (u: string | null) => string | null | undefined }) {
+  const qc = useQueryClient();
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const { data } = useQuery({ queryKey: ["sla", start], queryFn: async () => {
+    const [v, c] = await Promise.all([
+      db.from("video_items").select("client_id,status,status_changed_at").eq("status", "scheduled").gte("status_changed_at", start),
+      db.from("clients").select("id,monthly_video_target"),
+    ]);
+    if (v.error) throw v.error; if (c.error) throw c.error;
+    return { counts: deliveredThisMonth(v.data ?? [], now), targets: Object.fromEntries((c.data ?? []).map((r: any) => [r.id, r.monthly_video_target])) as Record<string, number | null> };
+  } });
+  const save = async (id: string, raw: string) => {
+    const val = raw.trim() === "" ? null : Math.max(0, parseInt(raw, 10) || 0);
+    if (val === (data?.targets[id] ?? null)) return;
+    const { error } = await db.from("clients").update({ monthly_video_target: val }).eq("id", id);
+    if (error) return toast.error("SLA opslaan mislukt");
+    qc.invalidateQueries({ queryKey: ["sla"] });
+  };
+  const month = now.toLocaleDateString("nl-NL", { month: "long" });
+  return (
+    <section className="rounded-[20px] bg-card p-4">
+      <header className="mb-3"><h2 className="truncate font-bold">Opgeleverd in {month}</h2><p className="text-xs text-muted-foreground">Ingepland = opgeleverd. Vul per klant de SLA in (video's per maand).</p></header>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {clients.map((c) => {
+          const done = data?.counts[c.id] ?? 0; const target = data?.targets[c.id] ?? null; const tone = slaTone(done, target, now);
+          const pct = target ? Math.min(100, Math.round((done / target) * 100)) : 0;
+          return (
+            <div key={c.id} className="min-w-0 rounded-2xl bg-background p-3">
+              <div className="flex min-w-0 items-center gap-2"><ClientLogo url={logo(c.logo_url) ?? null} name={c.name} size={22} /><p className="truncate text-sm font-semibold">{c.name}</p></div>
+              <div className="mt-2 flex items-end justify-between gap-2">
+                <p className="text-2xl font-extrabold leading-none">{done}<span className="text-sm font-semibold text-muted-foreground"> / </span>
+                  <input key={String(target)} aria-label={`SLA ${c.name}`} defaultValue={target ?? ""} placeholder="–" inputMode="numeric" onBlur={(e) => save(c.id, e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} className="w-10 rounded-md bg-muted px-1 text-sm font-semibold" />
+                </p>
+                <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", SLA_TONE[tone])}>{SLA_LABEL[tone]}</span>
+              </div>
+              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", tone === "behind" ? "bg-red-500" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

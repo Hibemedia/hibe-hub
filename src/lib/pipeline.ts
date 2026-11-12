@@ -49,3 +49,21 @@ export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[
   return out;
 }
 export const avgDays = (cards: Card[], now: Date) => (cards.length ? Math.round(cards.reduce((s, c) => s + daysIn(c.since, now), 0) / cards.length * 10) / 10 : null);
+
+/** SLA: a video counts as delivered in the month its status became "scheduled". */
+export function deliveredThisMonth(videos: { client_id: string; status: string; status_changed_at: string }[], now: Date = new Date()) {
+  const counts: Record<string, number> = {};
+  for (const v of videos) {
+    if (v.status !== "scheduled") continue;
+    const d = new Date(v.status_changed_at);
+    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) counts[v.client_id] = (counts[v.client_id] ?? 0) + 1;
+  }
+  return counts;
+}
+/** Behind = fewer delivered than the pro-rata share of the target for the elapsed part of the month. */
+export function slaTone(done: number, target: number | null, now: Date = new Date()): "none" | "met" | "ok" | "behind" {
+  if (!target) return "none";
+  if (done >= target) return "met";
+  const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return done >= Math.floor((target * now.getDate()) / days) ? "ok" : "behind";
+}

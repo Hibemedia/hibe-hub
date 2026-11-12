@@ -28,3 +28,22 @@ describe("done column", () => {
     expect(cards.map((c) => [c.id, c.phase])).toEqual([["va", "done"]]);
   });
 });
+
+import { deliveredThisMonth, slaTone } from "./pipeline";
+describe("SLA per maand", () => {
+  const now = new Date(2026, 10, 12);
+  it("telt alleen ingeplande video's van deze maand", () => {
+    const c = deliveredThisMonth([
+      { client_id: "a", status: "scheduled", status_changed_at: new Date(2026, 10, 3).toISOString() },
+      { client_id: "a", status: "scheduled", status_changed_at: new Date(2026, 9, 30).toISOString() },
+      { client_id: "a", status: "client_review", status_changed_at: new Date(2026, 10, 4).toISOString() },
+    ], now);
+    expect(c.a).toBe(1);
+  });
+  it("target gehaald, op schema of achter", () => {
+    expect(slaTone(8, 8, now)).toBe("met");
+    expect(slaTone(3, 8, now)).toBe("ok");
+    expect(slaTone(1, 8, now)).toBe("behind");
+    expect(slaTone(2, null, now)).toBe("none");
+  });
+});
