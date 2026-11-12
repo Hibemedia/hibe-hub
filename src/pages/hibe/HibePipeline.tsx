@@ -1,38 +1,33 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
+import { PageHeader } from "@/components/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PHASES, ageTone, avgDays, buildCards, daysIn, deliveredThisMonth, slaTone, type Card } from "@/lib/pipeline";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ymd } from "@/lib/agenda";
 import { cn } from "@/lib/utils";
 
 const db = supabase as any;
-
 function usePipelineData() {
-  return useQuery({
-    queryKey: ["pipeline"],
-    refetchInterval: 60_000,
-    queryFn: async () => {
-      const [t, m, e, v] = await Promise.all([
-        db.from("tasks").select("id,title,client_id,assignee_id,done_at,created_at").is("done_at", null),
-        db.from("content_moments").select("id,title,client_id,type,status,date,created_at"),
-        db.from("edits").select("id,title,client_id,editor_id,status,created_at,updated_at").neq("status", "delivered"),
-        db.from("video_items").select("id,title,client_id,status,current_version,archived_at,status_changed_at").is("archived_at", null),
-      ]);
-      for (const r of [t, m, e, v]) if (r.error) throw r.error;
-      return { tasks: t.data ?? [], moments: m.data ?? [], edits: e.data ?? [], videos: v.data ?? [] };
-    },
-  });
+  return useQuery({ queryKey: ["pipeline"], refetchInterval: 60_000, queryFn: async () => {
+    const [t, m, e, v] = await Promise.all([
+      db.from("tasks").select("id,title,client_id,assignee_id,done_at,created_at").is("done_at", null),
+      db.from("content_moments").select("id,title,client_id,type,status,date,created_at"),
+      db.from("edits").select("id,title,client_id,editor_id,status,created_at,updated_at").neq("status", "delivered"),
+      db.from("video_items").select("id,title,client_id,status,current_version,archived_at,status_changed_at").is("archived_at", null),
+    ]);
+    for (const r of [t, m, e, v]) if (r.error) throw r.error;
+    return { tasks: t.data ?? [], moments: m.data ?? [], edits: e.data ?? [], videos: v.data ?? [] };
+  } });
 }
-
 const TONE = { ok: "bg-muted text-muted-foreground", warn: "bg-orange-100 text-orange-800", late: "bg-red-100 text-red-700" } as const;
 
-/** Het productieboard: alle lopende video's in fasen, plus de maand-SLA. */
-export default function Productieboard() {
+export default function HibePipeline() {
   const { data } = usePipelineData();
   const { clients } = useClient();
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
@@ -44,11 +39,8 @@ export default function Productieboard() {
   const byId = new Map(clients.map((c) => [c.id, c]));
 
   return (
-    <section className="min-w-0 space-y-4">
-      <header className="min-w-0">
-        <h2 className="truncate text-base font-semibold">Productieboard</h2>
-        <p className="text-xs text-muted-foreground">Van script tot ingepland, in één oogopslag.</p>
-      </header>
+    <div className="space-y-4 min-w-0">
+      <PageHeader title="Productieboard" />
       <div className="flex flex-wrap items-center gap-2">
         <Select value={client} onValueChange={setClient}>
           <SelectTrigger className="h-9 w-52 rounded-full"><SelectValue /></SelectTrigger>
@@ -66,7 +58,7 @@ export default function Productieboard() {
             return (
               <section key={p.key} className="min-w-0 rounded-[20px] bg-card p-3">
                 <header className="mb-3 min-w-0">
-                  <div className="flex items-center justify-between gap-2"><h3 className="truncate font-bold">{i + 1}. {p.label}</h3><span className="rounded-full bg-background px-2 text-xs font-semibold">{col.length}</span></div>
+                  <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{i + 1}. {p.label}</h2><span className="rounded-full bg-background px-2 text-xs font-semibold">{col.length}</span></div>
                   <p className="truncate text-xs text-muted-foreground">{p.owner}{avg !== null && ` · gem. ${avg}d`}</p>
                 </header>
                 <div className="space-y-2">
@@ -79,13 +71,12 @@ export default function Productieboard() {
         </div>
       </div>
       <SlaBlock clients={clients.filter((c) => client === "all" || c.id === client)} logo={(u) => (u ? logos[u] : null)} />
-    </section>
+    </div>
   );
 }
 
 const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-lime-foreground", ok: "bg-muted text-foreground", attention: "bg-orange-100 text-orange-700", behind: "bg-red-100 text-red-700" } as const;
 const SLA_LABEL = { none: "Geen SLA", met: "Gehaald", ok: "Op schema", attention: "Aandacht", behind: "Loopt achter" } as const;
-
 function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo_url: string | null }[]; logo: (u: string | null) => string | null | undefined }) {
   const qc = useQueryClient();
   const now = new Date();
@@ -108,7 +99,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
   const month = now.toLocaleDateString("nl-NL", { month: "long" });
   return (
     <section className="rounded-[20px] bg-card p-4">
-      <header className="mb-3"><h3 className="truncate font-bold">Opgeleverd in {month}</h3><p className="text-xs text-muted-foreground">Ingepland = opgeleverd. Vul per klant de SLA in (video's per maand).</p></header>
+      <header className="mb-3"><h2 className="truncate font-bold">Opgeleverd in {month}</h2><p className="text-xs text-muted-foreground">Ingepland = opgeleverd. Vul per klant de SLA in (video's per maand).</p></header>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {clients.map((c) => {
           const done = data?.counts[c.id] ?? 0; const target = data?.targets[c.id] ?? null; const tone = slaTone(done, target, now);
@@ -147,12 +138,11 @@ function PipeCard({ c, days, client, logo }: { c: Card; days: number; client?: {
 }
 
 const ago = (d: number) => (d === 0 ? "Vandaag ingepland" : d === 1 ? "Gisteren ingepland" : `${d} dagen geleden`);
-
 function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; now: Date; byId: Map<string, { name: string; logo_url: string | null }>; logo: (u: string | null) => string | null | undefined }) {
   return (
     <section className="min-w-0 rounded-[20px] bg-foreground p-3 text-background">
       <header className="mb-3 min-w-0">
-        <div className="flex items-center justify-between gap-2"><h3 className="truncate font-bold">{n}. Ingepland</h3><span className="rounded-full bg-lime px-2 text-xs font-bold text-lime-foreground">{cards.length}</span></div>
+        <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{n}. Ingepland</h2><span className="rounded-full bg-lime px-2 text-xs font-bold text-lime-foreground">{cards.length}</span></div>
         <p className="truncate text-xs text-background/60">Afgerond, laatste 7 dagen</p>
       </header>
       <div className="mb-3 rounded-2xl bg-lime p-3 text-lime-foreground">
