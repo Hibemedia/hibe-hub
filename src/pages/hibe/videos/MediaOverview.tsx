@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { Upload, Send, ArrowUpDown } from "lucide-react";
+import { Upload, Send, ArrowUpDown, ArrowRight } from "lucide-react";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useMedia";
 import { useSendToClient } from "@/components/videos/SendDialog";
@@ -59,6 +59,10 @@ export default function MediaOverview() {
           );
         })}
       </div>
+      <Link to="/hibe/pipeline" className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border bg-card px-4 py-2.5 text-sm font-medium hover:bg-popover">
+        <span className="min-w-0 truncate">Productieboard — alle fasen van script tot ingepland</span>
+        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
       <UploadProgress />
 
       <section className="rounded-lg border border-border bg-card">
