@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS monthly_video_target integer CHECK (monthly_video_target IS NULL OR monthly_video_target >= 0);
