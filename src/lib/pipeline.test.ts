@@ -43,7 +43,12 @@ describe("SLA per maand", () => {
   it("target gehaald, op schema of achter", () => {
     expect(slaTone(8, 8, now)).toBe("met");
     expect(slaTone(3, 8, now)).toBe("ok");
-    expect(slaTone(1, 8, now)).toBe("behind");
+    expect(slaTone(1, 8, now)).toBe("attention");
+    expect(slaTone(0, 12, new Date(2026, 10, 6))).toBe("ok"); // lopende week 1 nooit rood
+    expect(slaTone(3, 12, new Date(2026, 10, 8))).toBe("ok"); // 3 na week 1 = op schema
+    expect(slaTone(2, 12, new Date(2026, 10, 8))).toBe("attention");
+    expect(slaTone(1, 12, new Date(2026, 10, 8))).toBe("behind");
+    expect(slaTone(6, 12, new Date(2026, 10, 15))).toBe("ok");
     expect(slaTone(2, null, now)).toBe("none");
   });
 });
