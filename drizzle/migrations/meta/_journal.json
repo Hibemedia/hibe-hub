@@ -197,6 +197,13 @@
       "when": 1794486523970,
       "tag": "0027_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794488662537,
+      "tag": "0028_scope_avatar_reads",
+      "breakpoints": true
     }
   ]
 }
