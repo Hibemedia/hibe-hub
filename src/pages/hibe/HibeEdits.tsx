@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Plus, Upload, MessageSquareWarning, Film, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Upload, MessageSquareWarning, Film, Trash2, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { useClient } from "@/context/ClientContext";
@@ -142,6 +142,8 @@ export default function HibeEdits() {
                       <Link to={`/hibe/videos/${e.video_item_id}`} className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning"><MessageSquareWarning className="h-3 w-3" />Feedback</Link>
                     )}
                     {e.video_item_id && e.video?.status !== "feedback" && <Link to={`/hibe/videos/${e.video_item_id}`} aria-label="Open video" className="shrink-0 text-muted-foreground hover:text-foreground"><Film className="h-3.5 w-3.5" /></Link>}
+                    {e.drive_link && <a href={e.drive_link} target="_blank" rel="noreferrer" aria-label="Google Drive-link" className="shrink-0 text-muted-foreground hover:text-foreground"><Link2 className="h-3.5 w-3.5" /></a>}
+                    {e.shoot_date && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Draaidag {fmtDeadline(e.shoot_date)}</span>}
                   </div>
                   <Select value={e.editor_id ?? "none"} onValueChange={(v) => update(e, { editor_id: v === "none" ? null : v })}>
                     <SelectTrigger aria-label={`Editor voor ${e.title}`} className="h-8 border-transparent px-2 hover:border-border"><div className="flex min-w-0 items-center gap-2"><Avatar m={member(e.editor_id)} size={22} /><div className="truncate text-sm">{member(e.editor_id)?.name ?? "Geen editor"}</div></div></SelectTrigger>
@@ -181,12 +183,14 @@ function NewEdits({ open, onOpenChange, defaultClient, onDone }: { open: boolean
   const { clients } = useClient();
   const [client, setClient] = useState(defaultClient);
   const [text, setText] = useState("");
+  const [drive, setDrive] = useState("");
+  const [shoot, setShoot] = useState("");
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (open) { setClient(defaultClient); setText(""); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open) { setClient(defaultClient); setText(""); setDrive(""); setShoot(""); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   const titles = parseTitles(text);
   const save = async () => {
     setBusy(true);
-    const { error } = await db.from("edits").insert(titles.map((title) => ({ client_id: client, title, status: "assign" })));
+    const { error } = await db.from("edits").insert(titles.map((title) => ({ client_id: client, title, status: "assign", drive_link: drive.trim() || null, shoot_date: shoot || null })));
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`${titles.length} edit${titles.length === 1 ? "" : "s"} toegevoegd`);
@@ -202,6 +206,10 @@ function NewEdits({ open, onOpenChange, defaultClient, onDone }: { open: boolean
               <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
           <div className="space-y-1.5"><Label htmlFor="titles">Titels, één per regel</Label>
             <Textarea id="titles" rows={7} value={text} onChange={(e) => setText(e.target.value)} placeholder={"Reel lancering\nBehind the scenes\nInterview deel 1"} /></div>
+          <div className="space-y-1.5"><Label htmlFor="drive">Google Drive-link (materiaal voor de editor)</Label>
+            <Input id="drive" type="url" value={drive} onChange={(e) => setDrive(e.target.value)} placeholder="https://drive.google.com/…" /></div>
+          <div className="space-y-1.5"><Label htmlFor="shoot">Draaidag</Label>
+            <Input id="shoot" type="date" value={shoot} onChange={(e) => setShoot(e.target.value)} /></div>
         </div>
         <DialogFooter><Button disabled={!client || !titles.length || busy} onClick={save}>{titles.length > 1 ? `${titles.length} edits toevoegen` : "Edit toevoegen"}</Button></DialogFooter>
       </DialogContent>
@@ -255,6 +263,8 @@ function DeliverDialog({ edit, uploader, onClose, onDone }: { edit: Row; uploade
 function EditDialog({ edit, onClose, onSave, onDelete }: { edit: Row; onClose: () => void; onSave: (p: Partial<Edit>) => void; onDelete: () => void }) {
   const [title, setTitle] = useState(edit.title);
   const [deadline, setDeadline] = useState(edit.deadline ?? "");
+  const [drive, setDrive] = useState(edit.drive_link ?? "");
+  const [shoot, setShoot] = useState(edit.shoot_date ?? "");
   const [notes, setNotes] = useState(edit.notes ?? "");
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -263,11 +273,13 @@ function EditDialog({ edit, onClose, onSave, onDelete }: { edit: Row; onClose: (
         <div className="space-y-4">
           <div className="space-y-1.5"><Label htmlFor="et">Titel</Label><Input id="et" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
           <div className="space-y-1.5"><Label htmlFor="ed">Deadline</Label><Input id="ed" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label htmlFor="edrive">Google Drive-link (materiaal voor de editor)</Label><Input id="edrive" type="url" value={drive} onChange={(e) => setDrive(e.target.value)} placeholder="https://drive.google.com/…" /></div>
+          <div className="space-y-1.5"><Label htmlFor="eshoot">Draaidag</Label><Input id="eshoot" type="date" value={shoot} onChange={(e) => setShoot(e.target.value)} /></div>
           <div className="space-y-1.5"><Label htmlFor="en">Notities</Label><Textarea id="en" rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         </div>
         <DialogFooter className="gap-2 sm:justify-between">
           <Button variant="ghost" onClick={onDelete}><Trash2 className="mr-1 h-4 w-4" />Verwijderen</Button>
-          <Button disabled={!title.trim()} onClick={() => onSave({ title: title.trim(), deadline: deadline || null, notes: notes.trim() || null })}>Opslaan</Button>
+          <Button disabled={!title.trim()} onClick={() => onSave({ title: title.trim(), deadline: deadline || null, notes: notes.trim() || null, drive_link: drive.trim() || null, shoot_date: shoot || null })}>Opslaan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -416,9 +416,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           deadline: string | null
+          drive_link: string | null
           editor_id: string | null
           id: string
           notes: string | null
+          shoot_date: string | null
           status: string
           title: string
           updated_at: string
@@ -429,9 +431,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deadline?: string | null
+          drive_link?: string | null
           editor_id?: string | null
           id?: string
           notes?: string | null
+          shoot_date?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -442,9 +446,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deadline?: string | null
+          drive_link?: string | null
           editor_id?: string | null
           id?: string
           notes?: string | null
+          shoot_date?: string | null
           status?: string
           title?: string
           updated_at?: string

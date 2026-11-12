@@ -1,0 +1,1 @@
+ALTER TABLE public.edits ADD COLUMN drive_link text, ADD COLUMN shoot_date date;

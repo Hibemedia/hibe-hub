@@ -3,7 +3,7 @@ export const EDIT_STATUSES: EditStatus[] = ["assign", "todo", "editing", "on_hol
 export const EDIT_STATUS_LABEL: Record<EditStatus, string> = {
   assign: "Editor aanwijzen", todo: "To-do", editing: "Wordt gemonteerd", on_hold: "On hold", delivered: "Ingeleverd",
 };
-export type Edit = { id: string; client_id: string; title: string; editor_id: string | null; status: EditStatus; deadline: string | null; notes: string | null; video_item_id: string | null; created_at: string };
+export type Edit = { id: string; client_id: string; title: string; editor_id: string | null; status: EditStatus; deadline: string | null; notes: string | null; video_item_id: string | null; drive_link?: string | null; shoot_date?: string | null; created_at: string };
 
 /** One edit per non-empty pasted line. */
 export const parseTitles = (text: string) => text.split(/\r?\n/).map((t) => t.trim()).filter(Boolean);
