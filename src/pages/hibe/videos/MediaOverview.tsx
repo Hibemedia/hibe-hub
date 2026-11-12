@@ -9,6 +9,7 @@ import { useVideoActivity, useOpenClientFeedback } from "@/hooks/useVideos";
 import { STEPS, STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, worstTone, ageTone, fmtAge, clientsReadyToSend } from "@/lib/videos";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Productieboard from "@/components/pipeline/Productieboard";
 
 const tone = { ok: "", warn: "border-warning text-warning", late: "border-destructive text-destructive" };
 const KIND = { upload: "uploadde", approved: "keurde goed", feedback: "gaf feedback op", sent: "Verstuurd naar klant:" };
@@ -117,6 +118,7 @@ export default function MediaOverview() {
           )}
         </section>
       </div>
+      <Productieboard />
       {up.ui}{sender.dialog}
     </div>
   );
