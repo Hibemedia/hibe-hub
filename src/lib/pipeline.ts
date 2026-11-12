@@ -1,5 +1,5 @@
 /** Pure helpers for the HIBE Productieboard (read-only view over tasks, shoots, edits and videos). */
-export type PhaseKey = "script" | "shoot" | "plan" | "edit" | "check" | "client" | "final";
+export type PhaseKey = "script" | "shoot" | "plan" | "edit" | "check" | "client" | "final" | "done";
 export const PHASES: { key: PhaseKey; label: string; owner: string }[] = [
   { key: "script", label: "Script", owner: "Redactie" },
   { key: "shoot", label: "Draaidag", owner: "Crew" },
@@ -8,6 +8,7 @@ export const PHASES: { key: PhaseKey; label: string; owner: string }[] = [
   { key: "check", label: "Check & subs", owner: "Media management" },
   { key: "client", label: "Klant review", owner: "Klant / editor" },
   { key: "final", label: "Final inplannen", owner: "Media management" },
+  { key: "done", label: "Ingepland", owner: "Afgerond, laatste 7 dagen" },
 ];
 export type Card = { id: string; phase: PhaseKey; title: string; client_id: string | null; since: string; turn: string; round?: number; href: string; person?: string | null };
 
@@ -22,7 +23,9 @@ type M = { id: string; title: string; client_id: string; type: string; status: s
 type E = { id: string; title: string; client_id: string; editor_id: string | null; status: string; created_at: string; updated_at?: string | null };
 type V = { id: string; title: string; client_id: string; status: string; current_version: number; archived_at: string | null; status_changed_at: string };
 
-export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[] }, today: string): Card[] {
+/** Scheduled videos stay visible as "done" for this many days. */
+export const DONE_DAYS = 7;
+export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[] }, today: string, now: Date = new Date()): Card[] {
   const out: Card[] = [];
   for (const t of d.tasks) if (!t.done_at && isScriptTask(t.title))
     out.push({ id: "t" + t.id, phase: "script", title: t.title, client_id: t.client_id, since: t.created_at, turn: "Redactie", href: "/hibe/taken", person: t.assignee_id });
@@ -41,6 +44,7 @@ export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[
     else if (v.status === "client_review") out.push({ ...base, phase: "client", turn: "Klant", round: Math.max(1, v.current_version - 1) });
     else if (v.status === "feedback") out.push({ ...base, phase: "client", turn: "Feedback verwerken", round: Math.max(1, v.current_version - 1) });
     else if (v.status === "approved_client") out.push({ ...base, phase: "final", turn: "Media management" });
+    else if (v.status === "scheduled" && daysIn(v.status_changed_at, now) < DONE_DAYS) out.push({ ...base, phase: "done", turn: "Ingepland" });
   }
   return out;
 }

@@ -18,3 +18,13 @@ describe("pipeline", () => {
     expect(c[3].turn).toBe("Klant"); expect(c[3].round).toBe(2);
   });
 });
+
+describe("done column", () => {
+  const base = { tasks: [], moments: [], edits: [] };
+  const v = (id: string, at: string) => ({ id, title: id, client_id: "c", status: "scheduled", current_version: 1, archived_at: null, status_changed_at: at });
+  it("shows scheduled videos for 7 days, then hides them", () => {
+    const now = new Date("2026-11-12T12:00:00Z");
+    const cards = buildCards({ ...base, videos: [v("a", "2026-11-06T13:00:00Z"), v("b", "2026-11-05T11:00:00Z")] }, "2026-11-12", now);
+    expect(cards.map((c) => [c.id, c.phase])).toEqual([["va", "done"]]);
+  });
+});
