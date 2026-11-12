@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Trash2, AlertTriangle } from "lucide-react";
@@ -195,8 +195,8 @@ export default function HibeAgenda() {
               </div>
             );
           })}
-          {team.map((m) => <>
-            <div key={m.id} className="flex min-w-0 items-center gap-2 border-b border-r border-border p-2"><UserAvatar userId={m.id} size={26} /><span className="truncate text-sm font-medium">{m.name}</span></div>
+          {team.map((m) => <Fragment key={m.id}>
+            <div className="flex min-w-0 items-center gap-2 border-b border-r border-border p-2"><UserAvatar userId={m.id} size={26} /><span className="truncate text-sm font-medium">{m.name}</span></div>
             {week.map((d, i) => {
               const day = ymd(d); const list = entriesOn(day, entries).filter((e) => e.people.includes(m.id)); const l = personDayLoad(m.id, day, entries);
               return (
@@ -205,7 +205,7 @@ export default function HibeAgenda() {
                 </div>
               );
             })}
-          </>)}
+          </Fragment>)}
         </div>
         <p className="border-t border-border px-3 py-2 text-xs text-muted-foreground">Werkdruk per persoon: draaidag 3, montage 2, meeting of taak 1 — meer dan {DAY_CAPACITY} per dag is overvol. Montages verschijnen op de montagedag die je bij een edit invult.{unassigned.length > 0 && ` ${unassigned.length} geplande montage${unassigned.length > 1 ? "s" : ""} zonder editor.`}</p>
       </div>}
