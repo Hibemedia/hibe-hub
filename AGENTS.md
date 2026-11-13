@@ -32,4 +32,4 @@
 - HIBE Taken (/hibe/taken) use the tasks table; admins read all, only beheerders assign to others.
 - Productieboard (/hibe/pipeline) is read-only, derived live in src/lib/pipeline.ts from existing tables/timestamps — one source of truth.
 
-- Agenda-specific soft type colours and light controls use semantic CSS tokens and an opt-in light variant on shared filters, so Contentmomenten keeps its own presentation.
+- Scope Agenda tokens and light filters to Agenda to preserve other pages.
