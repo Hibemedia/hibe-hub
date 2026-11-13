@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -53,12 +54,13 @@ export default function Klanten() {
     const name = (editing.name ?? "").trim();
     const blog = editing.metricool_blog_id ?? null;
     if (!name) return toast.error("Vul een naam in");
-    if (!blog) return toast.error("Kies een Metricool-merk");
-    const dup = clients.find((c) => c.metricool_blog_id === blog && c.id !== editing.id);
+    const videoOnly = !!editing.video_only;
+    if (!blog && !videoOnly) return toast.error("Kies een Metricool-merk");
+    const dup = blog ? clients.find((c) => c.metricool_blog_id === blog && c.id !== editing.id) : undefined;
     if (dup) return toast.error(`Dit Metricool-merk hoort al bij "${dup.name}"`);
     setBusy(true);
     try {
-      const payload = { name, metricool_blog_id: blog, tiktok_handle: (editing.tiktok_handle ?? "").replace(/^@/, "").trim() || null };
+      const payload = { name, video_only: videoOnly, metricool_blog_id: blog, tiktok_handle: (editing.tiktok_handle ?? "").replace(/^@/, "").trim() || null };
       let id = editing.id;
       if (id) {
         const { error } = await supabase.from("clients").update(payload).eq("id", id);
@@ -75,11 +77,11 @@ export default function Klanten() {
         await supabase.from("clients").update({ logo_url: path }).eq("id", id);
       }
       const brandChanged = !!editing.id && clients.find((c) => c.id === editing.id)?.metricool_blog_id !== blog;
-      if (brandChanged && id) {
+      if (brandChanged && id && blog) {
         // Old numbers were removed by the database; fetch history for the new brand.
         supabase.functions.invoke("metricool-sync", { body: { mode: "backfill", clientId: id } }).then(() => setTimeout(loadRuns, 3000));
         toast.success("Merk gewijzigd — oude cijfers verwijderd, historie wordt opnieuw opgehaald");
-      } else if (!editing.id && id) {
+      } else if (!editing.id && id && blog) {
         // New client: start history sync from 2025-06-01 automatically.
         supabase.functions.invoke("metricool-sync", { body: { mode: "backfill", clientId: id } })
           .then(() => setTimeout(loadRuns, 3000));
@@ -111,8 +113,9 @@ export default function Klanten() {
                   <TableCell><div className="flex items-center gap-3">
                     {c.logo_url && logos[c.logo_url] ? <img src={logos[c.logo_url]} alt="" className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted" />}
                     <span className="font-medium">{c.name}</span>
+                    {c.video_only && <Badge variant="outline">Alleen video's</Badge>}
                     {c.metricool_brand_label && <span className={c.metricool_brand_label.toLowerCase().includes(c.name.toLowerCase().slice(0, 4)) ? "text-xs text-muted-foreground" : "rounded-md border border-warning/50 bg-warning/10 px-1.5 text-xs"}>Metricool: {c.metricool_brand_label}</span>}</div></TableCell>
-                  <TableCell>{brandLabel(c.metricool_blog_id)} <span className="text-xs text-muted-foreground">({c.metricool_blog_id})</span></TableCell>
+                  <TableCell>{c.metricool_blog_id ? <>{brandLabel(c.metricool_blog_id)} <span className="text-xs text-muted-foreground">({c.metricool_blog_id})</span></> : "–"}</TableCell>
                   <TableCell>{c.tiktok_handle ? `@${c.tiktok_handle}` : "–"}</TableCell>
                   <TableCell>
                     {!r ? <span className="text-muted-foreground text-sm">Nog niet gesynchroniseerd</span> : (
@@ -139,7 +142,11 @@ export default function Klanten() {
           <DialogHeader><DialogTitle>{editing?.id ? "Klant bewerken" : "Klant toevoegen"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2"><Label htmlFor="cname">Naam</Label><Input id="cname" value={editing?.name ?? ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} maxLength={200} /></div>
-            <div className="space-y-2"><Label>Metricool-merk</Label>
+            <label className="flex items-start gap-3 rounded-lg border border-border p-3">
+              <Switch checked={!!editing?.video_only} onCheckedChange={(v) => setEditing({ ...editing, video_only: v })} />
+              <span className="text-sm"><span className="font-medium">Alleen video's</span><span className="block text-muted-foreground">We posten niet voor deze klant: alleen video's bekijken, goedkeuren en downloaden, zonder cijfers.</span></span>
+            </label>
+            <div className="space-y-2"><Label>Metricool-merk{editing?.video_only ? " (optioneel)" : ""}</Label>
               <Select value={editing?.metricool_blog_id ?? ""} onValueChange={(v) => setEditing({ ...editing, metricool_blog_id: v })}>
                 <SelectTrigger><SelectValue placeholder={brands.length ? "Kies een merk" : "Merken laden…"} /></SelectTrigger>
                 <SelectContent>{brands.map((b) => {

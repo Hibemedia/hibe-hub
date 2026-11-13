@@ -31,20 +31,20 @@ import HibePipeline from "./pages/hibe/HibePipeline";
 import ClientReview from "./pages/videos/ClientReview";
 import ClientVideos from "./pages/videos/ClientVideos";
 import { ClientProvider } from "@/context/ClientContext";
-import { ClientEnv, HibeEnv, HibeClientScope, ViewAsEnv } from "@/components/EnvRoutes";
+import { ClientEnv, HibeEnv, HibeClientScope, ViewAsEnv, FullClientOnly } from "@/components/EnvRoutes";
 import Planning from "./pages/Planning";
 
 const queryClient = new QueryClient();
 
 const clientPages = (
   <>
-    <Route index element={<Dashboard />} />
-    <Route path="performance" element={<Performance />} />
-    <Route path="planning" element={<Planning />} />
+    <Route index element={<FullClientOnly><Dashboard /></FullClientOnly>} />
+    <Route path="performance" element={<FullClientOnly><Performance /></FullClientOnly>} />
+    <Route path="planning" element={<FullClientOnly><Planning /></FullClientOnly>} />
     <Route path="video-approval" element={<Navigate to="../videos" relative="path" replace />} />
     <Route path="content-moments" element={<ContentMoments />} />
     <Route path="branding" element={<Branding />} />
-    <Route path="medals" element={<Medals />} />
+    <Route path="medals" element={<FullClientOnly><Medals /></FullClientOnly>} />
     <Route path="videos" element={<ClientVideos />} />
     <Route path="videos/:videoId" element={<ClientReview />} />
   </>

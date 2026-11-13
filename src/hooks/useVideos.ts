@@ -54,6 +54,7 @@ export function usePlayUrl(versionId?: string) {
     queryFn: async () => (await invokeVideo<{ url: string }>({ action: "play_url", version_id: versionId })).url,
   });
 }
+export const getDownloadUrl = async (versionId: string) => (await invokeVideo<{ url: string }>({ action: "play_url", version_id: versionId, download: true })).url;
 export const setVideoStatus = async (id: string, status: VideoStatus) => {
   const { error } = await db.from("video_items").update({ status }).eq("id", id);
   if (error) throw error;

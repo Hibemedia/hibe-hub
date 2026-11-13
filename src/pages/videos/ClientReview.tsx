@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Check, MessageSquare, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, MessageSquare, Lock, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
-import { useVideoBoard, useVideoItem, usePlayUrl, useItemComments } from "@/hooks/useVideos";
+import { useVideoBoard, useVideoItem, usePlayUrl, useItemComments, getDownloadUrl } from "@/hooks/useVideos";
 import { Player, PlayerHandle } from "@/components/videos/Player";
 import { fmtTime, isClientVisible } from "@/lib/videos";
 import { useViewAs, ReadOnlyTip } from "@/context/ViewAs";
@@ -76,6 +76,11 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
   const [busy, setBusy] = useState(false);
   const canAct = !readOnly && item?.status === "client_review";
   const viewAs = useViewAs();
+  const { client } = useClient();
+  const download = async () => {
+    if (!version) return;
+    try { window.location.href = await getDownloadUrl(version.id); } catch (e: any) { toast.error("Downloaden mislukt: " + (e?.message ?? e)); }
+  };
 
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Laden…</div>;
   // Meekijkmodus: HIBE may read every video, so apply the client's own visibility rules here.
@@ -114,7 +119,8 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
           <button aria-label="Volgende video" disabled={pos.i >= pos.n - 1} onClick={onNext} className="round-btn h-9 w-9 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}
-      <h1 className="truncate text-lg font-semibold">{item.title}</h1>
+      <div className="flex items-center gap-3"><h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{item.title}</h1>
+        {client?.video_only && version && <Button variant="outline" size="sm" onClick={download}><Download className="h-4 w-4" />Download</Button>}</div>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-3">
           <Player ref={player} url={url} maxH="min(60vh, calc(100vh - 300px))" markers={mine.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number) }))} />
