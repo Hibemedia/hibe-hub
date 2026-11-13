@@ -182,7 +182,7 @@ export default function HibeAgenda() {
     <div className="space-y-4">
       <PageHeader title="Agenda" action={<PrimaryAction icon={Plus} onClick={() => setForm(blank(today))}>Nieuw item</PrimaryAction>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedControl label="Agendaweergave" value={view} onChange={setView} options={[{ value: "month", label: "Maand" }, { value: "week", label: "Weekbezetting" }, { value: "list", label: "Lijst" }]} />
+        <SegmentedControl<"month" | "week" | "list"> label="Agendaweergave" value={view} onChange={setView} options={[{ value: "month", label: "Maand" }, { value: "week", label: "Weekbezetting" }, { value: "list", label: "Lijst" }]} />
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" aria-label="Vorige" onClick={() => view === "week" ? shiftWeek(-1) : shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
           <Button variant="outline" size="icon" aria-label="Volgende" onClick={() => view === "week" ? shiftWeek(1) : shift(1)}><ChevronRight className="h-4 w-4" /></Button>
