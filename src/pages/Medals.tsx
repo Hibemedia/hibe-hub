@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -106,7 +107,7 @@ function MedalCard({ m, clientId, onCelebrate }: { m: Medal; clientId: string; o
         </div>
         {m.levelIndex >= 0
           ? <MedalBadge levelIndex={m.levelIndex} category={m.key} />
-          : <span className="chip shrink-0">Nog geen niveau</span>}
+          : <Tag className=" shrink-0">Nog geen niveau</Tag>}
       </div>
       <div className="mt-5 text-[44px] font-light leading-none tabular">{formatNumber(m.value)}</div>
       <p className="mt-1 text-sm text-muted-foreground">{m.reached != null ? `Behaald: ${meta.unit(m.reached)}` : "Eerste niveau nog niet behaald"}</p>
@@ -153,8 +154,8 @@ function VideoList({ title, subtitle, items, empty }: { title: string; subtitle?
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{v.title || "Zonder titel"}</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
-                      <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
-                      {v.published_at && <span className="chip">{fmtDate(v.published_at)}</span>}
+                      <Tag className="">{NETWORK_LABELS[v.network as Network] ?? v.network}</Tag>
+                      {v.published_at && <Tag className="">{fmtDate(v.published_at)}</Tag>}
                     </div>
                   </div>
                   <div className="hidden text-right tabular sm:block"><span className="text-2xl font-light">{formatNumber(v.views)}</span> <span className="text-xs text-muted-foreground">weergaven</span></div>

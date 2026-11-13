@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -117,7 +119,7 @@ export default function HibeReview() {
         <main className="min-w-0 flex-1 space-y-3 p-4">
           <Player ref={player} url={url} markers={shown.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number), muted: c.resolved }))} />
           <div className="flex flex-wrap items-center justify-center gap-2">
-            {versions.map((v) => <button key={v.id} aria-pressed={v.id === version?.id} onClick={() => setVerNo(v.version)} className="chip-filter h-8">V{v.version}</button>)}
+            {versions.map((v) => <FilterChip key={v.id} aria-pressed={v.id === version?.id} onClick={() => setVerNo(v.version)} className=" h-8">V{v.version}</FilterChip>)}
             <Button variant="outline" size="sm" onClick={() => downloadVideo(version?.id ?? null, version?.file_name ?? item.title)}><Download />Download</Button>
             <Button variant="outline" size="sm" onClick={() => file.current?.click()}><Upload />Nieuwe versie</Button>
             <input ref={file} type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) startUpload({ file: f, itemId: item.id, onDone: () => { reload(); toast.success(`V${item.current_version + 1} staat klaar`); } }); }} />
@@ -130,7 +132,7 @@ export default function HibeReview() {
             {(["internal", "client"] as const).map((t) => {
               const n = shown.filter((c) => (t === "internal" ? c.internal : !c.internal) && !c.resolved).length;
               return <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cn("flex h-11 items-center justify-center gap-1.5 text-sm font-medium", tab === t ? "border-b-2 border-foreground" : "text-muted-foreground")}>
-                {t === "internal" && <Lock className="h-3.5 w-3.5" aria-label="Niet zichtbaar voor klant" />}{t === "internal" ? "Intern" : "Klant"}<span className="chip tabular">{n}</span></button>;
+                {t === "internal" && <Lock className="h-3.5 w-3.5" aria-label="Niet zichtbaar voor klant" />}{t === "internal" ? "Intern" : "Klant"}<Tag className=" tabular">{n}</Tag></button>;
             })}
           </div>
           {prev.length > 0 && <p className="border-b border-border px-4 py-2 text-xs"><b>{prev.filter((c) => c.resolved).length} van {prev.length}</b> opmerkingen uit de vorige versie verwerkt</p>}
@@ -141,7 +143,7 @@ export default function HibeReview() {
                 <div className="flex items-start gap-2">
                   <UserAvatar userId={c.user_id} name={m.names[c.user_id]} size={24} className="mt-0.5" />
                   <button onClick={() => player.current?.seek(c.time_seconds)} className="min-w-0 flex-1 text-left">
-                    <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><b className="text-foreground">{m.names[c.user_id] ?? (c.internal ? "HIBE" : m.clientName(item.client_id))}</b><span className="chip tabular">{fmtTime(c.time_seconds)}</span>{verOf(c) !== version?.version && <span className="chip">V{verOf(c)}</span>}</span>
+                    <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><b className="text-foreground">{m.names[c.user_id] ?? (c.internal ? "HIBE" : m.clientName(item.client_id))}</b><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag>{verOf(c) !== version?.version && <Tag className="">V{verOf(c)}</Tag>}</span>
                     <p className={cn("mt-1 whitespace-pre-wrap break-words text-sm", c.resolved && "line-through")}>{c.text}</p>
                   </button>
                   <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"><Checkbox checked={c.resolved} onCheckedChange={(v) => resolve(c, !!v)} aria-label={`Opmerking ${c.number} verwerkt`} />verwerkt</label>
@@ -151,7 +153,7 @@ export default function HibeReview() {
           </ol>
           {version && (
             <form className="space-y-2 border-t border-border p-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
-              <span className="chip tabular">{stamp === null ? "Tijdcode bij typen" : fmtTime(stamp)}</span>
+              <Tag className=" tabular">{stamp === null ? "Tijdcode bij typen" : fmtTime(stamp)}</Tag>
               <Textarea value={text} onChange={(e) => typing(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }} maxLength={4000} placeholder={tab === "internal" ? "Interne opmerking…" : "Opmerking voor de klant…"} aria-label="Opmerking" className="min-h-20" />
               <Button type="submit" className="w-full" disabled={!text.trim()}>Plaatsen{tab === "internal" ? " (intern)" : ""}</Button>
             </form>

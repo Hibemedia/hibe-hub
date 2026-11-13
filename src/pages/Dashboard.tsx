@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, Check, Play } from "lucide-react";
@@ -54,8 +55,8 @@ export default function Dashboard() {
                     <h3 className="line-clamp-3 break-words text-lg font-semibold">{best.title || "Zonder titel"}</h3>
                     {best.url && <Button asChild variant="secondary" size="icon" className="shrink-0 bg-popover" title="Open post"><a href={best.url} target="_blank" rel="noopener noreferrer" aria-label="Open post"><ArrowUpRight aria-hidden /></a></Button>}
                   </div>
-                  <div className="flex flex-wrap gap-2"><span className="chip">{NETWORK_LABELS[best.network as Network] ?? best.network}</span>
-                    {best.published_at && <span className="chip">{new Date(best.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}</span>}</div>
+                  <div className="flex flex-wrap gap-2"><Tag className="">{NETWORK_LABELS[best.network as Network] ?? best.network}</Tag>
+                    {best.published_at && <Tag className="">{new Date(best.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}</Tag>}</div>
                   <p className="mt-auto text-4xl font-light leading-none tabular">{formatNumber(best.views)} <span className="text-sm text-muted-foreground">weergaven</span></p>
                 </div>
               </article>

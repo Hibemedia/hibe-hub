@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Plus } from "lucide-react";
@@ -50,9 +52,9 @@ export default function HibeGoedkeuringen() {
           <SelectContent><SelectItem value="all">Alle klanten</SelectItem>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
         </Select>
         {STATUSES.map((s) => (
-          <button key={s} aria-pressed={status === s} onClick={() => setStatus(s)} className="chip-filter shrink-0">
+          <FilterChip key={s} aria-pressed={status === s} onClick={() => setStatus(s)} className=" shrink-0">
             {s === "all" ? "Alle" : REVIEW_STATUS_LABEL[s]} <span className="ml-1.5 text-muted-foreground tabular">{items.filter((i) => (client === "all" || i.client_id === client) && (s === "all" || i.status === s)).length}</span>
-          </button>
+          </FilterChip>
         ))}
       </div>
 
@@ -65,10 +67,10 @@ export default function HibeGoedkeuringen() {
               <button onClick={() => setOpenId(i.id)} className="flex w-full flex-col gap-4 rounded-lg bg-card p-3 text-left transition-colors hover:bg-popover">
                 <ItemThumb item={i} />
                 <div className="px-2 pb-2">
-                  <div className="mb-2 flex flex-wrap gap-1.5"><StatusLabel status={i.status} /><span className="chip">{name(i.client_id)}</span></div>
+                  <div className="mb-2 flex flex-wrap gap-1.5"><StatusLabel status={i.status} /><Tag className="">{name(i.client_id)}</Tag></div>
                   <p className="line-clamp-2 text-xl font-semibold leading-snug">{i.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{fmtDate(i.planned_date)}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">{i.networks.map((n) => <span key={n} className="chip">{netInfo(n).label}</span>)}</div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">{i.networks.map((n) => <Tag key={n} className="">{netInfo(n).label}</Tag>)}</div>
                 </div>
               </button>
               <span aria-hidden className="round-btn pointer-events-none absolute right-6 top-6"><ArrowUpRight className="h-4 w-4" /></span>

@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,7 +42,7 @@ const STATUS_STYLE: Record<ReviewStatus, string> = {
   changes_requested: "bg-muted text-foreground",
 };
 export function StatusLabel({ status }: { status: ReviewStatus }) {
-  return <span className={cn("inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{REVIEW_STATUS_LABEL[status]}</span>;
+  return <Tag className={cn("inline-flex shrink-0 items-center rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{REVIEW_STATUS_LABEL[status]}</Tag>;
 }
 
 function useInvalidate() {
@@ -76,10 +78,10 @@ export default function VideoApproval() {
 
       <div className="flex flex-wrap gap-2" role="tablist">
         {([["open", `Te beoordelen`, open.length], ["done", "Afgehandeld", done.length]] as const).map(([k, label, n]) => (
-          <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className="chip-filter gap-2">
+          <FilterChip key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+            className=" gap-2">
             {label} <span className="tabular text-muted-foreground">{n}</span>
-          </button>
+          </FilterChip>
         ))}
       </div>
 
@@ -96,8 +98,8 @@ export default function VideoApproval() {
                   <p className="line-clamp-2 text-xl font-semibold leading-snug">{i.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{fmtDate(i.planned_date)}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {i.networks.map((n) => <span key={n} className="chip">{netInfo(n).label}</span>)}
-                    {i.source === "metricool" && <span className="chip">Uit Metricool</span>}
+                    {i.networks.map((n) => <Tag key={n} className="">{netInfo(n).label}</Tag>)}
+                    {i.source === "metricool" && <Tag className="">Uit Metricool</Tag>}
                   </div>
                 </div>
               </button>

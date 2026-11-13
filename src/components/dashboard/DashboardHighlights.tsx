@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +52,7 @@ export function DashboardHighlights() {
       <section className="flex min-w-0 flex-col rounded-lg bg-card p-5 md:p-6 lg:col-span-7" aria-label="Te beoordelen door HIBE">
         <div className="flex min-w-0 items-baseline justify-between gap-3">
           <h2 className="truncate text-sm font-medium text-muted-foreground" title="Te beoordelen door HIBE">Te beoordelen door HIBE</h2>
-          {review && review.total > 0 && <span className="shrink-0 rounded-full bg-popover px-2.5 py-0.5 text-xs font-semibold">{review.total} open</span>}
+          {review && review.total > 0 && <Tag className="shrink-0 rounded-tag bg-popover px-2.5 py-0.5 text-xs font-semibold">{review.total} open</Tag>}
         </div>
         {reviewLoading ? <Skeleton className="mt-4 h-24 w-full" /> : review && review.items.length ? (
           <ul className="mt-2 divide-y divide-border">

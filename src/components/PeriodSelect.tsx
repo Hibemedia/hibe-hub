@@ -1,3 +1,4 @@
+import { FilterChip } from "@/components/ui/filter-chip";
 import { PERIODS, PeriodKey } from "@/lib/stats";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -14,7 +15,7 @@ export function PeriodSelect({ value, onChange, only, compact }: { value: Period
       </div>
       <div className="hidden flex-wrap justify-end gap-2 sm:flex" role="group" aria-label="Periode">
         {list.map((p) => (
-          <button key={p.key} onClick={() => onChange(p.key)} aria-pressed={value === p.key} className={compact ? "chip-filter h-8 shrink-0 px-3 text-xs" : "chip-filter shrink-0"}>{p.label}</button>
+          <FilterChip key={p.key} onClick={() => onChange(p.key)} aria-pressed={value === p.key} className={compact ? " h-8 shrink-0 px-3 text-xs" : " shrink-0"}>{p.label}</FilterChip>
         ))}
       </div>
     </>

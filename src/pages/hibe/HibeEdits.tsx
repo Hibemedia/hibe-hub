@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { useEffect, useMemo, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useSearchParams } from "react-router-dom";
@@ -143,15 +144,15 @@ export default function HibeEdits() {
                     )}
                     {e.video_item_id && e.video?.status !== "feedback" && <Link to={`/hibe/videos/${e.video_item_id}`} aria-label="Open video" className="shrink-0 text-muted-foreground hover:text-foreground"><Film className="h-3.5 w-3.5" /></Link>}
                     {e.drive_link && <a href={e.drive_link} target="_blank" rel="noreferrer" aria-label="Google Drive-link" className="shrink-0 text-muted-foreground hover:text-foreground"><Link2 className="h-3.5 w-3.5" /></a>}
-                    {e.planned_date && <span className="shrink-0 rounded-full bg-foreground/10 px-2 py-0.5 text-xs">Montage {fmtDeadline(e.planned_date)}</span>}
-                    {e.shoot_date && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Draaidag {fmtDeadline(e.shoot_date)}</span>}
+                    {e.planned_date && <Tag className="shrink-0 rounded-tag bg-foreground/10 px-2 py-0.5 text-xs">Montage {fmtDeadline(e.planned_date)}</Tag>}
+                    {e.shoot_date && <Tag className="shrink-0 rounded-tag bg-muted px-2 py-0.5 text-xs text-muted-foreground">Draaidag {fmtDeadline(e.shoot_date)}</Tag>}
                   </div>
                   <Select value={e.editor_id ?? "none"} onValueChange={(v) => update(e, { editor_id: v === "none" ? null : v })}>
                     <SelectTrigger aria-label={`Editor voor ${e.title}`} className="h-8 border-transparent px-2 hover:border-border"><div className="flex min-w-0 items-center gap-2"><Avatar m={member(e.editor_id)} size={22} /><div className="truncate text-sm">{member(e.editor_id)?.name ?? "Geen editor"}</div></div></SelectTrigger>
                     <SelectContent><SelectItem value="none">Geen editor</SelectItem>{team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
                   </Select>
                   <Select value={e.status} onValueChange={(v) => update(e, { status: v as EditStatus })}>
-                    <SelectTrigger aria-label={`Status voor ${e.title}`} className="h-8 w-fit border-transparent px-1 hover:border-border"><span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", STATUS_CLS[e.status])}>{EDIT_STATUS_LABEL[e.status]}</span></SelectTrigger>
+                    <SelectTrigger aria-label={`Status voor ${e.title}`} className="h-8 w-fit border-transparent px-1 hover:border-border"><Tag className={cn("rounded-tag px-2.5 py-0.5 text-xs font-medium", STATUS_CLS[e.status])}>{EDIT_STATUS_LABEL[e.status]}</Tag></SelectTrigger>
                     <SelectContent>{EDIT_STATUSES.map((s) => <SelectItem key={s} value={s}>{EDIT_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
                   </Select>
                   <span className={cn("text-sm tabular", overdue(e) ? "font-medium text-destructive" : "text-muted-foreground")}>{e.deadline ? fmtDeadline(e.deadline) : "—"}</span>

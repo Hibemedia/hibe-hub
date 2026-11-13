@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, ImageOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +43,7 @@ export default function Planning() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 text-xs">
                       <span className="inline-flex items-center gap-1 font-medium tabular"><CalendarClock className="h-3.5 w-3.5" />{p.date ? p.date.slice(11, 16) : "–"}</span>
-                      {p.networks.map((n) => <span key={n} className="chip">{NET[n] ?? n}</span>)}
+                      {p.networks.map((n) => <Tag key={n} className="">{NET[n] ?? n}</Tag>)}
                     </div>
                     <p className="mt-1 line-clamp-2 break-words text-sm">{p.text || "Zonder tekst"}</p>
                   </div>
