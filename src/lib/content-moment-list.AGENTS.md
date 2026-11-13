@@ -1,0 +1,1 @@
+- Normalize legacy content-moment statuses in content-moment-list.ts rather than rewriting stored records; this preserves compatibility across filters and display surfaces.
