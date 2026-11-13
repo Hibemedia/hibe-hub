@@ -423,7 +423,7 @@
 
 /* The app frame owns outer spacing; legacy page padding must not double it. */
 .app-page-content { min-width: 0; padding: 16px; }
-.app-page-content > :where(div, section) { padding: 0; }
+.app-page-content > :is(div, section) { padding: 0; }
 @media (min-width: 768px) {
   .app-page-content { padding: 24px; }
 }
