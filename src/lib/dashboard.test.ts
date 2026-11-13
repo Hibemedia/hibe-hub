@@ -1,6 +1,9 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, test } from "bun:test";
-import { isNewGrowth, weekElapsed, weekBehind, canSeeTotals, normName } from "./dashboard";
+import { isNewGrowth, weekElapsed, weekBehind, canSeeTotals, normName, rankingRange, rankGrowthNote, RANK_SCOPES } from "./dashboard";
+
+// Friday 13 November 2026, 09:00 UTC = 10:00 Amsterdam.
+const FRI = new Date(Date.UTC(2026, 10, 13, 9, 0));
 
 describe("dashboard rules", () => {
   test("growth above 999% is 'nieuw'", () => {

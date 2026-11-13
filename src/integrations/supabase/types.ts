@@ -1237,6 +1237,21 @@ export type Database = {
           moment_id: string
         }[]
       }
+      client_ranking: {
+        Args: {
+          _from: string
+          _prev_from: string
+          _prev_to: string
+          _to: string
+        }
+        Returns: {
+          client_id: string
+          followers: number
+          posts: number
+          prev_views: number
+          views: number
+        }[]
+      }
       current_client_id: { Args: never; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_beheerder: { Args: { _user_id: string }; Returns: boolean }
