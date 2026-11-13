@@ -54,7 +54,7 @@
     --secondary: 60 5% 91%;
     --secondary-foreground: 0 0% 7%;
     --muted: 60 6% 93%;
-    --muted-foreground: 40 3% 36%;
+    --muted-foreground: 0 0% 42%;
     --accent: 60 6% 93%;
     --accent-foreground: 0 0% 7%;
     --success: 142 60% 30%;
@@ -73,9 +73,13 @@
     --social-blue-bg: 214 95% 93%;   --social-blue-fg: 221 70% 35%;
     --social-purple-bg: 270 100% 95%; --social-purple-fg: 271 60% 35%;
     --social-green-bg: 152 76% 90%;  --social-green-fg: 158 64% 25%;
-    --border: 60 5% 89%;            /* #E6E6E3 */
+    --border: 0 0% 90%;            /* #E6E6E3 */
     --input: 60 5% 86%;
-    --ring: 0 0% 7%;
+    --ring: 76 87% 58%;
+    --radius-control: 12px; --radius-tag: 8px; --radius-avatar: 9999px;
+    --control-height: 40px; --control-compact-height: 32px; --tag-height: 24px;
+    --tag-neutral: 0 0% 94%; --tag-success: 100 45% 92%; --tag-warning: 48 85% 90%;
+    --tag-danger: 0 75% 95%; --tag-info: 30 80% 93%; --filter-active: 76 75% 90%;
     --radius: 0.75rem;              /* cards 12px */
     --platform-ig: 330 70% 52%;
     --platform-tt: 180 60% 38%;
@@ -125,6 +129,8 @@
     --agenda-task-fill: 265 20% 18%;
     --agenda-vacation-fill: 34 25% 18%;
     --agenda-count: 0 0% 65%;
+    --tag-neutral: 0 0% 18%; --tag-success: 100 22% 20%; --tag-warning: 48 32% 20%;
+    --tag-danger: 0 30% 20%; --tag-info: 30 30% 20%; --filter-active: 76 25% 20%;
 
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 98%;
@@ -401,3 +407,16 @@
     --series-7: 0 0% 60%;
   }
 }
+
+/* Shared control contract, including legacy adapters during sitewide migration. */
+.ui-tag, .chip, .growth { display:inline-flex; align-items:center; gap:4px; min-height:var(--tag-height); padding:2px 8px; border-radius:var(--radius-tag); background:hsl(var(--tag-neutral)); color:hsl(var(--foreground)); font-size:12px; font-weight:500; line-height:18px; }
+.ui-tag-success { background:hsl(var(--tag-success)); }
+.ui-tag-warning { background:hsl(var(--tag-warning)); }
+.ui-tag-danger { background:hsl(var(--tag-danger)); }
+.ui-tag-info { background:hsl(var(--tag-info)); }
+.ui-filter, .chip-filter { min-height:var(--control-compact-height); border:1px solid hsl(var(--border)); border-radius:var(--radius-control); background:hsl(var(--card)); color:hsl(var(--muted-foreground)); font-weight:500; }
+.ui-filter[aria-pressed="true"], .chip-filter[aria-pressed="true"], .chip-filter[aria-selected="true"] { background:hsl(var(--filter-active)); border-color:hsl(var(--lime)); color:hsl(var(--foreground)); }
+.ui-filter:hover, .chip-filter:hover { background:hsl(var(--muted)); color:hsl(var(--foreground)); }
+.ui-filter[aria-pressed="true"]:hover, .chip-filter[aria-pressed="true"]:hover { background:hsl(var(--filter-active)); }
+.ui-control:focus-visible, .ui-filter:focus-visible, .chip-filter:focus-visible { outline:2px solid hsl(var(--lime)); outline-offset:2px; }
+.ui-control:disabled, .ui-filter:disabled { opacity:.5; pointer-events:none; }
