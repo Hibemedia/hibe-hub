@@ -1,5 +1,5 @@
-import { Link, NavLink } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
@@ -16,12 +16,32 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/UserAvatar";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function Avatar() {
   const { user, session } = UserAuth() as any;
+  const navigate = useNavigate();
   const u = user ?? session?.user;
-  const label: string = u?.full_name || u?.user_metadata?.full_name || u?.email || "";
-  return <UserAvatar userId={u?.id} size={32} name={undefined} />;
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast.error("Uitloggen mislukt. Probeer het opnieuw."); return; }
+    navigate("/login", { replace: true });
+  };
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full p-0" aria-label="Profielmenu">
+          <UserAvatar userId={u?.id} size={32} name={undefined} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-40">
+        <DropdownMenuItem onSelect={() => { void logout(); }}><LogOut className="mr-2 h-4 w-4" />Uitloggen</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
 /** 56px top bar on every page: title left, search centre, main action + avatar right. */
