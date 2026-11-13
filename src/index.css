@@ -421,6 +421,13 @@
 .ui-control:focus-visible, .ui-filter:focus-visible, .chip-filter:focus-visible { outline:2px solid hsl(var(--lime)); outline-offset:2px; }
 .ui-control:disabled, .ui-filter:disabled { opacity:.5; pointer-events:none; }
 
+/* The app frame owns outer spacing; legacy page padding must not double it. */
+.app-page-content { min-width: 0; padding: 16px; }
+.app-page-content > :where(div, section) { padding: 0; }
+@media (min-width: 768px) {
+  .app-page-content { padding: 24px; }
+}
+
 /* Contentmomenten use their available page width, not the viewport beside the sidebar. */
 .content-moments-page { container-type: inline-size; }
 .content-moments-page [aria-label="Agendafilters"] { gap: 8px; }
