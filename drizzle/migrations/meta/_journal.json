@@ -225,6 +225,13 @@
       "when": 1794560298391,
       "tag": "0031_clients_archived",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794560562288,
+      "tag": "0032_client_ranking_function",
+      "breakpoints": true
     }
   ]
 }
