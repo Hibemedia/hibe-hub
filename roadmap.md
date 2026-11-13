@@ -1,5 +1,10 @@
 # Roadmap
 
+## HIBE-contentmomenten
+- [ ] Maandlijst met klantlogo, optioneel bestaand referentiebeeld en maximaal drie crewavatars.
+- [ ] Wie/Klant/Status-filters toevoegen en bestaande handelingen behouden.
+- [ ] Echte lijst, filters en details controleren op desktop en mobiel.
+
 ## HIBE-agenda
 - [x] Filters voor persoon, type en klant delen tussen maand, week en lijst; onthouden per gebruiker en in URL.
 - [x] Dagpopover en zijpaneel met bestaande itemdetails toevoegen.

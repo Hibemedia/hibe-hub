@@ -77,11 +77,12 @@ function CrewPhoto({ c }: { c: ShownCrew }) {
 }
 
 /** Avatars on a moment row/card, or the orange label for a shoot day without crew (HIBE only). */
-export function CrewBadge({ m, crew, asClient, showNames }: { m: { id: string; type: string; status: string; date: string | null }; crew: ShownCrew[]; asClient: boolean; showNames?: boolean }) {
+export function CrewBadge({ m, crew, asClient, showNames, maxAvatars }: { m: { id: string; type: string; status: string; date: string | null }; crew: ShownCrew[]; asClient: boolean; showNames?: boolean; maxAvatars?: number }) {
   if (crew.length === 0) return !asClient && needsCrew(m, 0) ? <span className="inline-flex rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning">Nog niemand ingepland</span> : null;
   return (
     <span className="flex min-w-0 flex-wrap items-center gap-2">
-      <span className="flex max-w-full flex-wrap -space-x-2 gap-y-1" role="group" aria-label="Ingeplande crew">{crew.map((c, i) => <CrewPhoto key={c.user_id ?? `${c.name}-${i}`} c={c} />)}</span>
+      <span className="flex max-w-full flex-wrap -space-x-2 gap-y-1" role="group" aria-label="Ingeplande crew">{crew.slice(0, maxAvatars ?? crew.length).map((c, i) => <CrewPhoto key={c.user_id ?? `${c.name}-${i}`} c={c} />)}</span>
+      {maxAvatars !== undefined && crew.length > maxAvatars && <span title={crew.slice(maxAvatars).map((c) => c.name).join(", ")} className="flex h-8 min-w-8 items-center justify-center rounded-full bg-muted px-1 text-xs font-semibold">+{crew.length - maxAvatars}</span>}
       {showNames && <span className="min-w-0 break-words text-sm text-muted-foreground">{crew.map((c) => c.name.split(" ")[0]).join(", ")}</span>}
     </span>
   );
