@@ -28,7 +28,7 @@ export type Moment = {
 export const MOMENT_STATUS = STATUS;
 export const MOMENT_TYPES = TYPES;
 export const STATUS_STYLE: Record<Status, string> = {
-  aangevraagd: "bg-lime text-lime-foreground", bevestigd: "bg-foreground text-background", gepland: "bg-popover text-foreground",
+  aangevraagd: "bg-lime text-lime-foreground", bevestigd: "bg-lime/20 text-foreground", gepland: "bg-popover text-foreground",
   afgerond: "bg-muted text-foreground", geannuleerd: "bg-muted text-muted-foreground line-through",
 };
 const fmtDate = (d: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "long", year: "numeric" }) : "Nog geen datum");
