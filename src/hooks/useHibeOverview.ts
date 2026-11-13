@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DailyStat, PeriodKey, periodRange, totalsFor, pctChange, lastWeekRange } from "@/lib/stats";
+import { RankScope, rankingRange } from "@/lib/dashboard";
 import type { VideoRow } from "@/hooks/useClientStats";
 
 const PAGE = 1000;
@@ -71,6 +72,21 @@ export function useHibeOverview(period: PeriodKey, enabled = true) {
         stored.forEach((v, i) => { v.thumbnail_url = signed?.[i]?.signedUrl ?? null; });
       }
       return { range, stats, summaries, totals, videos };
+    },
+  });
+}
+
+export interface RankingRow { client_id: string; views: number; prev_views: number | null; posts: number; followers: number | null }
+
+/** Per-client totals for the range the ranking shows; summed in the database so all time stays fast. */
+export function useClientRanking(scope: RankScope) {
+  return useQuery({
+    queryKey: ["hibe-ranking", scope],
+    queryFn: async () => {
+      const r = rankingRange(scope);
+      const { data, error } = await (supabase as any).rpc("client_ranking", { _from: r.from, _to: r.to, _prev_from: r.prevFrom, _prev_to: r.prevTo });
+      if (error) throw error;
+      return (data ?? []) as RankingRow[];
     },
   });
 }
