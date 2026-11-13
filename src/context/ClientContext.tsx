@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useMemo, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 
@@ -51,7 +51,8 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     setClients(rows);
     if (admin) {
       const saved = localStorage.getItem(KEY);
-      const pick = rows.find((c) => c.id === saved)?.id ?? me?.client_id ?? rows[0]?.id ?? null;
+      const active = rows.filter((c) => !c.archived_at);
+      const pick = active.find((c) => c.id === saved)?.id ?? me?.client_id ?? active[0]?.id ?? null;
       setClientIdState(pick);
     } else {
       setClientIdState(me?.client_id ?? null);
@@ -67,9 +68,10 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     setClientIdState(id);
   };
 
+  const activeClients = useMemo(() => clients.filter((c) => !c.archived_at), [clients]);
   return (
     <ClientCtx.Provider value={{
-      isAdmin, ready, clients, clientId, client: clients.find((c) => c.id === clientId) ?? null,
+      isAdmin, ready, clients: activeClients, allClients: clients, clientId, client: clients.find((c) => c.id === clientId) ?? null,
       setClientId, refreshClients: load,
     }}>
       {children}
