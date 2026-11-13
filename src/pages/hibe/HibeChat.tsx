@@ -64,7 +64,7 @@ export default function HibeChat() {
   return (
     <>
       <PageHeader title="Chat" />
-      <div className="flex h-[calc(100dvh-9rem)] overflow-hidden rounded-lg border border-border bg-card md:h-[calc(100dvh-5.5rem)]">
+      <div className="flex h-[calc(100dvh-11rem)] overflow-hidden rounded-lg border border-border bg-card md:h-[calc(100dvh-6.5rem)]">
         <aside className={cn("w-full shrink-0 flex-col overflow-y-auto border-border p-2 md:flex md:w-64 md:border-r", room ? "hidden" : "flex")}>
           {askNotify && (
             <div className="mb-2 rounded-md bg-muted p-3 text-xs">

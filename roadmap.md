@@ -1,5 +1,8 @@
 # Roadmap
 
+## Ruimte rond pagina’s
+- [x] Gelijke buitenruimte in HIBE- en klantomgeving zonder dubbele paginamarges; tien HIBE-pagina’s en Bekijk als klant gecontroleerd op desktop/mobiel, geen horizontale overflow en build OK.
+
 ## Taak doorgeven
 - [x] Taakrechten hersteld; als Editor een taak van een andere maker doorgegeven en teruggelezen in de UI, oude toegewezene kan niet meer wijzigen; tijdelijke taak opgeruimd, regressietest en vier helpertests slagen.
 
