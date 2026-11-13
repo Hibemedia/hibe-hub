@@ -1,5 +1,8 @@
 # Roadmap
 
+## Taak doorgeven
+- [x] Taakrechten hersteld; als Editor een taak van een andere maker doorgegeven en teruggelezen in de UI, oude toegewezene kan niet meer wijzigen; tijdelijke taak opgeruimd, regressietest en vier helpertests slagen.
+
 ## Centraal label- en filtersysteem
 - [x] Gemelde parsefout in Socials-checklist en Agenda herstellen en preview opnieuw controleren.
 - [x] Centrale lichte componenten en tokens toevoegen.

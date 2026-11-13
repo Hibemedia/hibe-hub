@@ -239,6 +239,13 @@
       "when": 1794562585372,
       "tag": "0033_tasks_assign_anyone",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794565502723,
+      "tag": "0034_allow_assigned_team_task_handoff",
+      "breakpoints": true
     }
   ]
 }
