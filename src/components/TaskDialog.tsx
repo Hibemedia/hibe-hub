@@ -1,3 +1,4 @@
+import { FilterChip } from "@/components/ui/filter-chip";
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
@@ -44,7 +45,7 @@ export function TaskFields({ form, setForm }: { form: TaskForm; setForm: (f: Tas
     <div className="space-y-1.5">
       <Label>Voor wie?</Label>
       <div className="flex flex-wrap gap-2">
-        {people.map((t) => <button key={t.id} type="button" onClick={() => setForm({ ...form, assignee_id: t.id })} className={cn("flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-3 text-sm", form.assignee_id === t.id ? "bg-foreground text-background" : "bg-popover hover:bg-muted")}><UserAvatar userId={t.id} size={22} />{t.id === me ? "Ik" : t.name}</button>)}
+        {people.map((t) => <FilterChip key={t.id} active={form.assignee_id === t.id} type="button" onClick={() => setForm({ ...form, assignee_id: t.id })}><UserAvatar userId={t.id} size={22} />{t.id === me ? "Ik" : t.name}</FilterChip>)}
       </div>
     </div>
     <div className="space-y-1.5"><Label htmlFor="tk-notes">Notities</Label><Textarea id="tk-notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>

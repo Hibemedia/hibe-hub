@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AgendaEntry, AgendaKind, DAY_CAPACITY, absentOn, entriesOn, monthGrid, personDayLoad, shootRow, teamDayLoad, workWeek, ymd } from "@/lib/agenda";
 import { TaskDialog, TaskFields, blankTask, saveTask, taskToForm, type TaskForm } from "@/components/TaskDialog";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { AgendaControls, useAgendaFilters } from "@/components/agenda/AgendaControls";
 import { AgendaDetails } from "@/components/agenda/AgendaDetails";
 import { AgendaDayItems } from "@/components/agenda/AgendaDayItems";
@@ -181,9 +182,7 @@ export default function HibeAgenda() {
     <div className="space-y-4">
       <PageHeader title="Agenda" action={<PrimaryAction icon={Plus} onClick={() => setForm(blank(today))}>Nieuw item</PrimaryAction>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="agenda-segment" role="group" aria-label="Agendaweergave">
-          {(["month", "week", "list"] as const).map((v) => <Button key={v} size="sm" variant="ghost" onClick={() => setView(v)} aria-pressed={view === v} className="agenda-segment-option px-3">{v === "month" ? "Maand" : v === "week" ? "Weekbezetting" : "Lijst"}</Button>)}
-        </div>
+        <SegmentedControl label="Agendaweergave" value={view} onChange={(v) => { if (v === "month" || v === "week" || v === "list") setView(v); }} options={[{ value: "month", label: "Maand" }, { value: "week", label: "Weekbezetting" }, { value: "list", label: "Lijst" }]} />
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" aria-label="Vorige" onClick={() => view === "week" ? shiftWeek(-1) : shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
           <Button variant="outline" size="icon" aria-label="Volgende" onClick={() => view === "week" ? shiftWeek(1) : shift(1)}><ChevronRight className="h-4 w-4" /></Button>

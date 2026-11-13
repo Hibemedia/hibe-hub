@@ -1,3 +1,6 @@
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Link2, Plus, Trash2, Unlink } from "lucide-react";
@@ -195,7 +198,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
               onClick={() => setMenu(k)}
               className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
               {st.symbol}
-              {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
+              {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-control bg-current opacity-70" />}
               {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
             </button>
           </PopoverTrigger>
@@ -260,7 +263,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
                         <span>{st?.symbol}</span>
                         {it.title && <span className="mt-0.5 max-w-full truncate px-1 text-[8px] font-medium opacity-80">{it.title}</span>}
                       </>
-                    ) : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />}
+                    ) : <span className="h-1.5 w-1.5 rounded-control bg-muted-foreground/60" />}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 space-y-3">
@@ -310,16 +313,13 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {weekOnly ? <span className="chip">Deze week · {label}</span> : <>
+        {weekOnly ? <Tag className="">Deze week · {label}</Tag> : <>
         <button aria-label={view === "week" ? "Vorige week" : "Vorige maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset - 1)}><ChevronLeft className="h-4 w-4" /></button>
-        <span className="chip">{label}</span>
+        <Tag className="">{label}</Tag>
         <button aria-label={view === "week" ? "Volgende week" : "Volgende maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset + 1)}><ChevronRight className="h-4 w-4" /></button>
         </>}
-        {!weekOnly && <div className="flex overflow-hidden rounded-full border border-border">
-          <button className={cn("h-8 px-3 text-xs font-medium transition", view === "week" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "week"} onClick={() => { setView("week"); setOffset(0); }}>Deze week</button>
-          <button className={cn("h-8 px-3 text-xs font-medium transition", view === "month" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "month"} onClick={() => { setView("month"); setOffset(0); }}>Deze maand</button>
-        </div>}
-        <button className="chip-filter h-8 px-3 text-xs" aria-pressed={openOnly} onClick={() => setOpenOnly(!openOnly)}>Alleen open</button>
+        {!weekOnly && <SegmentedControl label="Checklistperiode" value={view} onChange={(v) => { if (v === "week" || v === "month") setView(v); setOffset(0); }} options={[{ value: "week", label: "Deze week" }, { value: "month", label: "Deze maand" }]} />}
+        <FilterChip className=" h-8 px-3 text-xs" aria-pressed={openOnly} onClick={() => setOpenOnly(!openOnly)}>Alleen open</FilterChip>
         <span className="ml-auto text-sm text-muted-foreground tabular"><b className="text-foreground">{totDone}</b> van {totPlanned} posts ingepland {periodWord}</span>
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -373,8 +373,8 @@ function WeekBar({ done, planned, barCls }: { done: number; planned: number; bar
   const pct = planned > 0 ? Math.min(100, (done / planned) * 100) : 0;
   return (
     <div className="flex items-center gap-2">
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-background">
-        <div className={cn("h-full rounded-full transition-all", barCls)} style={{ width: `${pct}%` }} />
+      <div className="h-2 flex-1 overflow-hidden rounded-control bg-background">
+        <div className={cn("h-full rounded-control transition-all", barCls)} style={{ width: `${pct}%` }} />
       </div>
       <span className="shrink-0 text-xs tabular text-muted-foreground">{done}/{planned}</span>
     </div>

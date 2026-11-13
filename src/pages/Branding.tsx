@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -71,9 +73,9 @@ export default function Branding() {
       {clientId && <ClientVideoArchive />}
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Categorie">
-        <button aria-pressed={cat === "all"} onClick={() => setCat("all")} className="chip-filter shrink-0">Alles <span className="ml-1.5 text-muted-foreground tabular">{files.length}</span></button>
+        <FilterChip aria-pressed={cat === "all"} onClick={() => setCat("all")} className=" shrink-0">Alles <span className="ml-1.5 text-muted-foreground tabular">{files.length}</span></FilterChip>
         {(Object.keys(CATS) as Cat[]).map((k) => (
-          <button key={k} aria-pressed={cat === k} onClick={() => setCat(k)} className="chip-filter shrink-0">{CATS[k]} <span className="ml-1.5 text-muted-foreground tabular">{files.filter((f) => f.category === k).length}</span></button>
+          <FilterChip key={k} aria-pressed={cat === k} onClick={() => setCat(k)} className=" shrink-0">{CATS[k]} <span className="ml-1.5 text-muted-foreground tabular">{files.filter((f) => f.category === k).length}</span></FilterChip>
         ))}
       </div>
 
@@ -94,7 +96,7 @@ export default function Branding() {
               <div className="px-1">
                 <p className="truncate font-semibold" title={f.file_name}>{f.file_name}</p>
                 {f.description && <p className="line-clamp-2 text-sm text-muted-foreground">{f.description}</p>}
-                <div className="mt-2 flex flex-wrap gap-1.5"><span className="chip">{CATS[f.category]}</span>{f.size_bytes != null && <span className="chip">{fmtSize(f.size_bytes)}</span>}</div>
+                <div className="mt-2 flex flex-wrap gap-1.5"><Tag className="">{CATS[f.category]}</Tag>{f.size_bytes != null && <Tag className="">{fmtSize(f.size_bytes)}</Tag>}</div>
               </div>
               <div className="mt-auto flex gap-2 px-1 pb-1">
                 <Button size="sm" onClick={() => download(f)}><Download className="h-4 w-4" /> Download</Button>

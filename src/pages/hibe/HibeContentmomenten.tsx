@@ -1,3 +1,5 @@
+import { Tag } from "@/components/ui/tag";
+import { DropdownButton } from "@/components/ui/dropdown-button";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -63,7 +65,7 @@ export default function HibeContentmomenten() {
     <div className="space-y-4">
       <PageHeader title="Contentmomenten" action={<PrimaryAction icon={Plus} onClick={() => { setChosen(initialClient); setCreating("choose"); }}>Moment toevoegen</PrimaryAction>} />
       <AgendaControls filters={filters} onChange={setFilters} onReset={() => { const next = writeAgendaFilters(defaultAgendaFilters(), params); next.delete("status"); setParams(next, { replace: true }); }} entries={peopleEntries} me={me} team={crew.team} clients={clients} hideTypes extraActive={statusActive} extra={
-        <div className="flex items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Status</span><Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className="h-8 rounded-md text-xs" aria-label="Status selecteren">{statusActive ? `${statuses.length} geselecteerd` : "Actieve momenten"}<ChevronDown className="ml-2 h-3 w-3" /></Button></PopoverTrigger><PopoverContent align="start" className="w-60 p-2">
+        <div className="flex items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Status</span><Popover><PopoverTrigger asChild><DropdownButton size="sm" aria-label="Status selecteren" value={statusActive ? `${statuses.length} geselecteerd` : "Actieve momenten"} /></PopoverTrigger><PopoverContent align="start" className="w-60 p-2">
           <Button variant="ghost" className="w-full justify-start rounded-md" onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set("status", Object.keys(MOMENT_STATUS).join(",")); return n; }, { replace: true })}>Alle statussen</Button>
           {Object.entries(MOMENT_STATUS).map(([id, label]) => <Button key={id} variant="ghost" className="w-full justify-between rounded-md" role="menuitemcheckbox" aria-checked={statuses.includes(id)} onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set("status", (statuses.includes(id) ? statuses.filter((x) => x !== id) : [...statuses, id]).join(",")); return n; }, { replace: true })}>{label}{statuses.includes(id) && <Check className="h-4 w-4" />}</Button>)}
         </PopoverContent></Popover></div>
@@ -83,9 +85,9 @@ export default function HibeContentmomenten() {
                   <span className="min-w-0 flex-1 whitespace-normal break-words text-sm font-semibold leading-6 sm:text-base">{m.title}</span>
                 </Button>
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:max-w-[45%]">
-                  <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-xs font-medium"><ClientLogo url={client?.logo_url ? logos[client.logo_url] : undefined} name={client?.name ?? "Klant"} size={20} /><span className="min-w-0 break-words">{client?.name ?? "Klant"}</span></span>
-                  <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium">{MOMENT_TYPES[m.type]}</span>
-                  <span className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", STATUS_STYLE[m.status])}>{MOMENT_STATUS[m.status]}</span>
+                  <Tag logo={<ClientLogo url={client?.logo_url ? logos[client.logo_url] : undefined} name={client?.name ?? "Klant"} size={16} />}><span className="min-w-0 break-words">{client?.name ?? "Klant"}</span></Tag>
+                  <Tag>{MOMENT_TYPES[m.type]}</Tag>
+                  <Tag variant={m.status === "bevestigd" || m.status === "afgerond" ? "success" : m.status === "geannuleerd" ? "danger" : m.status === "aangevraagd" ? "info" : "neutral"}>{MOMENT_STATUS[m.status]}</Tag>
                 </div>
                 <div className="shrink-0 sm:ml-auto"><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} maxAvatars={3} /></div>
               </li>;

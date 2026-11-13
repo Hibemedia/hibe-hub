@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +27,7 @@ function usePipelineData() {
     return { tasks: t.data ?? [], moments: m.data ?? [], edits: e.data ?? [], videos: v.data ?? [] };
   } });
 }
-const TONE = { ok: "bg-muted text-muted-foreground", warn: "bg-orange-100 text-orange-800", late: "bg-red-100 text-red-700" } as const;
+const TONE = { ok: "bg-muted text-muted-foreground", warn: "bg-tag-warning text-foreground", late: "bg-tag-danger text-foreground" } as const;
 
 export default function HibePipeline() {
   const { data } = usePipelineData();
@@ -43,10 +45,10 @@ export default function HibePipeline() {
       <PageHeader title="Productieboard" />
       <div className="flex flex-wrap items-center gap-2">
         <Select value={client} onValueChange={setClient}>
-          <SelectTrigger className="h-9 w-52 rounded-full"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-52 rounded-tag"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="all">Alle klanten</SelectItem>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
         </Select>
-        <button onClick={() => setLateOnly((x) => !x)} className={cn("h-9 rounded-full px-4 text-sm font-semibold", lateOnly ? "bg-foreground text-background" : "bg-card")}>Toon vertraagd</button>
+        <FilterChip active={lateOnly} onClick={() => setLateOnly((x) => !x)} className="px-4">Toon vertraagd</FilterChip>
         <span className="text-xs text-muted-foreground">Tijd in fase: tot 3 dagen op schema, 3–5 aandacht, meer dan 5 vertraagd</span>
       </div>
       <div className="overflow-x-auto pb-2">
@@ -58,7 +60,7 @@ export default function HibePipeline() {
             return (
               <section key={p.key} className="min-w-0 rounded-[20px] bg-card p-3">
                 <header className="mb-3 min-w-0">
-                  <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{i + 1}. {p.label}</h2><span className="rounded-full bg-background px-2 text-xs font-semibold">{col.length}</span></div>
+                  <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{i + 1}. {p.label}</h2><Tag className="rounded-tag bg-background px-2 text-xs font-semibold">{col.length}</Tag></div>
                   <p className="truncate text-xs text-muted-foreground">{p.owner}{avg !== null && ` · gem. ${avg}d`}</p>
                 </header>
                 <div className="space-y-2">
@@ -75,7 +77,7 @@ export default function HibePipeline() {
   );
 }
 
-const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-lime-foreground", ok: "bg-muted text-foreground", attention: "bg-orange-100 text-orange-700", behind: "bg-red-100 text-red-700" } as const;
+const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-lime-foreground", ok: "bg-muted text-foreground", attention: "bg-tag-warning text-foreground", behind: "bg-tag-danger text-foreground" } as const;
 const SLA_LABEL = { none: "Geen SLA", met: "Gehaald", ok: "Op schema", attention: "Aandacht", behind: "Loopt achter" } as const;
 function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo_url: string | null }[]; logo: (u: string | null) => string | null | undefined }) {
   const qc = useQueryClient();
@@ -111,9 +113,9 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
                 <p className="text-2xl font-extrabold leading-none">{done}<span className="text-sm font-semibold text-muted-foreground"> / </span>
                   <input key={String(target)} aria-label={`SLA ${c.name}`} defaultValue={target ?? ""} placeholder="–" inputMode="numeric" onBlur={(e) => save(c.id, e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} className="w-10 rounded-md bg-muted px-1 text-sm font-semibold" />
                 </p>
-                <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", SLA_TONE[tone])}>{SLA_LABEL[tone]}</span>
+                <Tag className={cn("rounded-tag px-2 py-0.5 text-[11px] font-semibold", SLA_TONE[tone])}>{SLA_LABEL[tone]}</Tag>
               </div>
-              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", tone === "behind" ? "bg-red-500" : tone === "attention" ? "bg-orange-500" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
+              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-tag bg-muted"><div className={cn("h-full rounded-tag", tone === "behind" ? "bg-red-500" : tone === "attention" ? "bg-orange-500" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
             </div>
           );
         })}
@@ -129,9 +131,9 @@ function PipeCard({ c, days, client, logo }: { c: Card; days: number; client?: {
       <p className="truncate text-sm font-semibold">{c.title}</p>
       {client && <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground"><ClientLogo url={logo(client.logo_url) ?? null} name={client.name} size={16} /><span className="truncate">{client.name}</span></div>}
       <div className="mt-2 flex flex-wrap items-center gap-1">
-        <span className="rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">{c.turn}</span>
-        {c.round && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">Ronde {c.round}</span>}
-        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", TONE[tone])}>{days}d in fase</span>
+        <Tag className="rounded-tag bg-tag-neutral px-2 py-0.5 text-[11px] font-semibold text-foreground">{c.turn}</Tag>
+        {c.round && <Tag className="rounded-tag bg-muted px-2 py-0.5 text-[11px]">Ronde {c.round}</Tag>}
+        <Tag className={cn("rounded-tag px-2 py-0.5 text-[11px] font-semibold", TONE[tone])}>{days}d in fase</Tag>
       </div>
     </Link>
   );
@@ -142,7 +144,7 @@ function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; n
   return (
     <section className="min-w-0 rounded-[20px] bg-foreground p-3 text-background">
       <header className="mb-3 min-w-0">
-        <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{n}. Ingepland</h2><span className="rounded-full bg-lime px-2 text-xs font-bold text-lime-foreground">{cards.length}</span></div>
+        <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{n}. Ingepland</h2><Tag className="rounded-tag bg-tag-success px-2 text-xs font-bold text-foreground">{cards.length}</Tag></div>
         <p className="truncate text-xs text-background/60">Afgerond, laatste 7 dagen</p>
       </header>
       <div className="mb-3 rounded-2xl bg-lime p-3 text-lime-foreground">
@@ -155,7 +157,7 @@ function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; n
           const cl = c.client_id ? byId.get(c.client_id) : undefined;
           return (
             <Link key={c.id} to={c.href} className="flex min-w-0 items-start gap-2 rounded-2xl bg-background/10 p-2.5 transition-colors hover:bg-background/15">
-              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-lime text-[11px] font-black text-lime-foreground">✓</span>
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-tag bg-lime text-[11px] font-black text-lime-foreground">✓</span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{c.title}</p>
                 {cl && <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-background/70"><ClientLogo url={logo(cl.logo_url) ?? null} name={cl.name} size={16} /><span className="truncate">{cl.name}</span></div>}

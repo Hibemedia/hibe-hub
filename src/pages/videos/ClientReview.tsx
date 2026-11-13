@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { useEffect, useRef, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -44,7 +45,7 @@ export default function ClientReview() {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 p-6 pt-16 text-center">
         <PageHeader title="Video's" />
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lime text-lime-foreground"><Check className="h-7 w-7" /></span>
+        <span className="flex h-14 w-14 items-center justify-center rounded-control bg-lime text-lime-foreground"><Check className="h-7 w-7" /></span>
         <h1 className="text-2xl font-semibold">{queue.length ? "Klaar met beoordelen" : "Niets te beoordelen"}</h1>
         {queue.length > 0 && <div className="grid w-full grid-cols-2 gap-3">
           <div className="rounded-lg border border-border bg-card p-4"><p className="text-3xl font-light tabular">{a}</p><p className="text-sm text-muted-foreground">goedgekeurd</p></div>
@@ -115,7 +116,7 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
         <div className="flex items-center gap-3">
           <button aria-label="Vorige video" disabled={pos.i === 0} onClick={onPrev} className="round-btn h-9 w-9 disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
           <div className="flex-1 space-y-1"><p className="text-sm font-medium">Video {pos.i + 1} van {pos.n}</p>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-lime transition-[width]" style={{ width: `${((pos.i + 1) / pos.n) * 100}%` }} /></div></div>
+            <div className="h-1.5 overflow-hidden rounded-control bg-muted"><div className="h-full rounded-control bg-lime transition-[width]" style={{ width: `${((pos.i + 1) / pos.n) * 100}%` }} /></div></div>
           <button aria-label="Volgende video" disabled={pos.i >= pos.n - 1} onClick={onNext} className="round-btn h-9 w-9 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}
@@ -144,14 +145,14 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
             <ol className="space-y-2">
               {mine.map((c) => (
                 <li key={c.id}><button onClick={() => player.current?.seek(c.time_seconds)} className="w-full rounded-md border border-border bg-background p-2.5 text-left">
-                  <UserAvatar userId={c.user_id} size={22} className="mr-2 inline-flex align-middle" /><span className="chip tabular">{fmtTime(c.time_seconds)}</span>{c.resolved && <span className="ml-2 text-xs text-muted-foreground">Verwerkt</span>}
+                  <UserAvatar userId={c.user_id} size={22} className="mr-2 inline-flex align-middle" /><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag>{c.resolved && <span className="ml-2 text-xs text-muted-foreground">Verwerkt</span>}
                   <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.text}</p></button></li>
               ))}
             </ol>
           )}
           {canAct && (asking || mine.length > 0) && (
             <form className="mt-auto space-y-2" onSubmit={(e) => { e.preventDefault(); post(); }}>
-              <span className="chip tabular">{fmtTime(stamp ?? 0)}</span>
+              <Tag className=" tabular">{fmtTime(stamp ?? 0)}</Tag>
               <Textarea ref={box} value={text} onFocus={() => { if (stamp === null) { player.current?.pause(); setStamp(player.current?.time() ?? 0); } }} onChange={(e) => setText(e.target.value)} placeholder="Wat moet er anders?" aria-label="Opmerking" maxLength={4000} className="min-h-20" />
               <Button type="submit" variant="outline" className="w-full" disabled={!text.trim()}>Opmerking plaatsen</Button>
               <Button type="button" className={cn("w-full")} disabled={busy || mine.length === 0} onClick={() => action("feedback")}>Verstuur wijzigingen{mine.length ? ` (${mine.length})` : ""}</Button>

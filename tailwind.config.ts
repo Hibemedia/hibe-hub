@@ -23,6 +23,8 @@ export default {
 				display: ['Urbanist', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Noto Color Emoji"', 'ui-sans-serif', 'system-ui'],
 			},
 			colors: {
+                tag: { neutral: 'hsl(var(--tag-neutral))', success: 'hsl(var(--tag-success))', warning: 'hsl(var(--tag-warning))', danger: 'hsl(var(--tag-danger))', info: 'hsl(var(--tag-info))' },
+                'filter-active': 'hsl(var(--filter-active))',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -93,6 +95,7 @@ export default {
 				'bounce': 'var(--transition-bounce)'
 			},
 			borderRadius: {
+                control: 'var(--radius-control)', tag: 'var(--radius-tag)', avatar: 'var(--radius-avatar)',
 				lg: 'var(--radius)',
 				md: '0.5rem',
 				sm: '0.375rem'

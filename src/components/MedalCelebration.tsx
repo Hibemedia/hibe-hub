@@ -66,8 +66,8 @@ export function MedalCelebration({ medal, title, metric, date, onClose }: { meda
           <p className="text-sm text-muted-foreground">{date ? `${medal.achievedVideo ? "Publicatiedatum mijlpaalvideo" : "Mijlpaaldatum"}: ${date}` : "Mijlpaaldatum niet beschikbaar"}</p>
           {medal.achievedVideo && <p className="line-clamp-2 text-sm">{medal.achievedVideo.title || "Zonder titel"}</p>}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <Button variant="outline" className="rounded-full" onClick={fireMedalConfetti}><RotateCcw className="mr-2 h-4 w-4" />Nog een keer</Button>
-            <Button className="medal-share rounded-full" onClick={share}><Copy className="mr-2 h-4 w-4" />{shareState === "copied" ? "Gekopieerd!" : "Deel succes"}</Button>
+            <Button variant="outline" className="rounded-control" onClick={fireMedalConfetti}><RotateCcw className="mr-2 h-4 w-4" />Nog een keer</Button>
+            <Button className="medal-share rounded-control" onClick={share}><Copy className="mr-2 h-4 w-4" />{shareState === "copied" ? "Gekopieerd!" : "Deel succes"}</Button>
           </div>
           {shareState !== "idle" && <div className="space-y-2 text-left" aria-live="polite">
             <p className="text-sm text-muted-foreground">{shareState === "copied" ? "De tekst staat klaar voor je LinkedIn-post of Instagram Story." : "Kopiëren lukt hier niet. Selecteer de tekst hieronder."}</p>

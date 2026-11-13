@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { ArrowUpRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +38,7 @@ export function Change({ value, suffix }: { value: number | null; suffix?: strin
   if (value == null) return <span className="text-muted-foreground">geen vergelijking</span>;
   const label = suffix != null ? formatNumber(Math.abs(value)) + suffix : `${Math.abs(value).toFixed(1)}%`;
   if (value >= 0) return <span className="growth"><span aria-hidden>↑</span><span className="sr-only">plus </span>{label}</span>;
-  return <span className="inline-flex items-center gap-0.5 rounded-full bg-foreground px-2 py-0.5 text-xs font-semibold text-background"><span aria-hidden>↓</span><span className="sr-only">min </span>{label}</span>;
+  return <Tag className="inline-flex items-center gap-0.5 rounded-tag bg-tag-neutral px-2 py-0.5 text-xs font-semibold text-foreground"><span aria-hidden>↓</span><span className="sr-only">min </span>{label}</Tag>;
 }
 
 export function KpiBand({ stats, range, loading }: { stats: DailyStat[]; range: Range; loading?: boolean }) {
@@ -91,8 +93,8 @@ export function DailyChart({ stats, range }: { stats: DailyStat[]; range: Range 
       aside={
         <div className="flex gap-1.5" role="group" aria-label="Weergave">
           {([["total", "Totaal"], ["net", "Per kanaal"]] as const).map(([k, l]) => (
-            <button key={k} onClick={() => setMode(k)} aria-pressed={mode === k}
-              className="chip-filter h-8 px-3 text-xs">{l}</button>
+            <FilterChip key={k} onClick={() => setMode(k)} aria-pressed={mode === k}
+              className=" h-8 px-3 text-xs">{l}</FilterChip>
           ))}
         </div>
       }
@@ -177,8 +179,8 @@ export function TopVideoList({ videos, limit = 5, className, aside }: { videos: 
               <div className="flex min-w-0 flex-1 flex-col pr-10">
                 <p className="line-clamp-2 text-base font-semibold leading-snug">{v.title || "Zonder titel"}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="chip">{NETWORK_LABELS[v.network as Network] ?? v.network}</span>
-                  {v.published_at && <span className="chip">{new Date(v.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                  <Tag className="">{NETWORK_LABELS[v.network as Network] ?? v.network}</Tag>
+                  {v.published_at && <Tag className="">{new Date(v.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}</Tag>}
                 </div>
                 <div className="mt-auto flex items-baseline gap-1.5 pt-2 tabular">
                   <span className="text-2xl font-light">{formatNumber(v.views)}</span>

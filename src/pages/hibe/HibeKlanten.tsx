@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { Link, useNavigate } from "react-router-dom";
 import { Settings2, Eye } from "lucide-react";
@@ -29,7 +30,7 @@ export default function HibeKlanten() {
                     <ClientLogo url={c.logo_url ? logos[c.logo_url] : null} name={c.name} size={48} />
                     <div className="min-w-0">
                       <p className="truncate text-xl font-semibold">{c.name}</p>
-                      {c.metricool_brand_label && <span className="chip mt-1">{c.metricool_brand_label}</span>}
+                      {c.metricool_brand_label && <Tag className=" mt-1">{c.metricool_brand_label}</Tag>}
                     </div>
                   </div>
                   <div className="mt-6 grid grid-cols-2 gap-3">
@@ -37,7 +38,7 @@ export default function HibeKlanten() {
                     <div><div className="text-3xl font-light tabular">{formatNumber(s?.views ?? null)}</div><div className="text-xs text-muted-foreground">weergaven 30 dagen</div></div>
                   </div>
                   <div className="mt-5 flex items-center justify-between gap-2">
-                    {pending > 0 ? <span className="growth">{pending} te beoordelen</span> : <span className="chip">Niets te beoordelen</span>}
+                    {pending > 0 ? <span className="growth">{pending} te beoordelen</span> : <Tag className="">Niets te beoordelen</Tag>}
                     <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav(`/hibe/als/${c.id}`); }} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border bg-popover px-2.5 text-xs font-semibold hover:bg-muted"><Eye className="h-3.5 w-3.5" />Bekijk als klant</button>
                   </div>
                 </Link>

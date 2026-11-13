@@ -1,3 +1,4 @@
+import { Tag } from "@/components/ui/tag";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Scissors, ClipboardCheck, CalendarClock } from "lucide-react";
@@ -58,7 +59,7 @@ export function MyDay({ me, className }: { me: string; className?: string }) {
         <div className="grid gap-5 md:grid-cols-3 md:gap-6">
           <Col title="Mijn edits" icon={Scissors} to="/hibe/edits" empty="Niets te doen">
             {data.edits.map((e) => <Row key={e.id} to="/hibe/edits" id={e.client_id} title={e.title} sub={`${client(e.client_id)?.name ?? "Klant"}${e.deadline ? ` · ${new Date(e.deadline + "T00:00:00").toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}` : ""}`}
-              right={<span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">{EDIT_STATUS_LABEL[e.status as EditStatus] ?? e.status}</span>} />)}
+              right={<Tag className="shrink-0 rounded-tag bg-muted px-2 py-0.5 text-[11px] font-medium">{EDIT_STATUS_LABEL[e.status as EditStatus] ?? e.status}</Tag>} />)}
           </Col>
           <Col title="Te beoordelen" icon={ClipboardCheck} to="/hibe/videos/stap/interne-controle" empty="Niets te beoordelen">
             {data.videos.map((v) => <Row key={v.id} to={`/hibe/videos/${v.id}`} id={v.client_id} title={v.title} sub={client(v.client_id)?.name ?? "Klant"} />)}

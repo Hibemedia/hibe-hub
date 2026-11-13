@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { PageHeader } from "@/components/PageHeader";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -204,7 +206,7 @@ function UpcomingMoments({ names, className }: { names: Record<string, string>; 
                   </p>
                 </div>
                 <span className="hidden shrink-0 flex-col items-end gap-1 sm:flex">
-                  <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{MOMENT_STATUS[m.status]}</span>
+                  <Tag className={cn("rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{MOMENT_STATUS[m.status]}</Tag>
                   <span className="text-[11px] text-muted-foreground">{MOMENT_TYPES[m.type]}</span>
                 </span>
               </Link>
@@ -267,7 +269,7 @@ function ViewsChart({ data, names }: { data: NonNullable<ReturnType<typeof useHi
     <Section title="Weergaven alle klanten" aside={
       <div className="flex gap-1.5" role="group" aria-label="Weergave">
         {([["total", "Totaal"], ["client", "Per klant"]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setMode(k)} aria-pressed={mode === k} className="chip-filter h-8 px-3 text-xs">{l}</button>
+          <FilterChip key={k} onClick={() => setMode(k)} aria-pressed={mode === k} className=" h-8 px-3 text-xs">{l}</FilterChip>
         ))}
       </div>
     }>
@@ -306,7 +308,7 @@ function ScopeSelect({ value, onChange }: { value: RankScope; onChange: (v: Rank
       </div>
       <div className="hidden flex-wrap justify-end gap-1.5 sm:flex" role="group" aria-label="Periode van de ranglijst">
         {RANK_SCOPES.map((s) => (
-          <button key={s.key} onClick={() => onChange(s.key)} aria-pressed={value === s.key} className="chip-filter h-8 px-3 text-xs">{s.label}</button>
+          <FilterChip key={s.key} onClick={() => onChange(s.key)} aria-pressed={value === s.key} className=" h-8 px-3 text-xs">{s.label}</FilterChip>
         ))}
       </div>
     </>
@@ -357,10 +359,10 @@ function Ranking({ className, logos }: { className?: string; logos: Record<strin
                   </Link>
                 </td>
                 <td className="py-2.5 text-right">{formatNumber(s?.views ?? null)}</td>
-                <td className="py-2.5 text-right">{s?.viewsChange == null ? "–" : isNewGrowth(s.viewsChange) ? <span className="rounded-full bg-lime px-2 py-0.5 text-xs font-semibold text-lime-foreground">nieuw</span> : <Change value={s.viewsChange} />}</td>
+                <td className="py-2.5 text-right">{s?.viewsChange == null ? "–" : isNewGrowth(s.viewsChange) ? <Tag className="rounded-tag bg-tag-success px-2 py-0.5 text-xs font-semibold text-foreground">nieuw</Tag> : <Change value={s.viewsChange} />}</td>
                 <td className="py-2.5 text-right">{formatNumber(s?.followers ?? null)}</td>
                 <td className="py-2.5 text-right">{(() => { const w = targets?.[c.id]; if (!w || !w.target) return <span className="text-muted-foreground">–</span>; const bad = weekBehind(w.done, w.target, elapsed);
-                  return <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs font-semibold", bad ? "bg-destructive/15 text-destructive" : "bg-muted")} title={`${w.done} van ${w.target} ingepland deze week`}>{w.done}/{w.target}</span>; })()}</td>
+                  return <Tag className={cn("inline-block rounded-tag px-2 py-0.5 text-xs font-semibold", bad ? "bg-destructive/15 text-destructive" : "bg-muted")} title={`${w.done} van ${w.target} ingepland deze week`}>{w.done}/{w.target}</Tag>; })()}</td>
               </tr>
             ))}
           </tbody>
@@ -393,7 +395,7 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
           <div key={g.title} className="py-3 first:pt-0 last:pb-0">
             <Link to={g.to} className="group flex items-center justify-between gap-2 text-sm">
               <span className={cn("min-w-0 truncate font-semibold group-hover:underline", !g.items.length && "font-medium text-muted-foreground")}>{g.title}</span>
-              {g.items.length ? <span className="min-w-6 rounded-full bg-foreground px-2 text-center text-xs font-bold leading-6 text-background tabular">{g.items.length}</span>
+              {g.items.length ? <span className="ui-tag min-w-6 justify-center tabular">{g.items.length}</span>
                 : <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">Niets open</span>}
             </Link>
             {g.items.length > 0 && (

@@ -41,14 +41,14 @@ export function MedalSuccessCard({ title, metric, date, clientName, level, badge
 
   return (
     <div className="space-y-3">
-      <Button variant="outline" className="w-full rounded-full" onClick={() => setOpen(!open)} aria-expanded={open}><ImageIcon className="mr-2 h-4 w-4" />Succeskaart maken</Button>
+      <Button variant="outline" className="w-full rounded-control" onClick={() => setOpen(!open)} aria-expanded={open}><ImageIcon className="mr-2 h-4 w-4" />Succeskaart maken</Button>
       {open && <>
         <div className="grid grid-cols-2 gap-2" role="group" aria-label="Afbeeldingsformaat">
-          <Button variant={format === "linkedin" ? "default" : "outline"} className="h-auto min-h-10 whitespace-normal rounded-full" aria-pressed={format === "linkedin"} onClick={() => setFormat("linkedin")}>LinkedIn · 1080 × 1080</Button>
-          <Button variant={format === "story" ? "default" : "outline"} className="h-auto min-h-10 whitespace-normal rounded-full" aria-pressed={format === "story"} onClick={() => setFormat("story")}>Story · 1080 × 1920</Button>
+          <Button variant={format === "linkedin" ? "default" : "outline"} className="h-auto min-h-10 whitespace-normal rounded-control" aria-pressed={format === "linkedin"} onClick={() => setFormat("linkedin")}>LinkedIn · 1080 × 1080</Button>
+          <Button variant={format === "story" ? "default" : "outline"} className="h-auto min-h-10 whitespace-normal rounded-control" aria-pressed={format === "story"} onClick={() => setFormat("story")}>Story · 1080 × 1920</Button>
         </div>
         {image ? <img src={image.url} alt={`Succeskaart van ${clientName}: ${title}, ${metric}`} className={`mx-auto w-full rounded-md object-contain ${format === "story" ? "max-h-72" : "max-h-80"}`} /> : <div className="flex h-40 items-center justify-center bg-muted rounded-md" role="status">{error ? <p className="p-4 text-sm">De afbeelding kon niet worden gemaakt. Sluit de kaart en probeer opnieuw.</p> : <Loader2 className="h-6 w-6 animate-spin" aria-label="Afbeelding maken" />}</div>}
-        <Button className="medal-share w-full rounded-full" disabled={!image} onClick={() => {
+        <Button className="medal-share w-full rounded-control" disabled={!image} onClick={() => {
           if (!image) return;
           void deliverImage(image.blob, `hibe-succes-${format}-niveau-${level}.png`).catch(() => setError(true));
         }}><Download className="mr-2 h-4 w-4" />Download afbeelding</Button>

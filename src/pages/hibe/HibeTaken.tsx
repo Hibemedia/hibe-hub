@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Check } from "lucide-react";
@@ -46,9 +48,9 @@ export default function HibeTaken() {
     <div className="space-y-4">
       <PageHeader title="Taken" action={<PrimaryAction icon={Plus} onClick={() => setForm(blankTask(me))}>Nieuwe taak</PrimaryAction>} />
       <div className="flex flex-wrap items-center gap-2">
-        <button onClick={() => setView("mine")} className={cn("chip-filter", view === "mine" && "!bg-foreground !text-background")}>Alleen mijn taken</button>
-        <button onClick={() => setView("all")} className={cn("chip-filter", view === "all" && "!bg-foreground !text-background")}>Iedereen, per persoon</button>
-        <button onClick={() => setShowDone(!showDone)} className={cn("chip-filter ml-auto", showDone && "!bg-foreground !text-background")}>Afgerond tonen</button>
+        <FilterChip active={view === "mine"} onClick={() => setView("mine")} className={cn("", view === "mine" && "bg-filter-active text-foreground")}>Alleen mijn taken</FilterChip>
+        <FilterChip active={view === "all"} onClick={() => setView("all")} className={cn("", view === "all" && "bg-filter-active text-foreground")}>Iedereen, per persoon</FilterChip>
+        <FilterChip active={showDone} onClick={() => setShowDone(!showDone)} className={cn(" ml-auto", showDone && "bg-filter-active text-foreground")}>Afgerond tonen</FilterChip>
       </div>
       {groups.every((g) => !g.tasks.length) && <div className="rounded-[20px] bg-card p-6 text-sm text-muted-foreground">Geen open taken.</div>}
       {groups.filter((g) => g.tasks.length).map((g) => (
@@ -59,12 +61,12 @@ export default function HibeTaken() {
               const client = clients.find((c) => c.id === t.client_id)?.name;
               return (
                 <li key={t.id} className="flex min-w-0 items-center gap-3 py-2.5">
-                  <button aria-label={t.done_at ? "Weer openzetten" : "Afvinken"} onClick={() => toggle(t)} className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-foreground/40", t.done_at && "!bg-foreground !text-background")}>{t.done_at && <Check className="h-3 w-3" />}</button>
+                  <button aria-label={t.done_at ? "Weer openzetten" : "Afvinken"} onClick={() => toggle(t)} className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-tag border border-foreground/40", t.done_at && "!bg-foreground !text-background")}>{t.done_at && <Check className="h-3 w-3" />}</button>
                   <button onClick={() => setForm(taskToForm(t))} className="min-w-0 flex-1 text-left">
                     <p className={cn("truncate text-sm font-medium", t.done_at && "text-muted-foreground line-through")}>{t.title}</p>
                     {(client || t.notes) && <p className="truncate text-xs text-muted-foreground">{[client, t.notes].filter(Boolean).join(" · ")}</p>}
                   </button>
-                  {t.due_date && <span className={cn("shrink-0 rounded-full px-2.5 py-0.5 text-xs", isOverdue(t, today) ? "bg-destructive/15 text-destructive" : t.due_date === today ? "bg-lime text-lime-foreground" : "bg-muted text-muted-foreground")}>{t.due_date === today ? "Vandaag" : fmt(t.due_date)}{t.due_time ? ` ${t.due_time.slice(0, 5)}` : ""}</span>}
+                  {t.due_date && <Tag className={cn("shrink-0 rounded-tag px-2.5 py-0.5 text-xs", isOverdue(t, today) ? "bg-destructive/15 text-destructive" : t.due_date === today ? "bg-tag-success text-foreground" : "bg-muted text-muted-foreground")}>{t.due_date === today ? "Vandaag" : fmt(t.due_date)}{t.due_time ? ` ${t.due_time.slice(0, 5)}` : ""}</Tag>}
                 </li>
               );
             })}

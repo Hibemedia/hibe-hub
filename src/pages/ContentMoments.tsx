@@ -1,3 +1,5 @@
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Tag } from "@/components/ui/tag";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,8 +30,8 @@ export type Moment = {
 export const MOMENT_STATUS = STATUS;
 export const MOMENT_TYPES = TYPES;
 export const STATUS_STYLE: Record<Status, string> = {
-  aangevraagd: "bg-lime text-lime-foreground", bevestigd: "bg-lime/20 text-foreground", gepland: "bg-popover text-foreground",
-  afgerond: "bg-muted text-foreground", geannuleerd: "bg-muted text-muted-foreground line-through",
+  aangevraagd: "bg-tag-info text-foreground", bevestigd: "bg-tag-success text-foreground", gepland: "bg-tag-neutral text-foreground",
+  afgerond: "bg-tag-success text-foreground", geannuleerd: "bg-tag-danger text-foreground line-through",
 };
 const fmtDate = (d: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "long", year: "numeric" }) : "Nog geen datum");
 
@@ -69,7 +71,7 @@ export default function ContentMoments() {
       </section>
 
       <div className="flex gap-2">
-        {(["actief", "alles"] as const).map((k) => <button key={k} aria-pressed={filter === k} onClick={() => setFilter(k)} className="chip-filter">{k === "actief" ? "Komend" : "Alles"}</button>)}
+        {(["actief", "alles"] as const).map((k) => <FilterChip key={k} aria-pressed={filter === k} onClick={() => setFilter(k)} className="">{k === "actief" ? "Komend" : "Alles"}</FilterChip>)}
       </div>
 
       {!clientId && ready ? <section className="rounded-lg bg-card"><EmptyState text="Je account is nog niet aan een klant gekoppeld." /></section>
@@ -81,8 +83,8 @@ export default function ContentMoments() {
             <li key={m.id}>
               <button onClick={() => setOpenId(m.id)} className="flex h-full w-full flex-col rounded-lg bg-card p-5 text-left transition-colors hover:bg-popover">
                 <div className="flex flex-wrap gap-1.5">
-                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[momentStatus(m) as Status])}>{STATUS[momentStatus(m) as Status]}</span>
-                  <span className="chip">{TYPES[m.type]}</span>
+                  <Tag className={cn("inline-flex rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[momentStatus(m) as Status])}>{STATUS[momentStatus(m) as Status]}</Tag>
+                  <Tag className="">{TYPES[m.type]}</Tag>
                 </div>
                 <p className="mt-3 line-clamp-2 text-xl font-semibold leading-snug">{m.title}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{fmtDate(m.date)}{m.start_time && ` · ${m.start_time.slice(0, 5)}`}</p>
@@ -135,11 +137,11 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <div className="flex flex-wrap gap-1.5"><span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{STATUS[status]}</span><span className="chip">{TYPES[m.type]}</span></div>
+          <div className="flex flex-wrap gap-1.5"><Tag className={cn("inline-flex rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{STATUS[status]}</Tag><Tag className="">{TYPES[m.type]}</Tag></div>
           <DialogTitle className="text-2xl">{m.title}</DialogTitle>
           <p className="text-sm text-muted-foreground">{fmtDate(m.date)}{m.start_time && ` · ${m.start_time.slice(0, 5)}`}{m.location && ` · ${m.location}`}</p>
         </DialogHeader>
-        {m.attendees.length > 0 && <div className="flex flex-wrap gap-1.5">{m.attendees.map((a) => <span key={a} className="chip">{a}</span>)}</div>}
+        {m.attendees.length > 0 && <div className="flex flex-wrap gap-1.5">{m.attendees.map((a) => <Tag key={a} className="">{a}</Tag>)}</div>}
         {!isAdmin && crew.byMoment(m.id).length > 0 && <div><h3 className="mb-1.5 text-sm font-semibold">Wie er komt</h3><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient showNames /></div>}
         {isAdmin && m.type === "shoot" && <CrewEditor m={m} allMoments={allMoments.length ? allMoments : [m]} />}
         {m.script && <div><h3 className="text-sm font-semibold">Script</h3><p className="whitespace-pre-line text-sm text-foreground/80">{m.script}</p></div>}
