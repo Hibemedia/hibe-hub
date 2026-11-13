@@ -1,6 +1,9 @@
 type FilterableMoment = { id: string; client_id: string; status: string };
+/** Legacy planned records are confirmed; retain their stored values. */
+export const normalizeMomentStatus = (status: string) => status === "gepland" ? "bevestigd" : status;
 export function filterMomentStatus<T extends FilterableMoment>(moments: T[], statuses: string[]) {
-  return moments.filter((m) => statuses.includes(m.status));
+  const selected = statuses.map(normalizeMomentStatus);
+  return moments.filter((m) => selected.includes(normalizeMomentStatus(m.status)));
 }
 /** Only an actual attached image is shown, never a fabricated client image or placeholder. */
 export function momentReferenceImage(moment: { thumbnail_url?: string | null; reference_image_url?: string | null }) {
@@ -21,5 +24,5 @@ const ACTIVE = new Set(["aangevraagd", "bevestigd", "gepland"]);
  * overwritten: an explicit "geannuleerd" or "afgerond" always wins.
  */
 export function momentStatus<T extends { status: string; date?: string | null }>(m: T, today = amsterdamToday()) {
-  return ACTIVE.has(m.status) && !!m.date && m.date < today ? "afgerond" : m.status;
+  return ACTIVE.has(m.status) && !!m.date && m.date < today ? "afgerond" : normalizeMomentStatus(m.status);
 }

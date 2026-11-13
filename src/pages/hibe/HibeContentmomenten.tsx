@@ -20,7 +20,7 @@ import { filterAgendaEntries, defaultAgendaFilters, writeAgendaFilters } from "@
 import { ClientLogo, useLogoUrls } from "@/hooks/useLogoUrl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronDown } from "lucide-react";
-import { filterMomentStatus, momentReferenceImage, momentStatus } from "@/lib/content-moment-list";
+import { filterMomentStatus, momentReferenceImage, momentStatus, normalizeMomentStatus } from "@/lib/content-moment-list";
 import { CONTENT_MOMENT_PHOTOS } from "@/lib/content-moment-photos";
 
 export default function HibeContentmomenten() {
@@ -34,8 +34,8 @@ export default function HibeContentmomenten() {
   const [chosen, setChosen] = useState("");
   const me = UserAuth()?.user?.id ?? "";
   const { filters, setFilters } = useAgendaFilters(me, "contentmomenten");
-  const activeStatuses = ["aangevraagd", "bevestigd", "gepland"];
-  const statuses = params.has("status") ? (params.get("status") ?? "").split(",").filter(Boolean) : activeStatuses;
+  const activeStatuses = ["bevestigd", "aangevraagd"];
+  const statuses = params.has("status") ? [...new Set((params.get("status") ?? "").split(",").filter(Boolean).map(normalizeMomentStatus))] : activeStatuses;
   const statusActive = statuses.length !== activeStatuses.length || activeStatuses.some((s) => !statuses.includes(s));
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
   const initialClient = filters.clients.length === 1 ? filters.clients[0] : "";
@@ -87,7 +87,7 @@ export default function HibeContentmomenten() {
                 <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:max-w-[45%]">
                   <Tag logo={<ClientLogo url={client?.logo_url ? logos[client.logo_url] : undefined} name={client?.name ?? "Klant"} size={16} />}><span className="min-w-0 break-words">{client?.name ?? "Klant"}</span></Tag>
                   <Tag>{MOMENT_TYPES[m.type]}</Tag>
-                  <Tag variant={m.status === "bevestigd" || m.status === "afgerond" ? "success" : m.status === "geannuleerd" ? "danger" : m.status === "aangevraagd" ? "info" : "neutral"}>{MOMENT_STATUS[m.status]}</Tag>
+                  <Tag variant={m.status === "bevestigd" || m.status === "afgerond" ? "success" : m.status === "geannuleerd" ? "danger" : m.status === "aangevraagd" ? "info" : "neutral"}>{MOMENT_STATUS[m.status as keyof typeof MOMENT_STATUS]}</Tag>
                 </div>
                 <div className="shrink-0 sm:ml-auto"><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} maxAvatars={3} /></div>
               </li>;

@@ -30,6 +30,7 @@ import { SocialsChecklistPreview } from "@/components/SocialsChecklistCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber, NETWORK_LABELS, Network, PeriodKey, pctChange } from "@/lib/stats";
 import { cn } from "@/lib/utils";
+import { normalizeMomentStatus } from "@/lib/content-moment-list";
 
 const TZ = "Europe/Amsterdam";
 export function greeting(now = new Date()) {
@@ -206,7 +207,7 @@ function UpcomingMoments({ names, className }: { names: Record<string, string>; 
                   </p>
                 </div>
                 <span className="hidden shrink-0 flex-col items-end gap-1 sm:flex">
-                  <Tag className={cn("rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{MOMENT_STATUS[m.status]}</Tag>
+                  <Tag className={cn("rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[normalizeMomentStatus(m.status) as Moment["status"]])}>{MOMENT_STATUS[normalizeMomentStatus(m.status) as keyof typeof MOMENT_STATUS]}</Tag>
                   <span className="text-[11px] text-muted-foreground">{MOMENT_TYPES[m.type]}</span>
                 </span>
               </Link>
