@@ -68,7 +68,7 @@ export default function Klanten() {
     if (!name) return toast.error("Vul een naam in");
     const videoOnly = !!editing.video_only;
     if (!blog && !videoOnly) return toast.error("Kies een Metricool-merk");
-    const dup = blog ? clients.find((c) => c.metricool_blog_id === blog && c.id !== editing.id) : undefined;
+    const dup = blog ? allClients.find((c) => c.metricool_blog_id === blog && c.id !== editing.id) : undefined;
     if (dup) return toast.error(`Dit Metricool-merk hoort al bij "${dup.name}"`);
     setBusy(true);
     try {
@@ -88,7 +88,7 @@ export default function Klanten() {
         if (upErr) throw upErr;
         await supabase.from("clients").update({ logo_url: path }).eq("id", id);
       }
-      const brandChanged = !!editing.id && clients.find((c) => c.id === editing.id)?.metricool_blog_id !== blog;
+      const brandChanged = !!editing.id && allClients.find((c) => c.id === editing.id)?.metricool_blog_id !== blog;
       if (brandChanged && id && blog) {
         // Old numbers were removed by the database; fetch history for the new brand.
         supabase.functions.invoke("metricool-sync", { body: { mode: "backfill", clientId: id } }).then(() => setTimeout(loadRuns, 3000));
@@ -169,7 +169,7 @@ export default function Klanten() {
               <Select value={editing?.metricool_blog_id ?? ""} onValueChange={(v) => setEditing({ ...editing, metricool_blog_id: v })}>
                 <SelectTrigger><SelectValue placeholder={brands.length ? "Kies een merk" : "Merken laden…"} /></SelectTrigger>
                 <SelectContent>{brands.map((b) => {
-                  const taken = clients.find((c) => c.metricool_blog_id === String(b.id) && c.id !== editing?.id);
+                  const taken = allClients.find((c) => c.metricool_blog_id === String(b.id) && c.id !== editing?.id);
                   return <SelectItem key={b.id} value={String(b.id)} disabled={!!taken}>{b.label}{taken ? ` (al gekoppeld)` : ""}</SelectItem>;
                 })}</SelectContent>
               </Select>
