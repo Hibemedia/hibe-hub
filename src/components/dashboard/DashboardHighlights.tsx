@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { nextContentMoment, type HighlightMoment } from "@/lib/dashboard-highlights";
 import vipMomentPhoto from "@/assets/vip-fashion-contentmoment.jpg.asset.json";
+import appelboomMomentPhoto from "@/assets/appelboom-contentmoment.jpg.asset.json";
 
-const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url };
+const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url, Appelboom: appelboomMomentPhoto.url };
 
 type ReviewItem = { id: string; title: string; client_id: string };
 
