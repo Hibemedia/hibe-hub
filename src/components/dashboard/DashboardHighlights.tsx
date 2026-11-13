@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, CalendarDays, Film } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls } from "@/hooks/useLogoUrl";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { nextContentMoment, type HighlightMoment } from "@/lib/dashboard-highlights";
 
-type ReviewHighlight = { id: string; title: string; client_id: string };
+type ReviewItem = { id: string; title: string; client_id: string };
 
 function ClientImage({ url, className }: { url?: string; className?: string }) {
   const [failed, setFailed] = useState(false);
@@ -22,11 +22,11 @@ export function DashboardHighlights() {
   const { data: review, isLoading: reviewLoading, isError: reviewError } = useQuery({
     queryKey: ["dashboard", "next-internal-review"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("video_items").select("id,title,client_id")
+      const { data, count, error } = await supabase.from("video_items").select("id,title,client_id", { count: "exact" })
         .eq("status", "internal_review").is("archived_at", null)
-        .order("status_changed_at", { ascending: true }).order("id").limit(1).maybeSingle();
+        .order("status_changed_at", { ascending: true }).order("id").limit(3);
       if (error) throw error;
-      return data as ReviewHighlight | null;
+      return { items: (data ?? []) as ReviewItem[], total: count ?? 0 };
     },
   });
   const { data: moments = [], isLoading: momentLoading, isError: momentError } = useQuery({
@@ -38,27 +38,42 @@ export function DashboardHighlights() {
     },
   });
   const moment = nextContentMoment(moments);
-  const reviewClient = clients.find((c) => c.id === review?.client_id);
   const momentClient = clients.find((c) => c.id === moment?.client_id);
-  const reviewLogo = reviewClient?.logo_url ? logos[reviewClient.logo_url] : undefined;
   const momentLogo = momentClient?.logo_url ? logos[momentClient.logo_url] : undefined;
   const dateLabel = moment?.date ? new Date(`${moment.date}T00:00:00`).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" }) : "";
+  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
+  const clientLogo = (id: string) => { const c = clients.find((x) => x.id === id); return c?.logo_url ? logos[c.logo_url] : undefined; };
 
   return (
     <div className="grid min-w-0 gap-4 lg:grid-cols-12" aria-label="Eerstvolgende werkzaamheden">
-      <section className="grid min-h-60 min-w-0 grid-cols-[minmax(0,1fr)_minmax(80px,34%)] gap-4 rounded-lg bg-card p-5 md:gap-6 md:p-6 lg:col-span-7" aria-label="Eerstvolgende te beoordelen">
-        <div className="flex min-w-0 flex-col items-start">
-          <h2 className="w-full truncate text-sm font-medium text-muted-foreground" title="Eerstvolgende te beoordelen">Eerstvolgende te beoordelen</h2>
-          {reviewLoading ? <Skeleton className="mt-4 h-20 w-full" /> : review ? <>
-            <p className="mt-3 line-clamp-3 w-full break-words text-xl font-semibold">{review.title}</p>
-            <p className="mt-2 w-full truncate text-sm text-muted-foreground">{reviewClient?.name ?? "Klant"}</p>
-            <Button asChild size="sm" className="mt-auto bg-foreground text-background hover:bg-foreground/85"><Link to={`/hibe/videos/${review.id}`}>Bekijk edit<ArrowUpRight aria-hidden /></Link></Button>
-          </> : <p className="my-auto py-5 text-sm text-muted-foreground">{reviewError ? "Beoordelingen konden niet worden geladen." : "Niets te beoordelen."}</p>}
+      <section className="flex min-w-0 flex-col rounded-lg bg-card p-5 md:p-6 lg:col-span-7" aria-label="Te beoordelen door HIBE">
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <h2 className="truncate text-sm font-medium text-muted-foreground" title="Te beoordelen door HIBE">Te beoordelen door HIBE</h2>
+          {review && review.total > 0 && <span className="shrink-0 rounded-full bg-popover px-2.5 py-0.5 text-xs font-semibold">{review.total} open</span>}
         </div>
-        <div className="relative flex min-w-0 items-center justify-center overflow-hidden rounded-lg bg-popover">
-          <Film className="absolute h-10 w-10 text-muted-foreground/40" aria-hidden />
-          <ClientImage key={reviewLogo} url={reviewLogo} className="relative h-full max-h-56 w-full bg-popover object-contain p-3" />
-        </div>
+        {reviewLoading ? <Skeleton className="mt-4 h-24 w-full" /> : review && review.items.length ? (
+          <ul className="mt-2 divide-y divide-border">
+            {review.items.map((item) => (
+              <li key={item.id}>
+                <Link to={`/hibe/videos/${item.id}`} className="group flex min-w-0 items-center gap-3 py-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-popover">
+                    <ClientImage key={clientLogo(item.client_id)} url={clientLogo(item.client_id)} className="h-full w-full object-contain p-1" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{item.title}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{clientName(item.client_id)}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="my-auto py-5 text-sm text-muted-foreground">{reviewError ? "Beoordelingen konden niet worden geladen." : "Niets te beoordelen."}</p>}
+        {review && review.total > review.items.length && (
+          <Button asChild variant="link" size="sm" className="mt-1 self-start px-0 text-muted-foreground">
+            <Link to="/hibe/videos/stap/interne-controle">Alle {review.total} bekijken<ArrowUpRight aria-hidden /></Link>
+          </Button>
+        )}
       </section>
       <section className="relative isolate flex min-h-60 min-w-0 flex-col items-start overflow-hidden rounded-lg bg-foreground p-5 text-background md:p-6 lg:col-span-5" aria-label="Eerstvolgende contentmoment">
         <CalendarDays className="absolute bottom-5 right-5 -z-10 h-28 w-28 text-background/10" aria-hidden />
