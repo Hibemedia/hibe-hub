@@ -32,4 +32,4 @@
 - HIBE Taken (/hibe/taken) use the tasks table; admins read all, only beheerders assign to others.
 - Productieboard (/hibe/pipeline) is read-only, derived live in src/lib/pipeline.ts from existing tables/timestamps — one source of truth.
 
-- Scope Agenda tokens and light filters to Agenda to preserve other pages.
+- Scope Agenda light styles to Agenda; preserve other pages.
