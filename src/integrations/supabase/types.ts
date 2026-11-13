@@ -238,6 +238,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          archived_at: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -249,6 +250,7 @@ export type Database = {
           video_only: boolean
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           video_only?: boolean
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
