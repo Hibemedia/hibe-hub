@@ -9,6 +9,7 @@ import { useClient } from "@/context/ClientContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { FrameTopBar, ClientScopeBar } from "@/components/TopBar";
 import { PageHeaderProvider } from "@/components/PageHeader";
+import { useBase } from "@/lib/paths";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const Loading = () => <div className="p-6 text-sm text-muted-foreground">Laden…</div>;
@@ -98,6 +99,7 @@ export function ViewAsEnv() {
 /** Video-only clients (HIBE doesn't post for them) never see statistics pages; send them to Video's. */
 export function FullClientOnly({ children }: { children: JSX.Element }) {
   const { client } = useClient();
-  if (client?.video_only) return <Navigate to="videos" relative="path" replace />;
+  const base = useBase();
+  if (client?.video_only) return <Navigate to={`${base}/videos`} replace />;
   return children;
 }
