@@ -41,8 +41,8 @@ export default function HibeGoedkeuringen() {
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="wordmark">Goedkeuringen</h1>
-        <button onClick={() => { setChosen(client !== "all" ? client : ""); setPick("choose"); }} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>Video klaarzetten
+        <button onClick={() => { setChosen(client !== "all" ? client : ""); setPick("choose"); }} className="inline-flex h-12 items-center gap-3 rounded-control bg-foreground pl-2 pr-5 text-sm font-medium text-background">
+          <span className="flex h-8 w-8 items-center justify-center rounded-control bg-background text-foreground"><Plus className="h-4 w-4" /></span>Video klaarzetten
         </button>
       </div>
 

@@ -69,8 +69,8 @@ export default function VideoApproval() {
                     <h1 className="wordmark">Video-goedkeuring</h1>
         </div>
         {isAdmin && clientId && (
-          <button onClick={() => setCreating(true)} className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground pl-2 pr-5 text-sm font-medium text-background">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground"><Plus className="h-4 w-4" /></span>
+          <button onClick={() => setCreating(true)} className="inline-flex h-12 items-center gap-3 rounded-control bg-foreground pl-2 pr-5 text-sm font-medium text-background">
+            <span className="flex h-8 w-8 items-center justify-center rounded-control bg-background text-foreground"><Plus className="h-4 w-4" /></span>
             Video klaarzetten
           </button>
         )}

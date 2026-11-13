@@ -1,10 +1,10 @@
 # Roadmap
 
 ## Centraal label- en filtersysteem
-- [ ] Gemelde parsefout in Socials-checklist en Agenda herstellen en preview opnieuw controleren.
-- [ ] Centrale lichte componenten en tokens toevoegen.
-- [ ] HIBE-pagina’s en klantpagina’s migreren zonder datawijzigingen.
-- [ ] Filters, labels, avatarstapels en doorklikken controleren op desktop en mobiel; uitzonderingen benoemen.
+- [x] Gemelde parsefout in Socials-checklist en Agenda herstellen en preview opnieuw controleren.
+- [x] Centrale lichte componenten en tokens toevoegen.
+- [x] HIBE-pagina’s en klantpagina’s migreren zonder datawijzigingen.
+- [x] Filters, labels en teamkeuze met bestaande data gecontroleerd op desktop/mobiel; 65 tests slagen. Klantpagina’s gecontroleerd via Bekijk als klant. Medaillekunst, kalender-vandaag en vertrouwde speler-/grafiekmarkeringen behouden hun ronde vorm.
 
 ## HIBE-contentmomenten
 - [x] Maandlijst met klantlogo, optioneel referentiebeeld en maximaal drie crewavatars; huidige contentmomenten hebben geen opgeslagen referentiebeelden.

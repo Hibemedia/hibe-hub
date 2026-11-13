@@ -45,7 +45,7 @@ export default function ClientReview() {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 p-6 pt-16 text-center">
         <PageHeader title="Video's" />
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lime text-lime-foreground"><Check className="h-7 w-7" /></span>
+        <span className="flex h-14 w-14 items-center justify-center rounded-control bg-lime text-lime-foreground"><Check className="h-7 w-7" /></span>
         <h1 className="text-2xl font-semibold">{queue.length ? "Klaar met beoordelen" : "Niets te beoordelen"}</h1>
         {queue.length > 0 && <div className="grid w-full grid-cols-2 gap-3">
           <div className="rounded-lg border border-border bg-card p-4"><p className="text-3xl font-light tabular">{a}</p><p className="text-sm text-muted-foreground">goedgekeurd</p></div>
@@ -116,7 +116,7 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
         <div className="flex items-center gap-3">
           <button aria-label="Vorige video" disabled={pos.i === 0} onClick={onPrev} className="round-btn h-9 w-9 disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
           <div className="flex-1 space-y-1"><p className="text-sm font-medium">Video {pos.i + 1} van {pos.n}</p>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-lime transition-[width]" style={{ width: `${((pos.i + 1) / pos.n) * 100}%` }} /></div></div>
+            <div className="h-1.5 overflow-hidden rounded-control bg-muted"><div className="h-full rounded-control bg-lime transition-[width]" style={{ width: `${((pos.i + 1) / pos.n) * 100}%` }} /></div></div>
           <button aria-label="Volgende video" disabled={pos.i >= pos.n - 1} onClick={onNext} className="round-btn h-9 w-9 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}

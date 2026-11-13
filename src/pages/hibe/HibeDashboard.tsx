@@ -395,7 +395,7 @@ function ActionNeeded({ actions, className }: { actions?: ReturnType<typeof useH
           <div key={g.title} className="py-3 first:pt-0 last:pb-0">
             <Link to={g.to} className="group flex items-center justify-between gap-2 text-sm">
               <span className={cn("min-w-0 truncate font-semibold group-hover:underline", !g.items.length && "font-medium text-muted-foreground")}>{g.title}</span>
-              {g.items.length ? <span className="min-w-6 rounded-full bg-foreground px-2 text-center text-xs font-bold leading-6 text-background tabular">{g.items.length}</span>
+              {g.items.length ? <span className="ui-tag min-w-6 justify-center tabular">{g.items.length}</span>
                 : <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">Niets open</span>}
             </Link>
             {g.items.length > 0 && (

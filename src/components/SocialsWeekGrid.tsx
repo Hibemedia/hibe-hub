@@ -198,7 +198,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
               onClick={() => setMenu(k)}
               className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
               {st.symbol}
-              {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-current opacity-70" />}
+              {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-control bg-current opacity-70" />}
               {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
             </button>
           </PopoverTrigger>
@@ -263,7 +263,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
                         <span>{st?.symbol}</span>
                         {it.title && <span className="mt-0.5 max-w-full truncate px-1 text-[8px] font-medium opacity-80">{it.title}</span>}
                       </>
-                    ) : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />}
+                    ) : <span className="h-1.5 w-1.5 rounded-control bg-muted-foreground/60" />}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 space-y-3">
@@ -373,8 +373,8 @@ function WeekBar({ done, planned, barCls }: { done: number; planned: number; bar
   const pct = planned > 0 ? Math.min(100, (done / planned) * 100) : 0;
   return (
     <div className="flex items-center gap-2">
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-background">
-        <div className={cn("h-full rounded-full transition-all", barCls)} style={{ width: `${pct}%` }} />
+      <div className="h-2 flex-1 overflow-hidden rounded-control bg-background">
+        <div className={cn("h-full rounded-control transition-all", barCls)} style={{ width: `${pct}%` }} />
       </div>
       <span className="shrink-0 text-xs tabular text-muted-foreground">{done}/{planned}</span>
     </div>

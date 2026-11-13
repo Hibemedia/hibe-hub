@@ -48,7 +48,7 @@ export default function HibePipeline() {
           <SelectTrigger className="h-9 w-52 rounded-tag"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="all">Alle klanten</SelectItem>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
         </Select>
-        <FilterChip active={lateOnly} onClick={() => setLateOnly((x) => !x)} className={cn("h-9 rounded-tag px-4 text-sm font-semibold", lateOnly ? "bg-foreground text-background" : "bg-card")}>Toon vertraagd</FilterChip>
+        <FilterChip active={lateOnly} onClick={() => setLateOnly((x) => !x)} className="px-4">Toon vertraagd</FilterChip>
         <span className="text-xs text-muted-foreground">Tijd in fase: tot 3 dagen op schema, 3–5 aandacht, meer dan 5 vertraagd</span>
       </div>
       <div className="overflow-x-auto pb-2">
