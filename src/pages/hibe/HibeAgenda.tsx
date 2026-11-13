@@ -17,6 +17,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AgendaEntry, AgendaKind, DAY_CAPACITY, absentOn, entriesOn, monthGrid, personDayLoad, shootRow, teamDayLoad, workWeek, ymd } from "@/lib/agenda";
 import { TaskDialog, TaskFields, blankTask, saveTask, taskToForm, type TaskForm } from "@/components/TaskDialog";
+import { AgendaControls, useAgendaFilters } from "@/components/agenda/AgendaControls";
+import { AgendaDetails } from "@/components/agenda/AgendaDetails";
+import { AgendaDayItems } from "@/components/agenda/AgendaDayItems";
+import { filterAgendaEntries } from "@/lib/agenda-filters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const db = supabase as any;
@@ -39,12 +43,14 @@ function useAgenda(from: string, to: string) {
     queryFn: async () => {
       const [ev, mo, tk, ed] = await Promise.all([
         db.from("calendar_events").select("*, attendees:calendar_attendees(user_id)").lte("start_date", to).gte("end_date", from),
-        db.from("content_moments").select("id,title,date,start_time,client_id,status,crew:moment_crew(user_id)").gte("date", from).lte("date", to),
+        db.from("content_moments").select("id,title,date,start_time,location,notes,client_id,status,crew:moment_crew(user_id)").gte("date", from).lte("date", to),
         db.from("tasks").select("*").not("due_date", "is", null).gte("due_date", from).lte("due_date", to),
-        db.from("edits").select("id,title,client_id,editor_id,status,planned_date").not("planned_date", "is", null).neq("status", "delivered").gte("planned_date", from).lte("planned_date", to),
+        db.from("edits").select("id,title,client_id,editor_id,status,planned_date,notes").not("planned_date", "is", null).neq("status", "delivered").gte("planned_date", from).lte("planned_date", to),
       ]);
       if (ev.error) throw ev.error;
       if (mo.error) throw mo.error;
+      if (tk.error) throw tk.error;
+      if (ed.error) throw ed.error;
       return { events: (ev.data ?? []) as Ev[], moments: (mo.data ?? []) as any[], tasks: (tk.data ?? []) as any[], edits: (ed.data ?? []) as any[] };
     },
   });
@@ -53,12 +59,12 @@ function useAgenda(from: string, to: string) {
 export default function HibeAgenda() {
   const now = new Date();
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = useState<"month" | "week" | "list">("month");
   const [weekRef, setWeekRef] = useState(now);
   const grid = useMemo(() => monthGrid(cursor.y, cursor.m), [cursor]);
   const week = useMemo(() => workWeek(weekRef), [weekRef]);
   const from = view === "week" ? ymd(week[0]) : ymd(grid[0]), to = view === "week" ? ymd(week[4]) : ymd(grid[41]);
-  const { data } = useAgenda(from, to);
+  const { data, isLoading, error: agendaError } = useAgenda(from, to);
   const { data: team = [] } = useTeamMembers();
   const { clients } = useClient();
   const me = ((UserAuth() as any)?.user?.id as string) ?? "";
@@ -68,30 +74,34 @@ export default function HibeAgenda() {
   const [saving, setSaving] = useState(false);
   const name = (id: string) => team.find((t) => t.id === id)?.name ?? "Teamlid";
 
-  const entries: AgendaEntry[] = useMemo(() => [
+  const allEntries: AgendaEntry[] = useMemo(() => [
     ...(data?.moments ?? []).filter((m) => m.date && m.status !== "cancelled" && m.status !== "geannuleerd").map((m) => ({
-      id: m.id, kind: "shoot" as const, start: m.date, end: m.date, time: m.start_time?.slice(0, 5),
+      id: m.id, kind: "shoot" as const, clientId: m.client_id, location: m.location, notes: m.notes, start: m.date, end: m.date, time: m.start_time?.slice(0, 5),
       title: `${clients.find((c) => c.id === m.client_id)?.name ?? "Klant"} · ${m.title}`, people: (m.crew ?? []).map((c: any) => c.user_id),
     })),
     ...(data?.events ?? []).map((e) => ({
-      id: e.id, kind: e.kind, start: e.start_date, end: e.end_date, time: e.start_time?.slice(0, 5),
+      id: e.id, kind: e.kind, location: e.location, notes: e.notes, endTime: e.end_time?.slice(0, 5), start: e.start_date, end: e.end_date, time: e.start_time?.slice(0, 5),
       title: e.kind === "vacation" ? `${e.person_id ? name(e.person_id) : ""} ${e.title}`.trim() : e.title,
       people: e.kind === "vacation" ? (e.person_id ? [e.person_id] : []) : e.attendees.map((a) => a.user_id),
     })),
     ...(data?.edits ?? []).map((e) => ({
-      id: e.id, kind: "edit" as const, start: e.planned_date, end: e.planned_date,
+      id: e.id, kind: "edit" as const, clientId: e.client_id, notes: e.notes, start: e.planned_date, end: e.planned_date,
       title: `${clients.find((c) => c.id === e.client_id)?.name ?? "Klant"} · ${e.title}`, people: e.editor_id ? [e.editor_id] : [],
     })),
     ...(data?.tasks ?? []).filter((t) => !t.done_at).map((t) => ({
-      id: t.id, kind: "task" as const, start: t.due_date, end: t.due_date, time: t.due_time?.slice(0, 5),
+      id: t.id, kind: "task" as const, clientId: t.client_id, notes: t.notes, start: t.due_date, end: t.due_date, time: t.due_time?.slice(0, 5),
       title: t.assignee_id === me ? t.title : `${name(t.assignee_id)}: ${t.title}`, people: [t.assignee_id],
     })),
-  ], [data, clients, team]);
+  ], [data, clients, team, me]);
+  const { filters, setFilters } = useAgendaFilters(me);
+  const entries = filterAgendaEntries(allEntries, filters, me);
+  const visibleTeam = team.filter((t) => filters.who === "everyone" || (filters.who === "me" ? t.id === me : filters.people.includes(t.id)));
+  const [selected, setSelected] = useState<AgendaEntry | null>(null);
   const [task, setTask] = useState<TaskForm | null>(null);
   const [taskEdit, setTaskEdit] = useState<TaskForm | null>(null);
 
   const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [], client_id: "" });
-  const open = (e: AgendaEntry) => {
+  const editEntry = (e: AgendaEntry) => {
     if (e.kind === "shoot") return nav("/hibe/contentmomenten");
     if (e.kind === "edit") return nav("/hibe/edits");
     if (e.kind === "task") { const t = data?.tasks.find((x) => x.id === e.id); if (t) setTaskEdit(taskToForm(t)); return; }
@@ -99,15 +109,18 @@ export default function HibeAgenda() {
     setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id), client_id: "" });
   };
 
+  const open = (e: AgendaEntry) => setSelected(e);
+
   const warn = !!form && form.kind !== "vacation";
-  const absent = warn ? absentOn(form.start_date, entries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
-  const busyShoot = warn ? entries.filter((e) => e.kind === "shoot" && e.start === form.start_date && e.people.some((p) => form.people.includes(p))) : [];
+  const absent = warn ? absentOn(form.start_date, allEntries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
+  const busyShoot = warn ? allEntries.filter((e) => e.kind === "shoot" && e.start === form.start_date && e.people.some((p) => form.people.includes(p))) : [];
 
   const save = async () => {
     if (!form) return;
     if (form.kind === "task") {
       setSaving(true);
-      try { await saveTask({ ...task!, due_date: task!.due_date || form.start_date }, me); toast.success("Taak ingepland"); setForm(null); qc.invalidateQueries({ queryKey: ["agenda"] }); qc.invalidateQueries({ queryKey: ["tasks"] }); }
+      if (!task) return;
+      try { await saveTask({ ...task, due_date: task.due_date || form.start_date }, me); toast.success("Taak ingepland"); setForm(null); qc.invalidateQueries({ queryKey: ["agenda"] }); qc.invalidateQueries({ queryKey: ["tasks"] }); }
       catch (e: any) { toast.error(e.message ?? "Opslaan mislukt"); } finally { setSaving(false); }
       return;
     }
@@ -159,7 +172,7 @@ export default function HibeAgenda() {
   const title = new Date(cursor.y, cursor.m, 1).toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
   const shiftWeek = (d: number) => setWeekRef((w) => new Date(w.getFullYear(), w.getMonth(), w.getDate() + d * 7));
   const weekTitle = `${week[0].toLocaleDateString("nl-NL", { day: "numeric", month: "short" })} – ${week[4].toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}`;
-  const people = team.map((t) => t.id);
+  const people = visibleTeam.map((t) => t.id);
   const unassigned = entries.filter((e) => e.kind === "edit" && e.people.length === 0);
   const shift = (d: number) => setCursor((c) => { const x = new Date(c.y, c.m + d, 1); return { y: x.getFullYear(), m: x.getMonth() }; });
   const toggle = (id: string) => form && setForm({ ...form, people: form.kind === "vacation" ? [id] : form.people.includes(id) ? form.people.filter((p) => p !== id) : [...form.people, id] });
@@ -168,19 +181,19 @@ export default function HibeAgenda() {
     <div className="space-y-4">
       <PageHeader title="Agenda" action={<PrimaryAction icon={Plus} onClick={() => setForm(blank(today))}>Nieuw item</PrimaryAction>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="mr-1 flex rounded-full bg-muted p-0.5 text-sm">
-            {(["month", "week"] as const).map((v) => <button key={v} onClick={() => setView(v)} className={cn("rounded-full px-3 py-1 font-medium", view === v ? "bg-foreground text-background" : "text-muted-foreground")}>{v === "month" ? "Maand" : "Weekbezetting"}</button>)}
-          </div>
+        <div className="flex rounded-full bg-foreground p-1" role="group" aria-label="Agendaweergave">
+          {(["month", "week", "list"] as const).map((v) => <Button key={v} size="sm" variant="ghost" onClick={() => setView(v)} aria-pressed={view === v} className={cn("h-8 rounded-md px-3 text-xs hover:bg-background/10 hover:text-background", view === v ? "bg-lime text-lime-foreground hover:bg-lime hover:text-lime-foreground" : "text-background")}>{v === "month" ? "Maand" : v === "week" ? "Weekbezetting" : "Lijst"}</Button>)}
+        </div>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" aria-label="Vorige" onClick={() => view === "week" ? shiftWeek(-1) : shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
           <Button variant="outline" size="icon" aria-label="Volgende" onClick={() => view === "week" ? shiftWeek(1) : shift(1)}><ChevronRight className="h-4 w-4" /></Button>
-          <h2 className="ml-1 truncate text-lg font-semibold capitalize">{view === "week" ? weekTitle : title}</h2>
+          <h2 className="min-w-0 truncate text-sm font-semibold capitalize sm:text-lg">{view === "week" ? weekTitle : title}</h2>
           <Button variant="ghost" size="sm" onClick={() => { setCursor({ y: now.getFullYear(), m: now.getMonth() }); setWeekRef(new Date()); }}>Vandaag</Button>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs">
-          {(["shoot", "edit", "meeting", "task", "vacation"] as AgendaKind[]).map((k) => <span key={k} className={cn("rounded-full px-2.5 py-1 font-medium", KIND_CLS[k])}>{KIND_LABEL[k]}</span>)}
-        </div>
       </div>
+      <AgendaControls filters={filters} onChange={setFilters} entries={allEntries} me={me} team={team} clients={clients} />
+      {isLoading && <p className="text-sm text-muted-foreground">Agenda laden…</p>}
+      {agendaError && <p className="text-sm text-destructive">Agenda kon niet worden geladen.</p>}
       {view === "week" && <div className="overflow-x-auto rounded-[20px] border border-border bg-card">
         <div className="grid min-w-[760px] grid-cols-[160px_repeat(5,minmax(0,1fr))]">
           <div className="border-b border-r border-border p-2 text-xs font-medium uppercase text-muted-foreground">Bezetting</div>
@@ -195,13 +208,13 @@ export default function HibeAgenda() {
               </div>
             );
           })}
-          {team.map((m) => <Fragment key={m.id}>
+          {visibleTeam.map((m) => <Fragment key={m.id}>
             <div className="flex min-w-0 items-center gap-2 border-b border-r border-border p-2"><UserAvatar userId={m.id} size={26} /><span className="truncate text-sm font-medium">{m.name}</span></div>
             {week.map((d, i) => {
               const day = ymd(d); const list = entriesOn(day, entries).filter((e) => e.people.includes(m.id)); const l = personDayLoad(m.id, day, entries);
               return (
                 <div key={m.id + day} onClick={() => setForm({ ...blank(day), people: [m.id] })} className={cn("min-h-[64px] min-w-0 cursor-pointer space-y-0.5 border-b border-border p-1.5 hover:bg-muted/50", i < 4 && "border-r", l.level === "over" && "bg-warning/10")}>
-                  {list.map((e) => <button key={e.id} onClick={(ev) => { ev.stopPropagation(); open(e); }} title={e.title} className={cn("block w-full truncate rounded-md px-1.5 py-0.5 text-left text-[11px] font-medium", KIND_CLS[e.kind])}>{e.time && `${e.time} `}{e.title.replace(`${m.name}: `, "")}</button>)}
+                  <AgendaDayItems entries={list} onOpen={open} tones={KIND_CLS} />
                 </div>
               );
             })}
@@ -219,19 +232,21 @@ export default function HibeAgenda() {
             return (
               <div key={day} onClick={() => setForm(blank(day))} className={cn("min-h-[92px] min-w-0 cursor-pointer border-border p-1 sm:min-h-[112px] sm:p-1.5 hover:bg-muted/50", i % 7 !== 6 && "border-r", i < 35 && "border-b", (out || i % 7 > 4) && "bg-muted/30")}>
                 <div className={cn("mb-1 flex h-6 w-6 items-center justify-center rounded-full text-xs tabular", day === today && "bg-foreground font-semibold text-background", out && "text-muted-foreground/60")}>{d.getDate()}</div>
-                <div className="space-y-0.5">
-                  {list.slice(0, 3).map((e) => (
-                    <button key={e.id} onClick={(ev) => { ev.stopPropagation(); open(e); }} title={e.title} className={cn("block w-full truncate rounded-md px-1.5 py-0.5 text-left text-[11px] font-medium", KIND_CLS[e.kind])}>
-                      {e.time && <span className="hidden sm:inline">{e.time} </span>}{e.title}
-                    </button>
-                  ))}
-                  {list.length > 3 && <p className="px-1 text-[11px] text-muted-foreground">+{list.length - 3} meer</p>}
-                </div>
+                <AgendaDayItems entries={list} onOpen={open} tones={KIND_CLS} />
               </div>
             );
           })}
         </div>
       </div>}
+
+      {view === "list" && <div className="overflow-hidden rounded-xl border border-border bg-card">
+        {grid.filter((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0).map((d) => <section key={ymd(d)} className="border-b border-border last:border-0">
+          <h3 className="bg-muted/40 px-4 py-2 text-sm font-semibold capitalize">{d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}</h3>
+          <div className="space-y-1 p-2">{entriesOn(ymd(d), entries).map((e) => <Button key={`${e.kind}:${e.id}`} variant="ghost" className="h-auto min-h-10 w-full justify-start gap-3 rounded-md text-left" onClick={() => open(e)}><span className={cn("shrink-0 rounded-md px-2 py-1 text-xs", KIND_CLS[e.kind])}>{KIND_LABEL[e.kind]}</span><span className="min-w-0 flex-1 truncate">{e.title}</span><span className="shrink-0 text-xs text-muted-foreground">{e.time || ""}</span></Button>)}</div>
+        </section>)}
+        {!isLoading && !grid.some((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0) && <p className="p-4 text-sm text-muted-foreground">Geen items voor deze selectie.</p>}
+      </div>}
+      <AgendaDetails entry={selected} onClose={() => setSelected(null)} onOpen={(e) => { setSelected(null); editEntry(e); }} clients={clients} team={team} />
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent className="max-w-lg">
@@ -239,7 +254,7 @@ export default function HibeAgenda() {
             <DialogHeader><DialogTitle>{form.id ? "Bewerken" : "Nieuw in de agenda"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               {!form.id && <div className="flex flex-wrap gap-2">
-                {(["shoot", "meeting", "vacation", "task"] as const).map((k) => <button key={k} onClick={() => { setForm({ ...blank(form.start_date, k) }); if (k === "task") setTask(blankTask(me, form.start_date)); }} className={cn("chip-filter", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : k === "task" ? "Taak" : "Vakantie / vrij"}</button>)}
+                {(["shoot", "meeting", "vacation", "task"] as const).map((k) => <Button variant="outline" size="sm" key={k} onClick={() => { setForm({ ...blank(form.start_date, k) }); if (k === "task") setTask(blankTask(me, form.start_date)); }} className={cn("rounded-md", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : k === "task" ? "Taak" : "Vakantie / vrij"}</Button>)}
               </div>}
               {form.kind === "task" && task && <TaskFields form={task} setForm={setTask} />}
               {form.kind !== "task" && <>
@@ -264,7 +279,7 @@ export default function HibeAgenda() {
               <div className="space-y-1.5">
                 <Label>{form.kind === "shoot" ? "Crew (krijgen een melding)" : form.kind === "meeting" ? "Deelnemers (krijgen een melding)" : "Wie is er vrij?"}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {team.map((t) => <button key={t.id} type="button" onClick={() => toggle(t.id)} className={cn("flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-3 text-sm", form.people.includes(t.id) ? "bg-foreground text-background" : "bg-popover hover:bg-muted")}><UserAvatar userId={t.id} size={22} />{t.name}</button>)}
+                  {team.map((t) => <Button variant="outline" size="sm" key={t.id} type="button" onClick={() => toggle(t.id)} className={cn("flex items-center gap-1.5 rounded-md border border-border py-1 pl-1 pr-3 text-sm", form.people.includes(t.id) ? "bg-foreground text-background" : "bg-popover hover:bg-muted")}><UserAvatar userId={t.id} size={22} />{t.name}</Button>)}
                 </div>
               </div>
               {(absent.length > 0 || busyShoot.length > 0) && <div className="flex gap-2 rounded-md bg-muted p-3 text-sm">
