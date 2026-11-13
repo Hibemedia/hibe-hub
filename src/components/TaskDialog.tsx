@@ -42,7 +42,7 @@ export function TaskFields({ form, setForm }: { form: TaskForm; setForm: (f: Tas
       </Select>
     </div>
     <div className="space-y-1.5">
-      <Label>Voor wie?{role !== "beheerder" && <span className="ml-1 font-normal text-muted-foreground">(alleen een beheerder geeft anderen taken)</span>}</Label>
+      <Label>Voor wie?</Label>
       <div className="flex flex-wrap gap-2">
         {people.map((t) => <button key={t.id} type="button" onClick={() => setForm({ ...form, assignee_id: t.id })} className={cn("flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-3 text-sm", form.assignee_id === t.id ? "bg-foreground text-background" : "bg-popover hover:bg-muted")}><UserAvatar userId={t.id} size={22} />{t.id === me ? "Ik" : t.name}</button>)}
       </div>
