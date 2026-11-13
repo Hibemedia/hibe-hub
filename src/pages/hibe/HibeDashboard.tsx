@@ -22,7 +22,7 @@ import { Moment, MOMENT_TYPES, STATUS_STYLE, MOMENT_STATUS } from "@/pages/Conte
 import { PeriodSelect } from "@/components/PeriodSelect";
 import { Section, EmptyState, Change } from "@/components/StatsOverview";
 import { WeatherCard } from "@/components/WeatherCard";
-import { SocialsChecklistCard } from "@/components/SocialsChecklistCard";
+import { SocialsChecklistPreview } from "@/components/SocialsChecklistCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber, NETWORK_LABELS, Network, PeriodKey } from "@/lib/stats";
 import { cn } from "@/lib/utils";
