@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { crewConflicts, needsCrew, CrewRow } from "@/lib/crew";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/UserAvatar";
+import { Portal as TooltipPortal } from "@radix-ui/react-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type Member = { id: string; name: string; avatar_url: string | null };
 export type ShownCrew = { moment_id: string; user_id?: string; name: string; avatar_url: string | null; role?: string | null };
@@ -60,13 +62,27 @@ export function CrewAvatar({ c, size = 24 }: { c: { name: string; avatar_url: st
   return <UserAvatar userId={c.user_id} name={c.name} url={c.avatar_url} size={size} className="ring-2 ring-card" />;
 }
 
+function CrewPhoto({ c }: { c: ShownCrew }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Tooltip open={open} onOpenChange={setOpen} delayDuration={150}>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label={c.name} onClick={(event) => { event.stopPropagation(); setOpen((value) => !value); }} className="relative h-8 w-8 shrink-0 rounded-full p-0 hover:z-10 focus-visible:z-10">
+          <CrewAvatar c={c} size={32} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipPortal><TooltipContent side="top" sideOffset={8} className="max-w-64 whitespace-normal break-words text-center text-sm">{c.name}</TooltipContent></TooltipPortal>
+    </Tooltip>
+  );
+}
+
 /** Avatars on a moment row/card, or the orange label for a shoot day without crew (HIBE only). */
 export function CrewBadge({ m, crew, asClient, showNames }: { m: { id: string; type: string; status: string; date: string | null }; crew: ShownCrew[]; asClient: boolean; showNames?: boolean }) {
   if (crew.length === 0) return !asClient && needsCrew(m, 0) ? <span className="inline-flex rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning">Nog niemand ingepland</span> : null;
   return (
-    <span className="flex items-center gap-2">
-      <span className="flex -space-x-1.5">{crew.map((c, i) => <CrewAvatar key={i} c={c} />)}</span>
-      {showNames && <span className="text-sm text-muted-foreground">{crew.map((c) => c.name.split(" ")[0]).join(", ")}</span>}
+    <span className="flex min-w-0 flex-wrap items-center gap-2">
+      <span className="flex max-w-full flex-wrap -space-x-2 gap-y-1" role="group" aria-label="Ingeplande crew">{crew.map((c, i) => <CrewPhoto key={c.user_id ?? `${c.name}-${i}`} c={c} />)}</span>
+      {showNames && <span className="min-w-0 break-words text-sm text-muted-foreground">{crew.map((c) => c.name.split(" ")[0]).join(", ")}</span>}
     </span>
   );
 }
