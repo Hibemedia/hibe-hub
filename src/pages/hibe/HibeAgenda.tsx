@@ -26,11 +26,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const db = supabase as any;
 const KIND_LABEL: Record<AgendaKind, string> = { shoot: "Draaidag", meeting: "Meeting", vacation: "Vrij", task: "Taak", edit: "Montage" };
 const KIND_CLS: Record<AgendaKind, string> = {
-  shoot: "bg-lime text-lime-foreground",
-  meeting: "bg-foreground text-background",
-  vacation: "bg-muted text-muted-foreground border border-dashed border-border",
-  task: "bg-card text-foreground border border-foreground/30",
-  edit: "bg-foreground/10 text-foreground",
+  shoot: "agenda-type-item agenda-shoot",
+  meeting: "agenda-type-item agenda-meeting",
+  vacation: "agenda-type-item agenda-vacation",
+  task: "agenda-type-item agenda-task",
+  edit: "agenda-type-item agenda-edit",
 };
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
@@ -181,8 +181,8 @@ export default function HibeAgenda() {
     <div className="space-y-4">
       <PageHeader title="Agenda" action={<PrimaryAction icon={Plus} onClick={() => setForm(blank(today))}>Nieuw item</PrimaryAction>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex rounded-full bg-foreground p-1" role="group" aria-label="Agendaweergave">
-          {(["month", "week", "list"] as const).map((v) => <Button key={v} size="sm" variant="ghost" onClick={() => setView(v)} aria-pressed={view === v} className={cn("h-8 rounded-md px-3 text-xs hover:bg-background/10 hover:text-background", view === v ? "bg-lime text-lime-foreground hover:bg-lime hover:text-lime-foreground" : "text-background")}>{v === "month" ? "Maand" : v === "week" ? "Weekbezetting" : "Lijst"}</Button>)}
+        <div className="agenda-segment" role="group" aria-label="Agendaweergave">
+          {(["month", "week", "list"] as const).map((v) => <Button key={v} size="sm" variant="ghost" onClick={() => setView(v)} aria-pressed={view === v} className="agenda-segment-option px-3">{v === "month" ? "Maand" : v === "week" ? "Weekbezetting" : "Lijst"}</Button>)}
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" aria-label="Vorige" onClick={() => view === "week" ? shiftWeek(-1) : shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
@@ -191,7 +191,7 @@ export default function HibeAgenda() {
           <Button variant="ghost" size="sm" onClick={() => { setCursor({ y: now.getFullYear(), m: now.getMonth() }); setWeekRef(new Date()); }}>Vandaag</Button>
         </div>
       </div>
-      <AgendaControls filters={filters} onChange={setFilters} entries={allEntries} me={me} team={team} clients={clients} />
+      <AgendaControls filters={filters} onChange={setFilters} entries={allEntries} me={me} team={team} clients={clients} light />
       {isLoading && <p className="text-sm text-muted-foreground">Agenda laden…</p>}
       {agendaError && <p className="text-sm text-destructive">Agenda kon niet worden geladen.</p>}
       {view === "week" && <div className="overflow-x-auto rounded-[20px] border border-border bg-card">
