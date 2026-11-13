@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Archive, ArchiveRestore } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,7 +21,17 @@ interface Brand { id: number | string; label: string }
 interface SyncRun { client_id: string; started_at: string; finished_at: string | null; status: string; days_count: number | null; videos_count: number | null; error: string | null }
 
 export default function Klanten() {
-  const { clients, refreshClients } = useClient();
+  const { allClients, refreshClients } = useClient();
+  const [showArchived, setShowArchived] = useState(false);
+  const archivedCount = allClients.filter((c) => c.archived_at).length;
+  const clients = showArchived ? allClients : allClients.filter((c) => !c.archived_at);
+  const toggleArchive = async (c: ClientRow) => {
+    const archived_at = c.archived_at ? null : new Date().toISOString();
+    const { error } = await supabase.from("clients").update({ archived_at } as any).eq("id", c.id);
+    if (error) return toast.error("Opslaan mislukt: " + error.message);
+    toast.success(archived_at ? `${c.name} gearchiveerd` : `${c.name} teruggezet`);
+    await refreshClients();
+  };
   const [brands, setBrands] = useState<Brand[]>([]);
   const [runs, setRuns] = useState<Record<string, SyncRun>>({});
   const [logos, setLogos] = useState<Record<string, string>>({});
@@ -99,21 +111,26 @@ export default function Klanten() {
   return (
     <div className="p-6 space-y-6 max-w-6xl">
       <PageHeader title="Klanten beheren" action={<PrimaryAction icon={Plus} onClick={() => { setEditing({}); setLogoFile(null); }}>Klant toevoegen</PrimaryAction>} />
+      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+        <span>Gearchiveerde klanten verdwijnen uit het dashboard, de klantkeuze en de dagelijkse sync. Alle gegevens blijven bewaard.</span>
+        {archivedCount > 0 && <label className="flex shrink-0 items-center gap-2"><Switch checked={showArchived} onCheckedChange={setShowArchived} />Toon gearchiveerd ({archivedCount})</label>}
+      </div>
       <Card><CardContent className="p-0">
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Klant</TableHead><TableHead>Metricool-merk</TableHead><TableHead>TikTok</TableHead><TableHead>Laatste sync</TableHead><TableHead className="w-12" />
+            <TableHead>Klant</TableHead><TableHead>Metricool-merk</TableHead><TableHead>TikTok</TableHead><TableHead>Laatste sync</TableHead><TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
             {clients.length === 0 && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Voeg een klant toe om zijn Metricool-cijfers te synchroniseren. <Button size="sm" className="ml-2" onClick={() => { setEditing({}); setLogoFile(null); }}><Plus className="h-4 w-4" />Klant toevoegen</Button></TableCell></TableRow>}
             {clients.map((c) => {
               const r = runs[c.id];
               return (
-                <TableRow key={c.id}>
+                <TableRow key={c.id} className={c.archived_at ? "opacity-60" : undefined}>
                   <TableCell><div className="flex items-center gap-3">
                     {c.logo_url && logos[c.logo_url] ? <img src={logos[c.logo_url]} alt="" className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted" />}
                     <span className="font-medium">{c.name}</span>
                     {c.video_only && <Badge variant="outline">Alleen video's</Badge>}
+                    {c.archived_at && <Badge variant="secondary">Gearchiveerd</Badge>}
                     {c.metricool_brand_label && <span className={c.metricool_brand_label.toLowerCase().includes(c.name.toLowerCase().slice(0, 4)) ? "text-xs text-muted-foreground" : "rounded-md border border-warning/50 bg-warning/10 px-1.5 text-xs"}>Metricool: {c.metricool_brand_label}</span>}</div></TableCell>
                   <TableCell>{c.metricool_blog_id ? <>{brandLabel(c.metricool_blog_id)} <span className="text-xs text-muted-foreground">({c.metricool_blog_id})</span></> : "–"}</TableCell>
                   <TableCell>{c.tiktok_handle ? `@${c.tiktok_handle}` : "–"}</TableCell>
@@ -129,7 +146,9 @@ export default function Klanten() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell><Button variant="ghost" size="icon" aria-label="Bewerken" onClick={() => { setEditing(c); setLogoFile(null); }}><Pencil className="h-4 w-4" /></Button></TableCell>
+                  <TableCell><div className="flex justify-end">
+                    <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label={c.archived_at ? "Terugzetten" : "Archiveren"} onClick={() => toggleArchive(c)}>{c.archived_at ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}</Button></TooltipTrigger><TooltipContent>{c.archived_at ? "Terugzetten" : "Archiveren"}</TooltipContent></Tooltip>
+                    <Button variant="ghost" size="icon" aria-label="Bewerken" onClick={() => { setEditing(c); setLogoFile(null); }}><Pencil className="h-4 w-4" /></Button></div></TableCell>
                 </TableRow>
               );
             })}
