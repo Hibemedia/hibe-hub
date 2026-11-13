@@ -19,6 +19,7 @@ import { ClientLogo, useLogoUrls } from "@/hooks/useLogoUrl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronDown } from "lucide-react";
 import { filterMomentStatus, momentReferenceImage, momentStatus } from "@/lib/content-moment-list";
+import { CONTENT_MOMENT_PHOTOS } from "@/lib/content-moment-photos";
 
 export default function HibeContentmomenten() {
   const { clients } = useClient();
@@ -74,7 +75,7 @@ export default function HibeContentmomenten() {
           <ul className="divide-y divide-border">
             {ms.map((m) => {
               const client = clients.find((c) => c.id === m.client_id);
-              const reference = momentReferenceImage(m);
+              const reference = momentReferenceImage(m) || (m.type === "shoot" && client ? CONTENT_MOMENT_PHOTOS[client.name] : undefined);
               return <li key={m.id} className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 px-3 py-4 transition-colors hover:bg-muted/40 sm:flex-nowrap sm:px-4">
                 <Button variant="ghost" className="h-auto w-full min-w-0 justify-start gap-3 rounded-md p-0 text-left hover:bg-transparent sm:w-auto sm:flex-1" onClick={() => setOpenId(m.id)}>
                   <span className="w-14 shrink-0 self-start text-sm font-semibold tabular-nums sm:w-20">{m.date ? new Date(m.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric" }) : "—"}<span className="mt-1 block text-xs font-normal text-muted-foreground">{m.start_time?.slice(0, 5) ?? ""}</span></span>
