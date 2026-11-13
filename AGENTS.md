@@ -18,7 +18,7 @@
 - Video's (review board) store files in Cloudflare R2, never Lovable storage: browser uploads multipart via presigned URLs from the r2-video function and plays via short-lived signed GETs — keeps multi-GB files off the backend.
 - Video status order and client visibility live in src/lib/videos.ts (tested); clients only change status via video_client_action() and never see internal comments (RLS).
 - App frame: pages render their title and single primary action through <PageHeader>/<PrimaryAction> (portals into the fixed top bar) instead of in-page headings — keeps the main button in the same place on every page.
-- Media Management (HIBE video's) is step-based: one page per status at /hibe/videos/stap/:slug, overview /hibe/videos, review /hibe/videos/:id; trash = video_items.archived_at (no extra status).
+- Media Management (HIBE video's) is step-based: one page per status at /hibe/videos/stap/:step, overview /hibe/videos, review /hibe/videos/:id; trash = video_items.archived_at (no extra status).
 - Client-scope routes use :videoId for nested video pages so they never shadow /hibe/klant/:id.
 - Edits (/hibe/edits) is admin-only montageplanning in the edits table; delivering reuses the r2-video flow (uploader_id = editor) and links edits.video_item_id — the Feedback label derives from that video's status, never stored.
 - Team chat (/hibe/chat) uses chat_rooms/chat_members/chat_messages with membership RLS via is_chat_member() (admin + member); one realtime subscription lives in NotificationBell (useChatLive) and chat alerts go to chat_notifications, not hibe_notifications (that table requires a client).
