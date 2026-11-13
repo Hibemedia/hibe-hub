@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/hibe-logo.png";
-import studio from "@/assets/hibe-login-studio.jpg";
+import photo from "@/assets/hibe-contentdag-login.jpg.asset.json";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,8 +51,8 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background p-2 pb-8 md:p-3 md:pb-10">
       <header className="relative h-[340px] overflow-hidden rounded-lg bg-foreground text-background md:h-[430px]">
-        <img src={studio} alt="" width={1920} height={1024} className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" />
-        <div className="absolute inset-0 bg-foreground/20" />
+        <img src={photo.url} alt="" width={1920} height={1282} className="absolute inset-0 h-full w-full object-cover object-[center_40%] grayscale" fetchPriority="high" />
+        <div className="absolute inset-0 bg-[image:var(--login-overlay)]" />
         <div className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8 md:py-7">
           <div className="flex items-center gap-3"><img src={logo} alt="HIBE" className="h-7 w-auto md:h-8" /><span className="border-l border-background/30 pl-3 text-sm font-medium">Hub</span></div>
           <span className="flex items-center gap-2 text-xs font-medium"><span className="h-1.5 w-1.5 rounded-full bg-lime" />Klant & team</span>
