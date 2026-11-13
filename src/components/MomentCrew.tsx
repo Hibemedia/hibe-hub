@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { AvatarStack } from "@/components/ui/avatar-stack";
+import { Tag } from "@/components/ui/tag";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,30 +64,9 @@ export function CrewAvatar({ c, size = 24 }: { c: { name: string; avatar_url: st
   return <UserAvatar userId={c.user_id} name={c.name} url={c.avatar_url} size={size} className="ring-2 ring-card" />;
 }
 
-function CrewPhoto({ c }: { c: ShownCrew }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Tooltip open={open} onOpenChange={setOpen} delayDuration={150}>
-      <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={c.name} onClick={(event) => { event.stopPropagation(); setOpen((value) => !value); }} className="relative h-8 w-8 shrink-0 rounded-full p-0 hover:z-10 focus-visible:z-10">
-          <CrewAvatar c={c} size={32} />
-        </Button>
-      </TooltipTrigger>
-      <TooltipPortal><TooltipContent side="top" sideOffset={8} className="max-w-64 whitespace-normal break-words text-center text-sm">{c.name}</TooltipContent></TooltipPortal>
-    </Tooltip>
-  );
-}
-
-/** Avatars on a moment row/card, or the orange label for a shoot day without crew (HIBE only). */
-export function CrewBadge({ m, crew, asClient, showNames, maxAvatars }: { m: { id: string; type: string; status: string; date: string | null }; crew: ShownCrew[]; asClient: boolean; showNames?: boolean; maxAvatars?: number }) {
-  if (crew.length === 0) return !asClient && needsCrew(m, 0) ? <span className="inline-flex rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning">Nog niemand ingepland</span> : null;
-  return (
-    <span className="flex min-w-0 flex-wrap items-center gap-2">
-      <span className="flex max-w-full flex-wrap -space-x-2 gap-y-1" role="group" aria-label="Ingeplande crew">{crew.slice(0, maxAvatars ?? crew.length).map((c, i) => <CrewPhoto key={c.user_id ?? `${c.name}-${i}`} c={c} />)}</span>
-      {maxAvatars !== undefined && crew.length > maxAvatars && <span title={crew.slice(maxAvatars).map((c) => c.name).join(", ")} className="flex h-8 min-w-8 items-center justify-center rounded-full bg-muted px-1 text-xs font-semibold">+{crew.length - maxAvatars}</span>}
-      {showNames && <span className="min-w-0 break-words text-sm text-muted-foreground">{crew.map((c) => c.name.split(" ")[0]).join(", ")}</span>}
-    </span>
-  );
+export function CrewBadge({ m, crew, asClient, showNames, maxAvatars = 3 }: { m: { id: string; type: string; status: string; date: string | null }; crew: ShownCrew[]; asClient: boolean; showNames?: boolean; maxAvatars?: number }) {
+  if (!crew.length) return !asClient && needsCrew(m, 0) ? <Tag variant="warning">Nog niemand ingepland</Tag> : null;
+  return <span className="flex min-w-0 flex-wrap items-center gap-2"><AvatarStack label="Ingeplande crew" max={maxAvatars} users={crew.map((c) => ({ id: c.user_id, name: c.name, avatar_url: c.avatar_url }))} />{showNames && <span className="min-w-0 break-words text-sm text-muted-foreground">{crew.map((c) => c.name.split(" ")[0]).join(", ")}</span>}</span>;
 }
 
 /** HIBE-only crew editor inside the moment dialog. */

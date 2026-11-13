@@ -1,44 +1,7 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-
-import { cn } from "@/lib/utils"
-
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        success:
-          "border-transparent bg-success text-success-foreground hover:bg-success/80",
-        warning:
-          "border-transparent bg-warning text-warning-foreground hover:bg-warning/80",
-        gradient:
-          "border-transparent bg-gradient-primary text-white hover:opacity-90",
-        accent:
-          "border-transparent bg-gradient-accent text-white hover:opacity-90",
-        outline: "text-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
-
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
-}
-
-export { Badge, badgeVariants }
+import * as React from "react";
+import { Tag, type TagVariant } from "./tag";
+import { cn } from "@/lib/utils";
+const variants = { default: "neutral", secondary: "neutral", destructive: "danger", success: "success", warning: "warning", gradient: "neutral", accent: "info", outline: "neutral" } as const;
+export function badgeVariants({ variant = "default" }: { variant?: keyof typeof variants } = {}) { return cn("ui-tag", `ui-tag-${variants[variant]}`); }
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> { variant?: keyof typeof variants; }
+export function Badge({ variant = "default", ...props }: BadgeProps) { return <Tag variant={variants[variant] as TagVariant} {...props} />; }
