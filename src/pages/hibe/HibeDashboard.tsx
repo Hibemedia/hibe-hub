@@ -102,7 +102,7 @@ export default function HibeDashboard() {
         ))}
       </div>
 
-      <SocialsChecklistCard weekOnly className="p-4 md:p-6" />
+      <SocialsChecklistPreview />
 
       {full && <>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
