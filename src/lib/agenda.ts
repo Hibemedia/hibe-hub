@@ -1,6 +1,6 @@
 /** Pure helpers for the HIBE agenda (month grid). */
 export type AgendaKind = "shoot" | "meeting" | "vacation" | "task" | "edit";
-export type AgendaEntry = { id: string; kind: AgendaKind; title: string; start: string; end: string; time?: string | null; people: string[] };
+export type AgendaEntry = { id: string; kind: AgendaKind; title: string; start: string; end: string; time?: string | null; people: string[]; clientId?: string | null; endTime?: string | null; location?: string | null; notes?: string | null };
 
 export const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
