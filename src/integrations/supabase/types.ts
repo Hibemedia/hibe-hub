@@ -246,6 +246,7 @@ export type Database = {
           monthly_video_target: number | null
           name: string
           tiktok_handle: string | null
+          video_only: boolean
         }
         Insert: {
           created_at?: string
@@ -256,6 +257,7 @@ export type Database = {
           monthly_video_target?: number | null
           name: string
           tiktok_handle?: string | null
+          video_only?: boolean
         }
         Update: {
           created_at?: string
@@ -266,6 +268,7 @@ export type Database = {
           monthly_video_target?: number | null
           name?: string
           tiktok_handle?: string | null
+          video_only?: boolean
         }
         Relationships: []
       }
