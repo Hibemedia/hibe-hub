@@ -10,12 +10,15 @@ export interface ClientRow {
   tiktok_handle: string | null;
   logo_url: string | null;
   video_only?: boolean;
+  archived_at?: string | null;
 }
 
 interface Ctx {
   isAdmin: boolean;
   ready: boolean;
   clients: ClientRow[];
+  /** Including archived clients (only for Klanten beheren). */
+  allClients: ClientRow[];
   clientId: string | null;
   client: ClientRow | null;
   setClientId: (id: string) => void;
@@ -23,7 +26,7 @@ interface Ctx {
 }
 
 const ClientCtx = createContext<Ctx>({
-  isAdmin: false, ready: false, clients: [], clientId: null, client: null,
+  isAdmin: false, ready: false, clients: [], allClients: [], clientId: null, client: null,
   setClientId: () => {}, refreshClients: async () => {},
 });
 const KEY = "hibe.selectedClient";
@@ -40,7 +43,7 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     const [{ data: role }, { data: me }, { data: list }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
       supabase.from("users").select("client_id").eq("id", user.id).maybeSingle(),
-      supabase.from("clients").select("id,name,metricool_blog_id,metricool_brand_label,tiktok_handle,logo_url,video_only").order("name"),
+      supabase.from("clients").select("id,name,metricool_blog_id,metricool_brand_label,tiktok_handle,logo_url,video_only,archived_at").order("name"),
     ]);
     const admin = !!role;
     const rows = (list ?? []) as ClientRow[];
