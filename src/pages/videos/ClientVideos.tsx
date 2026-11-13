@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { Button } from "@/components/ui/button";
 import { useViewAs } from "@/context/ViewAs";
 import { isClientVisible } from "@/lib/videos";
+import { ClientVideoArchive } from "@/components/videos/ClientVideoArchive";
 
 /** Klant-startscherm: what waits for review, then all own videos in three groups. */
 export default function ClientVideos() {
@@ -19,7 +20,7 @@ export default function ClientVideos() {
   const items = data.filter((i) => i.client_id === clientId && !i.archived_at && i.current_version > 0 && (!viewAs || isClientVisible(i.status)));
   const todo = items.filter((i) => i.status === "client_review");
   const changes = items.filter((i) => i.status === "feedback");
-  const approved = items.filter((i) => ["approved_client", "scheduled", "archived"].includes(i.status));
+  const approved = items.filter((i) => ["approved_client", "scheduled"].includes(i.status));
 
   const Group = ({ title, list, note, empty }: { title: string; list: BoardItem[]; note?: string; empty: string }) => (
     <section className="space-y-2">
@@ -55,6 +56,7 @@ export default function ClientVideos() {
           <Group title="Te beoordelen" list={todo} empty="Niets te beoordelen." />
           <Group title="Wijzigingen aangevraagd" list={changes} note="HIBE is ermee bezig." empty="Geen openstaande wijzigingen. HIBE is ermee bezig zodra je wijzigingen vraagt." />
           <Group title="Goedgekeurd" list={approved} empty="Nog geen goedgekeurde video's." />
+          <ClientVideoArchive />
         </>
       )}
     </div>

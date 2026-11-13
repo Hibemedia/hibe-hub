@@ -55,9 +55,10 @@ export default function ClientReview() {
       </div>
     );
   }
-  return <ReviewOne key={current} itemId={current!} pos={flow ? { i: idx, n: queue.length } : null} readOnly={isAdmin}
+  if (!current) return null;
+  return <ReviewOne key={current} itemId={current} pos={flow ? { i: idx, n: queue.length } : null} readOnly={isAdmin}
     onPrev={() => setIdx((i) => Math.max(0, i - 1))} onNext={() => setIdx((i) => i + 1)}
-    onDone={(r) => { setResults((s) => ({ ...s, [current!]: r })); qc.invalidateQueries({ queryKey: ["video-items"] }); flow ? setIdx((i) => i + 1) : nav(`${base}/videos`); }} />;
+    onDone={(r) => { setResults((s) => ({ ...s, [current]: r })); qc.invalidateQueries({ queryKey: ["video-items"] }); flow ? setIdx((i) => i + 1) : nav(`${base}/videos`); }} />;
 }
 
 function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: string; pos: { i: number; n: number } | null; readOnly: boolean; onPrev: () => void; onNext: () => void; onDone: (r: "approved" | "changes") => void }) {
@@ -76,7 +77,6 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
   const [busy, setBusy] = useState(false);
   const canAct = !readOnly && item?.status === "client_review";
   const viewAs = useViewAs();
-  const { client } = useClient();
   const download = async () => {
     if (!version) return;
     try { window.location.href = await getDownloadUrl(version.id); } catch (e: any) { toast.error("Downloaden mislukt: " + (e?.message ?? e)); }
@@ -120,7 +120,7 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
         </div>
       )}
       <div className="flex items-center gap-3"><h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{item.title}</h1>
-        {client?.video_only && version && <Button variant="outline" size="sm" onClick={download}><Download className="h-4 w-4" />Download</Button>}</div>
+        {version && <Button variant="outline" size="sm" onClick={download}><Download className="h-4 w-4" />Download</Button>}</div>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-3">
           <Player ref={player} url={url} maxH="min(60vh, calc(100vh - 300px))" markers={mine.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number) }))} />

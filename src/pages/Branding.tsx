@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/StatsOverview";
 import { toast } from "sonner";
+import { ClientVideoArchive } from "@/components/videos/ClientVideoArchive";
 
 const CATS = { logos: "Logo's", brandbook: "Brandbook", fotos: "Foto's", videos: "Video's", overig: "Overig" } as const;
 type Cat = keyof typeof CATS;
@@ -66,6 +67,8 @@ export default function Branding() {
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <PageHeader title="Branding & Archief" action={isAdmin && clientId ? <PrimaryAction icon={Plus} onClick={() => setUploading(true)}>Bestand uploaden</PrimaryAction> : null} />
+
+      {clientId && <ClientVideoArchive />}
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Categorie">
         <button aria-pressed={cat === "all"} onClick={() => setCat("all")} className="chip-filter shrink-0">Alles <span className="ml-1.5 text-muted-foreground tabular">{files.length}</span></button>

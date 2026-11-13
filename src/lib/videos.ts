@@ -16,6 +16,11 @@ export const VIDEO_STATUS_LABEL: Record<VideoStatus, string> = {
 export const CLIENT_VISIBLE: VideoStatus[] = ["client_review", "approved_client", "scheduled", "archived"];
 export const isClientVisible = (s: VideoStatus) => CLIENT_VISIBLE.includes(s);
 
+/** Archive status is client-visible even when archiving also stamps archived_at. */
+export function clientArchive<T extends { client_id: string; status: VideoStatus; current_version: number }>(items: T[], clientId: string | null) {
+  return items.filter((item) => item.client_id === clientId && item.status === "archived" && item.current_version > 0);
+}
+
 /** Number of videos waiting in "Mag naar klant" that triggers the notice. */
 export const READY_THRESHOLD = 3;
 export function clientsReadyToSend<T extends { client_id: string; status: VideoStatus }>(items: T[], threshold = READY_THRESHOLD) {

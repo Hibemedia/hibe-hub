@@ -1,6 +1,19 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime } from "./videos";
+import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, clientArchive } from "./videos";
+
+describe("client video archive", () => {
+  const archived = { client_id: "own", status: "archived" as const, current_version: 2, archived_at: "2026-11-13T09:00:00Z" };
+  it("keeps a video in the client's archive when archiving stamps a date", () => {
+    expect(clientArchive([archived], "own")).toEqual([archived]);
+  });
+  it("only includes the client's own videos", () => {
+    expect(clientArchive([archived], "other")).toEqual([]);
+  });
+  it("excludes active and unfinished uploads", () => {
+    expect(clientArchive([{ ...archived, status: "scheduled" }, { ...archived, current_version: 0 }], "own")).toEqual([]);
+  });
+});
 
 describe("videos", () => {
   it("statuses are in the agreed board order", () => {
