@@ -62,10 +62,10 @@ export default function HibeContentmomenten() {
   const selected = all.find((m) => m.id === openId) ?? null;
 
   return (
-    <div className="space-y-4">
+    <div className="content-moments-page min-w-0 space-y-4">
       <PageHeader title="Contentmomenten" action={<PrimaryAction icon={Plus} onClick={() => { setChosen(initialClient); setCreating("choose"); }}>Moment toevoegen</PrimaryAction>} />
       <AgendaControls filters={filters} onChange={setFilters} onReset={() => { const next = writeAgendaFilters(defaultAgendaFilters(), params); next.delete("status"); setParams(next, { replace: true }); }} entries={peopleEntries} me={me} team={crew.team} clients={clients} hideTypes extraActive={statusActive} extra={
-        <div className="flex items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Status</span><Popover><PopoverTrigger asChild><DropdownButton size="sm" aria-label="Status selecteren" value={statusActive ? `${statuses.length} geselecteerd` : "Actieve momenten"} /></PopoverTrigger><PopoverContent align="start" className="w-60 p-2">
+        <div className="flex min-w-0 items-center gap-2"><Popover><PopoverTrigger asChild><DropdownButton size="sm" aria-label="Status selecteren" label="Status" value={statusActive ? `${statuses.length} geselecteerd` : "Actieve momenten"} /></PopoverTrigger><PopoverContent align="start" className="w-60 p-2">
           <Button variant="ghost" className="w-full justify-start rounded-md" onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set("status", Object.keys(MOMENT_STATUS).join(",")); return n; }, { replace: true })}>Alle statussen</Button>
           {Object.entries(MOMENT_STATUS).map(([id, label]) => <Button key={id} variant="ghost" className="w-full justify-between rounded-md" role="menuitemcheckbox" aria-checked={statuses.includes(id)} onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set("status", (statuses.includes(id) ? statuses.filter((x) => x !== id) : [...statuses, id]).join(",")); return n; }, { replace: true })}>{label}{statuses.includes(id) && <Check className="h-4 w-4" />}</Button>)}
         </PopoverContent></Popover></div>
@@ -78,18 +78,19 @@ export default function HibeContentmomenten() {
             {ms.map((m) => {
               const client = clients.find((c) => c.id === m.client_id);
               const reference = momentReferenceImage(m) || (m.type === "shoot" && client ? CONTENT_MOMENT_PHOTOS[client.name] : undefined);
-              return <li key={m.id} className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 px-3 py-4 transition-colors hover:bg-muted/40 sm:flex-nowrap sm:px-4">
-                <Button variant="ghost" className="h-auto w-full min-w-0 justify-start gap-3 rounded-md p-0 text-left hover:bg-transparent sm:w-auto sm:flex-1" onClick={() => setOpenId(m.id)}>
-                  <span className="w-14 shrink-0 self-start text-sm font-semibold tabular-nums sm:w-20">{m.date ? new Date(m.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric" }) : "—"}<span className="mt-1 block text-xs font-normal text-muted-foreground">{m.start_time?.slice(0, 5) ?? ""}</span></span>
+              return <li key={m.id} className="content-moment-row min-w-0 px-3 py-4 transition-colors hover:bg-muted/40 sm:px-4">
+                <Button variant="ghost" className="content-moment-main h-auto w-full min-w-0 justify-start gap-3 rounded-md p-0 text-left hover:bg-transparent" onClick={() => setOpenId(m.id)}>
+                  <span className="w-14 shrink-0 self-start whitespace-nowrap text-sm font-semibold tabular-nums">{m.date ? new Date(m.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric" }) : "—"}<span className="mt-1 block text-xs font-normal text-muted-foreground">{m.start_time?.slice(0, 5) ?? ""}</span></span>
                   {reference && <img src={reference} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />}
-                  <span className="min-w-0 flex-1 whitespace-normal break-words text-sm font-semibold leading-6 sm:text-base">{m.title}</span>
+                  <span className="content-moment-title min-w-0 flex-1 whitespace-normal text-sm font-semibold leading-6 sm:text-base" title={m.title}>{m.title}</span>
                 </Button>
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:max-w-[45%]">
+                <div className="content-moment-tags flex min-w-0 flex-wrap items-center gap-1.5">
                   <Tag logo={<ClientLogo url={client?.logo_url ? logos[client.logo_url] : undefined} name={client?.name ?? "Klant"} size={16} />}><span className="min-w-0 break-words">{client?.name ?? "Klant"}</span></Tag>
                   <Tag>{MOMENT_TYPES[m.type]}</Tag>
                   <Tag variant={m.status === "bevestigd" || m.status === "afgerond" ? "success" : m.status === "geannuleerd" ? "danger" : m.status === "aangevraagd" ? "info" : "neutral"}>{MOMENT_STATUS[m.status as keyof typeof MOMENT_STATUS]}</Tag>
+                  {!crew.byMoment(m.id).length && <CrewBadge m={m} crew={[]} asClient={false} maxAvatars={3} />}
                 </div>
-                <div className="shrink-0 sm:ml-auto"><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} maxAvatars={3} /></div>
+                <div className="content-moment-avatars flex w-24 shrink-0 items-center justify-end">{crew.byMoment(m.id).length > 0 && <CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} maxAvatars={3} />}</div>
               </li>;
             })}
           </ul>

@@ -420,3 +420,39 @@
 .ui-filter[aria-pressed="true"]:hover, .chip-filter[aria-pressed="true"]:hover { background:hsl(var(--filter-active)); }
 .ui-control:focus-visible, .ui-filter:focus-visible, .chip-filter:focus-visible { outline:2px solid hsl(var(--lime)); outline-offset:2px; }
 .ui-control:disabled, .ui-filter:disabled { opacity:.5; pointer-events:none; }
+
+/* Contentmomenten use their available page width, not the viewport beside the sidebar. */
+.content-moments-page { container-type: inline-size; }
+.content-moments-page [aria-label="Agendafilters"] { gap: 12px; }
+.content-moment-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 12px; align-items: center; min-height: 104px; }
+.content-moment-main { grid-column: 1 / -1; min-height: 48px; }
+.content-moment-title { word-break: normal; overflow-wrap: anywhere; }
+.content-moment-tags .ui-tag { max-width: 100%; }
+.content-moment-avatars { align-self: end; }
+@container (min-width: 960px) {
+  .content-moment-row { grid-template-columns: minmax(320px, 1fr) minmax(220px, 360px) 96px; min-height: 88px; gap: 16px; }
+  .content-moment-main { grid-column: auto; }
+  .content-moment-avatars { align-self: center; }
+}
+@container (max-width: 420px) {
+  .content-moment-row { grid-template-columns: minmax(0, 1fr); }
+  .content-moment-avatars { justify-content: flex-start; }
+  .content-moment-avatars:empty { display: none; }
+}
+.content-moments-topbar > :first-child { flex: 1 1 190px; }
+.content-moments-topbar > :nth-child(2) { flex: 0 1 320px; }
+.content-moments-topbar > :last-child { flex: 0 0 auto; gap: 12px; }
+@media (max-width: 1100px) {
+  .content-moments-topbar { gap: 12px; padding-inline: 16px; }
+  .content-moments-topbar > :nth-child(2) { flex: 0 0 36px; }
+  .content-moments-topbar [aria-label="Zoeken"] { width: 36px; padding: 0; justify-content: center; }
+  .content-moments-topbar [aria-label="Zoeken"] span,
+  .content-moments-topbar [aria-label="Zoeken"] kbd { display: none; }
+  .content-moments-topbar [aria-label="Moment toevoegen"] { width: 36px; padding: 0; justify-content: center; }
+  .content-moments-topbar [aria-label="Moment toevoegen"] span { display: none; }
+}
+@media (max-width: 380px) {
+  .content-moments-topbar { gap: 8px; padding-inline: 8px; }
+  .content-moments-topbar > :last-child { gap: 8px; }
+  .content-moments-topbar h1 { font-size: 18px; }
+}

@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { UserAuth } from "@/context/AuthContext.jsx";
@@ -48,8 +48,9 @@ function Avatar() {
 export function FrameTopBar({ variant }: { variant: "client" | "hibe" }) {
   const { setTitleEl, setActionEl } = useHeaderSlots();
   const viewAs = useViewAs();
+  const contentMoments = useLocation().pathname === "/hibe/contentmomenten";
   return (
-    <header className={cn("sticky z-40 flex h-14", viewAs ? "top-11" : "top-0", " items-center gap-3 border-b border-border bg-background px-4 md:px-6")}>
+    <header className={cn("sticky z-40 flex h-14", viewAs ? "top-11" : "top-0", " items-center gap-3 border-b border-border bg-background px-4 md:px-6", contentMoments && "content-moments-topbar")}>
       <div ref={setTitleEl} className="min-w-0 flex-1" />
       <div className="flex min-w-0 flex-none justify-center md:flex-1">{!viewAs && <GlobalSearch variant={variant} />}</div>
       <div className="flex flex-none items-center justify-end gap-3 md:flex-1">
