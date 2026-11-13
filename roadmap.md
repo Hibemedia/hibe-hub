@@ -7,6 +7,7 @@
 - [x] Filters, labels en teamkeuze met bestaande data gecontroleerd op desktop/mobiel; 65 tests slagen. Klantpagina’s gecontroleerd via Bekijk als klant. Medaillekunst, kalender-vandaag en vertrouwde speler-/grafiekmarkeringen behouden hun ronde vorm.
 
 ## HIBE-contentmomenten
+- [x] Titels voldoende ruimte gegeven; rijen/bovenbalk gecontroleerd op 360/390/815/1235/1600px; filters, details, zoeken en toevoegen werken, 17 tests en build OK.
 - [x] Gepland als Bevestigd behandelen en In optie tonen; formulieren/filters getest, wijziging opgeslagen en teruggelezen/hersteld; 17 tests en build OK.
 - [x] Maandlijst met klantlogo, optioneel referentiebeeld en maximaal drie crewavatars; huidige contentmomenten hebben geen opgeslagen referentiebeelden.
 - [x] Wie/Klant/Status-filters toegevoegd en bestaande handelingen behouden.
