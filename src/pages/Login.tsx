@@ -101,7 +101,6 @@ const Login = () => {
           </form>
         )}
       </div>
-      <p className="mt-6 text-center text-xs text-muted-foreground">HIBE Media · Samen maken we het.</p>
       </main>
     </div>
   );
