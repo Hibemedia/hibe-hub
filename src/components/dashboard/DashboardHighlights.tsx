@@ -17,8 +17,9 @@ import feerMomentPhoto from "@/assets/feer-contentmoment.png.asset.json";
 import gluMomentPhoto from "@/assets/glu-contentmoment.jpg.asset.json";
 import forLightMomentPhoto from "@/assets/for-light-contentmoment.webp.asset.json";
 import ericFranzelMomentPhoto from "@/assets/eric-franzel-contentmoment.webp.asset.json";
+import nscMomentPhoto from "@/assets/nsc-contentmoment.jpg.asset.json";
 
-const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url, Appelboom: appelboomMomentPhoto.url, Rocketshot: rocketshotMomentPhoto.url, Jebroer: jebroerMomentPhoto.url, "De Hollandse Tulp": hollandseTulpMomentPhoto.url, Feer: feerMomentPhoto.url, "Grafisch Lyceum Utrecht": gluMomentPhoto.url, "For Light": forLightMomentPhoto.url, "Eric Franzel": ericFranzelMomentPhoto.url };
+const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url, Appelboom: appelboomMomentPhoto.url, Rocketshot: rocketshotMomentPhoto.url, Jebroer: jebroerMomentPhoto.url, "De Hollandse Tulp": hollandseTulpMomentPhoto.url, Feer: feerMomentPhoto.url, "Grafisch Lyceum Utrecht": gluMomentPhoto.url, "For Light": forLightMomentPhoto.url, "Eric Franzel": ericFranzelMomentPhoto.url, NSC: nscMomentPhoto.url };
 
 type ReviewItem = { id: string; title: string; client_id: string };
 
