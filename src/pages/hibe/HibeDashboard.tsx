@@ -93,7 +93,7 @@ export default function HibeDashboard() {
 
       <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {counters.map((c) => (
-          <Link key={c.label} to={c.to} className="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-lg bg-card p-4 transition-colors hover:bg-popover md:p-5">
+          <Link key={c.label} to={c.to} className="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-lg bg-card p-4 transition-colors hover:bg-popover last:sm:col-span-2 last:lg:col-span-1 md:p-5">
             <div className="flex min-w-0 items-start justify-between gap-2">
               <span className="min-w-0 text-sm leading-snug text-muted-foreground">{c.label}</span>
               <c.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" aria-hidden />
