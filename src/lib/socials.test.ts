@@ -39,7 +39,18 @@ describe("socials", () => {
     expect(r.rows[1].target).toBe(2);
   });
 
-  it("preview follows a linked video's status", () => {    const clients = [sc("a", "Appelboom")];
+  it("preview pads weekly slots to the target", () => {
+    const clients = [sc("c", "Cedar", "weekly", 3)];
+    const weeks: Week[] = [{ client_id: "c", week_start: D[0], count: 0, items: [{ id: "1", title: "Reel 1", status: "scheduled", note: "" }] }];
+    const r = socialPreviewRows(clients, [], weeks, [], [], D, D[0], 6);
+    expect(r.rows[0].cells.map((x) => x.status)).toEqual(["scheduled", "none", "none"]);
+    expect(r.rows[0].done).toBe(1);
+    expect(r.rows[0].target).toBe(3);
+    expect(r.rows[0].open).toBe(true);
+  });
+
+  it("preview follows a linked video's status", () => {
+    const clients = [sc("a", "Appelboom")];
     const posts = [post("a", D[0], "scheduled")];
     const links: SocialVideoLink[] = [{ id: "l1", social_client_id: "a", post_date: D[1], video_item_id: "v1" }];
     const r = socialPreviewRows(clients, posts, [], links, [{ id: "v1", status: "scheduled" }], D, D[0], 6);
