@@ -11,8 +11,9 @@ import { nextContentMoment, type HighlightMoment } from "@/lib/dashboard-highlig
 import vipMomentPhoto from "@/assets/vip-fashion-contentmoment.jpg.asset.json";
 import appelboomMomentPhoto from "@/assets/appelboom-contentmoment.jpg.asset.json";
 import rocketshotMomentPhoto from "@/assets/rocketshot-contentmoment.jpg.asset.json";
+import jebroerMomentPhoto from "@/assets/jebroer-contentmoment.jpg.asset.json";
 
-const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url, Appelboom: appelboomMomentPhoto.url, Rocketshot: rocketshotMomentPhoto.url };
+const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url, Appelboom: appelboomMomentPhoto.url, Rocketshot: rocketshotMomentPhoto.url, Jebroer: jebroerMomentPhoto.url };
 
 type ReviewItem = { id: string; title: string; client_id: string };
 
