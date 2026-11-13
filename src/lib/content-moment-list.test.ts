@@ -15,3 +15,18 @@ it("no image means no placeholder and attached reference images are retained", (
   expect(momentReferenceImage({ reference_image_url: "https://example.org/moodboard.jpg" })).toBe("https://example.org/moodboard.jpg");
   expect(momentReferenceImage({ thumbnail_url: "javascript:alert(1)" })).toBeNull();
 });
+it("a moment whose date has passed reads as afgerond without touching the stored status", () => {
+  expect(momentStatus({ status: "bevestigd", date: "2026-11-12" }, "2026-11-13")).toBe("afgerond");
+  expect(momentStatus({ status: "aangevraagd", date: "2026-11-12" }, "2026-11-13")).toBe("afgerond");
+  expect(momentStatus({ status: "gepland", date: "2026-11-12" }, "2026-11-13")).toBe("afgerond");
+});
+it("today, the future, undated and cancelled moments keep their own status", () => {
+  expect(momentStatus({ status: "bevestigd", date: "2026-11-13" }, "2026-11-13")).toBe("bevestigd");
+  expect(momentStatus({ status: "gepland", date: "2026-12-03" }, "2026-11-13")).toBe("gepland");
+  expect(momentStatus({ status: "bevestigd", date: null }, "2026-11-13")).toBe("bevestigd");
+  expect(momentStatus({ status: "geannuleerd", date: "2026-11-12" }, "2026-11-13")).toBe("geannuleerd");
+  expect(momentStatus({ status: "afgerond", date: "2026-11-12" }, "2026-11-13")).toBe("afgerond");
+});
+it("amsterdamToday returns a YYYY-MM-DD date", () => {
+  expect(amsterdamToday(new Date("2026-11-13T09:57:00Z"))).toBe("2026-11-13");
+});
