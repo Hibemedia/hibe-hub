@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useViewAs } from "@/context/ViewAs";
 import { useCrew, CrewBadge, CrewEditor } from "@/components/MomentCrew";
+import { momentStatus } from "@/lib/content-moment-list";
 
 const TYPES = { shoot: "Shoot", post: "Post", evenement: "Evenement", actie: "Actie", idee: "Idee" } as const;
 const STATUS = { aangevraagd: "Aangevraagd", bevestigd: "Bevestigd", gepland: "Gepland", afgerond: "Afgerond", geannuleerd: "Geannuleerd" } as const;
@@ -50,8 +51,8 @@ export default function ContentMoments() {
   const [editing, setEditing] = useState<Moment | "new" | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"actief" | "alles">("actief");
-  const count = (s: Status) => list.filter((m) => m.status === s).length;
-  const shown = filter === "actief" ? list.filter((m) => m.status !== "afgerond" && m.status !== "geannuleerd") : list;
+  const count = (s: Status) => list.filter((m) => momentStatus(m) === s).length;
+  const shown = filter === "actief" ? list.filter((m) => momentStatus(m) !== "afgerond" && momentStatus(m) !== "geannuleerd") : list;
   const selected = list.find((m) => m.id === openId) ?? null;
   const crew = useCrew(list);
 
@@ -80,7 +81,7 @@ export default function ContentMoments() {
             <li key={m.id}>
               <button onClick={() => setOpenId(m.id)} className="flex h-full w-full flex-col rounded-lg bg-card p-5 text-left transition-colors hover:bg-popover">
                 <div className="flex flex-wrap gap-1.5">
-                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{STATUS[m.status]}</span>
+                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{STATUS[momentStatus(m) as Status]}</span>
                   <span className="chip">{TYPES[m.type]}</span>
                 </div>
                 <p className="mt-3 line-clamp-2 text-xl font-semibold leading-snug">{m.title}</p>
