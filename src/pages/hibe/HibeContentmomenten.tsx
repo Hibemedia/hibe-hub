@@ -62,7 +62,7 @@ export default function HibeContentmomenten() {
   const selected = all.find((m) => m.id === openId) ?? null;
 
   return (
-    <div className="content-moments-page min-w-0 space-y-4">
+    <div className="content-moments-page min-w-0 space-y-4 p-4 md:p-6">
       <PageHeader title="Contentmomenten" action={<PrimaryAction icon={Plus} onClick={() => { setChosen(initialClient); setCreating("choose"); }}>Moment toevoegen</PrimaryAction>} />
       <AgendaControls filters={filters} onChange={setFilters} onReset={() => { const next = writeAgendaFilters(defaultAgendaFilters(), params); next.delete("status"); setParams(next, { replace: true }); }} entries={peopleEntries} me={me} team={crew.team} clients={clients} hideTypes extraActive={statusActive} extra={
         <div className="flex min-w-0 items-center gap-2"><Popover><PopoverTrigger asChild><DropdownButton size="sm" aria-label="Status selecteren" label="Status" value={statusActive ? `${statuses.length} geselecteerd` : "Actieve momenten"} /></PopoverTrigger><PopoverContent align="start" className="w-60 p-2">
