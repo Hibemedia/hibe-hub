@@ -7,7 +7,7 @@
 
 ## HIBE-agenda
 - [x] Lichte filters en gedempte typekleuren; maanditems met kleurstreep, twee titelregels en naamtooltip.
-- [ ] Aangepaste Agenda controleren met bestaande items op desktop, tablet en mobiel.
+- [x] Lichtere Agenda met echte items, titeltooltip, filters en zijpaneel gecontroleerd op desktop, tablet en mobiel; 15 tests geslaagd, geen pagina-overflow en build OK.
 - [x] Filters voor persoon, type en klant delen tussen maand, week en lijst; onthouden per gebruiker en in URL.
 - [x] Dagpopover en zijpaneel met bestaande itemdetails toevoegen.
 - [x] Filters en echte itemdetails getest op desktop, tablet en mobiel; 15 tests geslaagd, inclusief +2-meer-regel. De huidige maand bevat geen dag met drie items voor een live popovercontrole; klantmenu ongemoeid gelaten.
