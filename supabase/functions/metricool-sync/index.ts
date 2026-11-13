@@ -308,7 +308,7 @@ async function run(db: any, mode: Mode, clientId?: string) {
   const videosFrom = mode === "backfill" || (mode === "scheduled" && weekday === "Mon") ? HISTORY_START : addDays(today, -89);
 
   let q = db.from("clients").select("id,name,metricool_blog_id,logo_url").not("metricool_blog_id", "is", null);
-  if (clientId) q = q.eq("id", clientId);
+  if (clientId) q = q.eq("id", clientId); else q = q.is("archived_at", null); // archived clients are not synced
   const { data: clients, error } = await q;
   if (error) throw error;
 
