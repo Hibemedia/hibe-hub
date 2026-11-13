@@ -37,7 +37,7 @@ async def main():
             await page.evaluate("([key, value]) => localStorage.setItem(key, value)", [editor_auth["storage_key"], json.dumps(editor)])
             await page.goto("http://localhost:8080/hibe/taken")
             await page.get_by_role("button", name=title, exact=True).click()
-            await page.get_by_role("dialog").get_by_role("button", name=colleague["name"], exact=True).click()
+            await page.get_by_role("dialog").locator("button.ui-filter").filter(has_text=colleague["name"]).click()
             await page.get_by_role("button", name="Opslaan", exact=True).click()
             await page.get_by_role("dialog").wait_for(state="hidden")
             await page.get_by_role("button", name="Iedereen, per persoon", exact=True).click()
