@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import { Section, EmptyState } from "@/components/StatsOverview";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SocialsWeekGrid } from "@/components/SocialsWeekGrid";
 import { useVideoItems } from "@/hooks/useVideos";
 import { cn } from "@/lib/utils";
 import {
@@ -13,17 +12,6 @@ import {
 } from "@/lib/socials";
 
 const MAX_ROWS = 6;
-
-/** Week view of the Review Hub checklist, live from the same rows. */
-export function SocialsChecklistCard({ className, weekOnly }: { className?: string; weekOnly?: boolean }) {
-  return (
-    <Section title="Socials-checklist" className={className} aside={
-      <Link to="/hibe/socials" className="chip-filter h-8 gap-1 px-3 text-xs">Volledige checklist<ArrowUpRight className="h-3.5 w-3.5" /></Link>
-    }>
-      <SocialsWeekGrid weekOnly={weekOnly} />
-    </Section>
-  );
-}
 
 /** Small dashboard preview: one line per client, open work first, click through to the full checklist. */
 export function SocialsChecklistPreview({ className }: { className?: string }) {
