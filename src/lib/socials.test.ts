@@ -39,8 +39,7 @@ describe("socials", () => {
     expect(r.rows[1].target).toBe(2);
   });
 
-  it("preview follows a linked video's status", () => {
-    const clients = [sc("a", "Appelboom")];
+  it("preview follows a linked video's status", () => {    const clients = [sc("a", "Appelboom")];
     const posts = [post("a", D[0], "scheduled")];
     const links: SocialVideoLink[] = [{ id: "l1", social_client_id: "a", post_date: D[1], video_item_id: "v1" }];
     const r = socialPreviewRows(clients, posts, [], links, [{ id: "v1", status: "scheduled" }], D, D[0], 6);
