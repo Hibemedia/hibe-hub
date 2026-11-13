@@ -291,11 +291,42 @@ function ViewsChart({ data, names }: { data: NonNullable<ReturnType<typeof useHi
 }
 
 type SortKey = "name" | "views" | "viewsChange" | "followers";
-function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?: string; logos: Record<string, string> }) {
+/** Chips on wide screens, a dropdown on narrow ones — same pattern as the period select. */
+function ScopeSelect({ value, onChange }: { value: RankScope; onChange: (v: RankScope) => void }) {
+  return (
+    <>
+      <div className="sm:hidden">
+        <Select value={value} onValueChange={(v) => onChange(v as RankScope)}>
+          <SelectTrigger aria-label="Periode van de ranglijst" className="h-9 w-auto min-w-[8.5rem]"><SelectValue /></SelectTrigger>
+          <SelectContent>{RANK_SCOPES.map((s) => <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
+      <div className="hidden flex-wrap justify-end gap-1.5 sm:flex" role="group" aria-label="Periode van de ranglijst">
+        {RANK_SCOPES.map((s) => (
+          <button key={s.key} onClick={() => onChange(s.key)} aria-pressed={value === s.key} className="chip-filter h-8 px-3 text-xs">{s.label}</button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function Ranking({ className, logos }: { className?: string; logos: Record<string, string> }) {
   const { clients } = useClient();
   const nav = useNavigate();
+  const [scope, setScope] = useState<RankScope>("week");
   const [sort, setSort] = useState<{ k: SortKey; desc: boolean }>({ k: "views", desc: true });
   const { data: targets } = useWeekTargets();
+  const { data: raw = [], isLoading } = useClientRanking(scope);
+  const rows = useMemo<ClientSummary[]>(() => raw.map((d) => ({
+    clientId: d.client_id,
+    views: d.views,
+    prevViews: d.prev_views,
+    viewsChange: d.prev_views == null ? null : pctChange(d.views, d.prev_views),
+    followers: d.followers,
+    followersGrowth: null,
+    posts: d.posts,
+    hasData: true,
+  })), [raw]);
   const elapsed = weekElapsed();
   const list = clients.map((c) => ({ c, s: rows.find((r) => r.clientId === c.id) }));
   const val = (x: (typeof list)[number]) => sort.k === "name" ? x.c.name.toLowerCase() : (x.s?.[sort.k] ?? -Infinity);
@@ -308,7 +339,8 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
     </th>
   );
   return (
-    <Section title="Ranglijst klanten" className={className}>
+    <Section title="Ranglijst klanten" className={className} aside={<ScopeSelect value={scope} onChange={setScope} />}>
+      {isLoading ? <Skeleton className="h-32 rounded-lg" /> : (
       <div className="relative -mx-5 overflow-x-auto px-5 md:-mx-7 md:px-7">
         <table className="w-full min-w-[560px] table-fixed text-sm tabular">
           <colgroup><col /><col className="w-[96px]" /><col className="w-[84px]" /><col className="w-[84px]" /><col className="w-[84px]" /></colgroup>
@@ -331,7 +363,8 @@ function Ranking({ rows, className, logos }: { rows: ClientSummary[]; className?
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Groei = weergaven t.o.v. de vorige periode. Deze week = ingepland t.o.v. het weektarget in de checklist.</p>
+      )}
+      <p className="mt-3 text-xs text-muted-foreground">{rankGrowthNote(scope)} Deze week = ingepland t.o.v. het weektarget in de checklist.</p>
     </Section>
   );
 }
