@@ -8,6 +8,7 @@ import { useUploader } from "@/components/videos/useMedia";
 import { useUnread } from "@/hooks/useChat";
 import { useMyTeamRole } from "@/hooks/useTeamRole";
 import { MyDay } from "@/components/dashboard/MyDay";
+import { DashboardHighlights } from "@/components/dashboard/DashboardHighlights";
 import { callSocials, weekDates, weekItems, type SClient, type Post, type Week } from "@/lib/socials";
 import { canSeeTotals, isNewGrowth, normName, weekBehind, weekElapsed, RANK_SCOPES, rankGrowthNote, type RankScope } from "@/lib/dashboard";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -90,6 +91,8 @@ export default function HibeDashboard() {
         <MyDay me={myId} className="lg:col-span-9" />
         <div className="lg:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
+
+      <DashboardHighlights />
 
       <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {counters.map((c) => (
