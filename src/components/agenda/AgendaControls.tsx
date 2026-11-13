@@ -32,7 +32,7 @@ export function AgendaClientLogo({ client, url }: { client?: Client; url?: strin
   return <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-card text-xs font-semibold text-foreground">{url ? <img src={url} alt="" className="h-full w-full object-contain" /> : client?.name.slice(0, 1) ?? "—"}</span>;
 }
 
-export function AgendaControls({ filters, onChange, entries, me, team, clients, hideTypes = false, extra, extraActive = false }: { filters: AgendaFilters; onChange: (f: AgendaFilters) => void; entries: AgendaEntry[]; me: string; team: { id: string; name: string }[]; clients: Client[]; hideTypes?: boolean; extra?: React.ReactNode; extraActive?: boolean }) {
+export function AgendaControls({ filters, onChange, entries, me, team, clients, hideTypes = false, extra, extraActive = false, onReset }: { filters: AgendaFilters; onChange: (f: AgendaFilters) => void; entries: AgendaEntry[]; me: string; team: { id: string; name: string }[]; clients: Client[]; hideTypes?: boolean; extra?: React.ReactNode; extraActive?: boolean; onReset?: () => void }) {
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
   const countEntries = filterAgendaEntries(entries, { ...filters, kinds: [...AGENDA_KINDS] }, me);
   const toggle = (list: string[], id: string) => list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
@@ -51,6 +51,6 @@ export function AgendaControls({ filters, onChange, entries, me, team, clients, 
     </div>}
     <div className="flex items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Klant</span><Popover><PopoverTrigger asChild><Button size="sm" variant="outline" className="h-8 rounded-md text-xs" aria-label="Klanten selecteren">{filters.clients.length ? `${filters.clients.length} geselecteerd` : "Alle klanten"}<ChevronDown className="ml-2 h-3 w-3" /></Button></PopoverTrigger><PopoverContent align="start" className="w-72 p-2"><div className="max-h-72 overflow-y-auto">{clients.map((c) => <Button key={c.id} variant="ghost" className="h-10 w-full justify-start gap-2 rounded-md px-2" role="menuitemcheckbox" aria-checked={filters.clients.includes(c.id)} onClick={() => onChange({ ...filters, clients: toggle(filters.clients, c.id) })}><AgendaClientLogo client={c} url={c.logo_url ? logos[c.logo_url] : undefined} /><span className="min-w-0 flex-1 truncate text-left">{c.name}</span>{filters.clients.includes(c.id) && <Check className="h-4 w-4" />}</Button>)}</div></PopoverContent></Popover></div>
     {extra}
-    {(hasAgendaFilters(filters) || extraActive) && <Button variant="ghost" size="sm" className="h-8 rounded-md text-xs" onClick={() => onChange(defaultAgendaFilters())}><RotateCcw className="mr-1.5 h-3 w-3" />Wis filters</Button>}
+    {(hasAgendaFilters(filters) || extraActive) && <Button variant="ghost" size="sm" className="h-8 rounded-md text-xs" onClick={() => onReset ? onReset() : onChange(defaultAgendaFilters())}><RotateCcw className="mr-1.5 h-3 w-3" />Wis filters</Button>}
   </div>;
 }

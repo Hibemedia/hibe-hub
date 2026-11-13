@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useCrew, CrewBadge } from "@/components/MomentCrew";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { AgendaControls, useAgendaFilters } from "@/components/agenda/AgendaControls";
-import { filterAgendaEntries, defaultAgendaFilters } from "@/lib/agenda-filters";
+import { filterAgendaEntries, defaultAgendaFilters, writeAgendaFilters } from "@/lib/agenda-filters";
 import { ClientLogo, useLogoUrls } from "@/hooks/useLogoUrl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronDown } from "lucide-react";
@@ -42,14 +42,14 @@ export default function HibeContentmomenten() {
     queryFn: async () => {
       const { data, error } = await supabase.from("content_moments").select("*").order("date", { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as Moment[];
+      return (data ?? []) as (Moment & { thumbnail_url?: string | null; reference_image_url?: string | null })[];
     },
   });
   const crew = useCrew(all);
   const peopleEntries = all.map((m) => ({ id: m.id, kind: "shoot" as const, start: m.date ?? "", end: m.date ?? "", title: m.title, clientId: m.client_id, people: crew.byMoment(m.id).flatMap((c) => c.user_id ? [c.user_id] : []) }));
   const visibleIds = new Set(filterAgendaEntries(peopleEntries, { ...filters, kinds: defaultAgendaFilters().kinds }, me).map((m) => m.id));
   const list = filterMomentStatus(all.filter((m) => visibleIds.has(m.id)), statuses);
-  const groups = new Map<string, Moment[]>();
+  const groups = new Map<string, (Moment & { thumbnail_url?: string | null; reference_image_url?: string | null })[]>();
   for (const m of list) {
     const k = m.date ? new Date(m.date + "T12:00:00").toLocaleDateString("nl-NL", { month: "long", year: "numeric" }) : "Nog geen datum";
     const group = groups.get(k) ?? [];
@@ -61,12 +61,7 @@ export default function HibeContentmomenten() {
   return (
     <div className="space-y-4">
       <PageHeader title="Contentmomenten" action={<PrimaryAction icon={Plus} onClick={() => { setChosen(initialClient); setCreating("choose"); }}>Moment toevoegen</PrimaryAction>} />
-      <AgendaControls filters={filters} onChange={(f) => {
-        const next = new URLSearchParams(params); next.delete("status"); setParams(next, { replace: true });
-        setFilters(f);
-        // Preserve all existing URL filters while restoring default active statuses on reset.
-        if (f.who === "everyone" && f.clients.length === 0) setParams((p) => { const n = new URLSearchParams(p); n.delete("status"); return n; }, { replace: true });
-      }} entries={peopleEntries} me={me} team={crew.team} clients={clients} hideTypes extraActive={statusActive} extra={
+      <AgendaControls filters={filters} onChange={setFilters} onReset={() => { const next = writeAgendaFilters(defaultAgendaFilters(), params); next.delete("status"); setParams(next, { replace: true }); }} entries={peopleEntries} me={me} team={crew.team} clients={clients} hideTypes extraActive={statusActive} extra={
         <div className="flex items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Status</span><Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className="h-8 rounded-md text-xs" aria-label="Status selecteren">{statusActive ? `${statuses.length} geselecteerd` : "Actieve momenten"}<ChevronDown className="ml-2 h-3 w-3" /></Button></PopoverTrigger><PopoverContent align="start" className="w-60 p-2">
           <Button variant="ghost" className="w-full justify-start rounded-md" onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set("status", Object.keys(MOMENT_STATUS).join(",")); return n; }, { replace: true })}>Alle statussen</Button>
           {Object.entries(MOMENT_STATUS).map(([id, label]) => <Button key={id} variant="ghost" className="w-full justify-between rounded-md" role="menuitemcheckbox" aria-checked={statuses.includes(id)} onClick={() => setParams((p) => { const n = new URLSearchParams(p); n.set("status", (statuses.includes(id) ? statuses.filter((x) => x !== id) : [...statuses, id]).join(",")); return n; }, { replace: true })}>{label}{statuses.includes(id) && <Check className="h-4 w-4" />}</Button>)}
