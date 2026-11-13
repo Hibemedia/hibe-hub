@@ -8,18 +8,7 @@ import { useLogoUrls } from "@/hooks/useLogoUrl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { nextContentMoment, type HighlightMoment } from "@/lib/dashboard-highlights";
-import vipMomentPhoto from "@/assets/vip-fashion-contentmoment.jpg.asset.json";
-import appelboomMomentPhoto from "@/assets/appelboom-contentmoment.jpg.asset.json";
-import rocketshotMomentPhoto from "@/assets/rocketshot-contentmoment.jpg.asset.json";
-import jebroerMomentPhoto from "@/assets/jebroer-contentmoment.jpg.asset.json";
-import hollandseTulpMomentPhoto from "@/assets/hollandse-tulp-contentmoment.jpg.asset.json";
-import feerMomentPhoto from "@/assets/feer-contentmoment.png.asset.json";
-import gluMomentPhoto from "@/assets/glu-contentmoment.jpg.asset.json";
-import forLightMomentPhoto from "@/assets/for-light-contentmoment.webp.asset.json";
-import ericFranzelMomentPhoto from "@/assets/eric-franzel-contentmoment.webp.asset.json";
-import nscMomentPhoto from "@/assets/nsc-contentmoment.jpg.asset.json";
-
-const MOMENT_BACKDROPS: Record<string, string> = { "VIP Fashion": vipMomentPhoto.url, Appelboom: appelboomMomentPhoto.url, Rocketshot: rocketshotMomentPhoto.url, Jebroer: jebroerMomentPhoto.url, "De Hollandse Tulp": hollandseTulpMomentPhoto.url, Feer: feerMomentPhoto.url, "Grafisch Lyceum Utrecht": gluMomentPhoto.url, "For Light": forLightMomentPhoto.url, "Eric Franzel": ericFranzelMomentPhoto.url, NSC: nscMomentPhoto.url };
+import { CONTENT_MOMENT_PHOTOS } from "@/lib/content-moment-photos";
 
 type ReviewItem = { id: string; title: string; client_id: string };
 
@@ -52,7 +41,7 @@ export function DashboardHighlights() {
   const moment = nextContentMoment(moments);
   const momentClient = clients.find((c) => c.id === moment?.client_id);
   const momentLogo = momentClient?.logo_url ? logos[momentClient.logo_url] : undefined;
-  const momentBackdrop = (momentClient && MOMENT_BACKDROPS[momentClient.name]) || momentLogo;
+  const momentBackdrop = (momentClient && CONTENT_MOMENT_PHOTOS[momentClient.name]) || momentLogo;
   const dateLabel = moment?.date ? new Date(`${moment.date}T00:00:00`).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" }) : "";
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
   const clientLogo = (id: string) => { const c = clients.find((x) => x.id === id); return c?.logo_url ? logos[c.logo_url] : undefined; };
