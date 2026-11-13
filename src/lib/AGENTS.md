@@ -1,0 +1,1 @@
+- Keep client shoot photos in content-moment-photos.ts so Dashboard and Contentmomenten reuse the same uploaded artwork.
