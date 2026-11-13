@@ -88,7 +88,9 @@ export function socialPreviewRows(
     let cells: PreviewCell[];
     if (c.tracking_mode === "weekly") {
       const w = weeks.find((x) => x.client_id === c.id && x.week_start === weekFrom);
-      cells = weekItems(w).map((it) => ({ date: weekFrom, status: it.status, linked: false }));
+      const items = weekItems(w);
+      cells = [...items.map((it) => ({ date: weekFrom, status: it.status, linked: false })),
+        ...Array.from({ length: Math.max(0, c.weekly_target - items.length) }, () => ({ date: weekFrom, status: "none" as PostStatus, linked: false }))];
     } else {
       cells = dates.map((d) => {
         const l = links.find((x) => x.social_client_id === c.id && x.post_date === d);

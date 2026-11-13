@@ -42,13 +42,19 @@ export function SocialsChecklistPreview({ className }: { className?: string }) {
               <li key={r.id}>
                 <Link to="/hibe/socials" className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-popover">
                   <span className="w-24 shrink-0 truncate text-sm md:w-40" title={r.name}>{r.name}</span>
-                  <span className="flex min-w-0 gap-1" aria-hidden>
-                    {r.cells.slice(0, 7).map((c, i) => (
-                      <span key={i} title={`${statusOf(c.status).label}${c.linked ? " · video gekoppeld" : ""}`}
-                        className={cn("h-3.5 w-3.5 shrink-0 rounded-[3px]", c.status === "none" ? "bg-muted" : cellCls(c.status))} />
-                    ))}
+                  <span className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <span className="flex shrink-0 gap-1" aria-hidden>
+                      {r.cells.slice(0, 7).map((c, i) => (
+                        <span key={i} title={`${statusOf(c.status).label}${c.linked ? " · video gekoppeld" : ""}`}
+                          className={cn("h-3.5 w-3.5 shrink-0 rounded-[3px] border border-border", c.status === "none" ? "bg-muted" : cellCls(c.status))} />
+                      ))}
+                    </span>
+                    <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden>
+                      <span className={cn("block h-full rounded-full", r.target > 0 && r.done >= r.target ? "bg-[hsl(var(--success))]" : "bg-lime")}
+                        style={{ width: `${r.target > 0 ? Math.min(100, (r.done / r.target) * 100) : 0}%` }} />
+                    </span>
                   </span>
-                  <span className={cn("ml-auto shrink-0 text-xs tabular", r.open ? "text-foreground" : "text-muted-foreground")}>{r.done}/{r.target}</span>
+                  <span className={cn("w-10 shrink-0 text-right text-xs tabular", r.open ? "text-foreground" : "text-muted-foreground")}>{r.target > 0 ? `${r.done}/${r.target}` : "–"}</span>
                 </Link>
               </li>
             ))}
