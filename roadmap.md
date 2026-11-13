@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Centraal label- en filtersysteem
+- [ ] Gemelde parsefout in Socials-checklist en Agenda herstellen en preview opnieuw controleren.
 - [ ] Centrale lichte componenten en tokens toevoegen.
 - [ ] HIBE-pagina’s en klantpagina’s migreren zonder datawijzigingen.
 - [ ] Filters, labels, avatarstapels en doorklikken controleren op desktop en mobiel; uitzonderingen benoemen.
