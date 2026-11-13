@@ -43,7 +43,7 @@ export function SocialsChecklistPreview({ className }: { className?: string }) {
                 <Link to="/hibe/socials" className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-popover">
                   <span className="w-24 shrink-0 truncate text-sm md:w-40" title={r.name}>{r.name}</span>
                   <span className="flex min-w-0 flex-1 items-center gap-2.5">
-                    <span className="flex shrink-0 gap-1" aria-hidden>
+                    <span className="flex w-[122px] shrink-0 gap-1" aria-hidden>
                       {r.cells.slice(0, 7).map((c, i) => (
                         <span key={i} title={`${statusOf(c.status).label}${c.linked ? " · video gekoppeld" : ""}`}
                           className={cn("h-3.5 w-3.5 shrink-0 rounded-[3px] border border-border", c.status === "none" ? "bg-muted" : cellCls(c.status))} />
