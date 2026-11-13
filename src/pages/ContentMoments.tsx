@@ -81,7 +81,7 @@ export default function ContentMoments() {
             <li key={m.id}>
               <button onClick={() => setOpenId(m.id)} className="flex h-full w-full flex-col rounded-lg bg-card p-5 text-left transition-colors hover:bg-popover">
                 <div className="flex flex-wrap gap-1.5">
-                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{STATUS[momentStatus(m) as Status]}</span>
+                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[momentStatus(m) as Status])}>{STATUS[momentStatus(m) as Status]}</span>
                   <span className="chip">{TYPES[m.type]}</span>
                 </div>
                 <p className="mt-3 line-clamp-2 text-xl font-semibold leading-snug">{m.title}</p>
@@ -123,6 +123,8 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
     toast.success(`Status: ${STATUS[status].toLowerCase()}`);
     qc.invalidateQueries({ queryKey: ["content-moments"] });
   };
+  /** Past moments read as finished, so the actions below follow the same reading. */
+  const status = momentStatus(m) as Status;
   const send = async () => {
     const { error } = await supabase.from("content_moment_comments").insert({ moment_id: m.id, text: text.trim() });
     if (error) return toast.error(error.message);
