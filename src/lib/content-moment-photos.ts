@@ -9,6 +9,7 @@ import forLight from "@/assets/for-light-contentmoment.webp.asset.json";
 import eric from "@/assets/eric-franzel-contentmoment.webp.asset.json";
 import nsc from "@/assets/nsc-contentmoment.jpg.asset.json";
 import nancy from "@/assets/nancy-faas-contentmoment.webp.asset.json";
+import standaard from "@/assets/hibe-contentmoment-standaard.jpg.asset.json";
 
 export const CONTENT_MOMENT_PHOTOS: Record<string, string> = {
   "VIP Fashion": vip.url, Appelboom: appelboom.url, Rocketshot: rocketshot.url,
@@ -16,3 +17,6 @@ export const CONTENT_MOMENT_PHOTOS: Record<string, string> = {
   "Grafisch Lyceum Utrecht": glu.url, "For Light": forLight.url,
   "Eric Franzel": eric.url, NSC: nsc.url, "Nancy Faas": nancy.url,
 };
+
+// Valt terug op deze sfeerfoto als een klant geen eigen contentmoment-foto heeft.
+export const DEFAULT_CONTENT_MOMENT_PHOTO = standaard.url;

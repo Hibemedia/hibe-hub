@@ -9,7 +9,7 @@ import { useLogoUrls } from "@/hooks/useLogoUrl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { nextContentMoment, type HighlightMoment } from "@/lib/dashboard-highlights";
-import { CONTENT_MOMENT_PHOTOS } from "@/lib/content-moment-photos";
+import { CONTENT_MOMENT_PHOTOS, DEFAULT_CONTENT_MOMENT_PHOTO } from "@/lib/content-moment-photos";
 
 type ReviewItem = { id: string; title: string; client_id: string };
 
@@ -42,7 +42,7 @@ export function DashboardHighlights() {
   const moment = nextContentMoment(moments);
   const momentClient = clients.find((c) => c.id === moment?.client_id);
   const momentLogo = momentClient?.logo_url ? logos[momentClient.logo_url] : undefined;
-  const momentBackdrop = (momentClient && CONTENT_MOMENT_PHOTOS[momentClient.name]) || momentLogo;
+  const momentBackdrop = (momentClient && CONTENT_MOMENT_PHOTOS[momentClient.name]) || DEFAULT_CONTENT_MOMENT_PHOTO || momentLogo;
   const dateLabel = moment?.date ? new Date(`${moment.date}T00:00:00`).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" }) : "";
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
   const clientLogo = (id: string) => { const c = clients.find((x) => x.id === id); return c?.logo_url ? logos[c.logo_url] : undefined; };
