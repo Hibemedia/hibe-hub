@@ -31,3 +31,5 @@
 - HIBE team roles (Beheerder/Editor) live in team_roles (no row = Editor), separate from user_roles admin/client; only beheerders (is_beheerder()) can change them. The dashboard hides totals/chart/ranking for editors in the UI only — those stats are still readable by every admin.
 - HIBE Taken (/hibe/taken) use the tasks table; admins read all, only beheerders assign to others.
 - Productieboard (/hibe/pipeline) is read-only, derived live in src/lib/pipeline.ts from existing tables/timestamps — one source of truth.
+
+- Scope Agenda light styles to Agenda; preserve other pages.

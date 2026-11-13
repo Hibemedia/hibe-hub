@@ -19,6 +19,12 @@
     --login-overlay: linear-gradient(180deg, hsl(var(--primary-dark) / 0.7) 0%, hsl(var(--primary-dark) / 0.45) 50%, hsl(var(--primary-dark) / 0.8) 100%);
     --lime: 76 87% 58%;             /* #C8F135 */
     --lime-foreground: 0 0% 7%;
+    --agenda-shoot-fill: 76 75% 90%; --agenda-shoot-line: 76 65% 48%;
+    --agenda-edit-fill: 210 65% 94%; --agenda-edit-line: 210 50% 65%;
+    --agenda-meeting-fill: 60 5% 93%; --agenda-meeting-line: 60 3% 65%;
+    --agenda-task-fill: 265 48% 95%; --agenda-task-line: 265 35% 69%;
+    --agenda-vacation-fill: 34 65% 93%; --agenda-vacation-line: 34 55% 64%;
+    --agenda-count: 0 0% 55%;
     --medal-lime: 82 78% 55%;
     --medal-bronze: 28 58% 52%;
     --medal-silver: 210 12% 72%;
@@ -113,6 +119,12 @@
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 22 100% 50%;
+    --agenda-shoot-fill: 76 22% 18%;
+    --agenda-edit-fill: 210 25% 18%;
+    --agenda-meeting-fill: 60 3% 18%;
+    --agenda-task-fill: 265 20% 18%;
+    --agenda-vacation-fill: 34 25% 18%;
+    --agenda-count: 0 0% 65%;
 
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 98%;
@@ -271,6 +283,20 @@
 }
 
 @layer components {
+  .agenda-segment { @apply flex items-center rounded-lg border border-border bg-card p-1; }
+  .agenda-segment-option { @apply h-8 rounded-md px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground; }
+  .agenda-segment-option[aria-pressed="true"] { @apply bg-lime text-lime-foreground hover:bg-lime hover:text-lime-foreground; }
+  .agenda-shoot { --agenda-fill: var(--agenda-shoot-fill); --agenda-line: var(--agenda-shoot-line); }
+  .agenda-edit { --agenda-fill: var(--agenda-edit-fill); --agenda-line: var(--agenda-edit-line); }
+  .agenda-meeting { --agenda-fill: var(--agenda-meeting-fill); --agenda-line: var(--agenda-meeting-line); }
+  .agenda-task { --agenda-fill: var(--agenda-task-fill); --agenda-line: var(--agenda-task-line); }
+  .agenda-vacation { --agenda-fill: var(--agenda-vacation-fill); --agenda-line: var(--agenda-vacation-line); }
+  .agenda-type-chip { @apply border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground; }
+  .agenda-type-chip[aria-pressed="true"], .agenda-type-item { background: hsl(var(--agenda-fill)); color: hsl(var(--foreground)); }
+  .agenda-type-chip[aria-pressed="true"]:hover, .agenda-type-item:hover { background: hsl(var(--agenda-fill)); color: hsl(var(--foreground)); }
+  .agenda-type-item { border-left: 2px solid hsl(var(--agenda-line)); }
+  .agenda-type-count { color: hsl(var(--agenda-count)); font-size: 10px; }
+
   /* Cards: white with a 1px hairline, no shadow. */
   .bg-card[class*="rounded-lg"], .bg-card[class*="rounded-["] { border: 1px solid hsl(var(--border)); }
   .wordmark { @apply break-words font-display text-[2.5rem] sm:text-6xl font-extrabold uppercase leading-[0.9] tracking-tight md:text-7xl; }
