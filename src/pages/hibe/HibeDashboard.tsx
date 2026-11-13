@@ -91,7 +91,7 @@ export default function HibeDashboard() {
         <div className="lg:col-span-3">{me && <WeatherCard lat={me.lat} lon={me.lon} place={me.place} />}</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 md:gap-4">
+      <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {counters.map((c) => (
           <Link key={c.label} to={c.to} className="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-lg bg-card p-4 transition-colors hover:bg-popover md:p-5">
             <div className="flex min-w-0 items-start justify-between gap-2">
