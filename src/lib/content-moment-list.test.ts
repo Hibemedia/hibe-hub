@@ -1,6 +1,6 @@
 // @ts-ignore bun provides its own test types
 import { it, expect } from "bun:test";
-import { crewOverflow, filterMomentStatus, momentReferenceImage } from "./content-moment-list";
+import { crewOverflow, filterMomentStatus, momentReferenceImage, momentStatus, amsterdamToday } from "./content-moment-list";
 it("five team members have three visible avatars and two remaining", () => {
   expect(crewOverflow(5)).toBe(2);
   expect(crewOverflow(3)).toBe(0);
