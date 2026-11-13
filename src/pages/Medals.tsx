@@ -119,10 +119,10 @@ function MedalCard({ m, clientId, onCelebrate }: { m: Medal; clientId: string; o
           </div>
           {m.next != null && <MedalBadge levelIndex={m.levelIndex + 1} category={m.key} locked />}
         </div>
-        {remaining != null && <p className="medal-near-label mt-3 inline-flex max-w-full rounded-full px-3 py-1.5 text-xs font-semibold">🔥 Bijna behaald! Nog {meta.unit(remaining)} te gaan</p>}
+        {remaining != null && <p className="medal-near-label mt-3 inline-flex max-w-full rounded-control px-3 py-1.5 text-xs font-semibold">🔥 Bijna behaald! Nog {meta.unit(remaining)} te gaan</p>}
       </div>
       {m.levelIndex >= 0 && <div className="mt-auto pt-5">
-        <Button className={`w-full rounded-full ${canCelebrate(m, celebrated) ? "medal-celebrate" : ""}`} variant={canCelebrate(m, celebrated) ? "default" : "outline"} onClick={celebrate}>{canCelebrate(m, celebrated) ? "🎉 Vier het!" : "Bekijk je medaille"}</Button>
+        <Button className={`w-full rounded-control ${canCelebrate(m, celebrated) ? "medal-celebrate" : ""}`} variant={canCelebrate(m, celebrated) ? "default" : "outline"} onClick={celebrate}>{canCelebrate(m, celebrated) ? "🎉 Vier het!" : "Bekijk je medaille"}</Button>
       </div>}
       <div className="mt-4 border-t border-border/70 pt-3 text-sm">
         {m.key === "streakWeeks" ? (

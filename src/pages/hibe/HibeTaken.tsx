@@ -48,9 +48,9 @@ export default function HibeTaken() {
     <div className="space-y-4">
       <PageHeader title="Taken" action={<PrimaryAction icon={Plus} onClick={() => setForm(blankTask(me))}>Nieuwe taak</PrimaryAction>} />
       <div className="flex flex-wrap items-center gap-2">
-        <FilterChip onClick={() => setView("mine")} className={cn("", view === "mine" && "bg-filter-active text-foreground")}>Alleen mijn taken</FilterChip>
-        <FilterChip onClick={() => setView("all")} className={cn("", view === "all" && "bg-filter-active text-foreground")}>Iedereen, per persoon</FilterChip>
-        <FilterChip onClick={() => setShowDone(!showDone)} className={cn(" ml-auto", showDone && "bg-filter-active text-foreground")}>Afgerond tonen</FilterChip>
+        <FilterChip active={view === "mine"} onClick={() => setView("mine")} className={cn("", view === "mine" && "bg-filter-active text-foreground")}>Alleen mijn taken</FilterChip>
+        <FilterChip active={view === "all"} onClick={() => setView("all")} className={cn("", view === "all" && "bg-filter-active text-foreground")}>Iedereen, per persoon</FilterChip>
+        <FilterChip active={showDone} onClick={() => setShowDone(!showDone)} className={cn(" ml-auto", showDone && "bg-filter-active text-foreground")}>Afgerond tonen</FilterChip>
       </div>
       {groups.every((g) => !g.tasks.length) && <div className="rounded-[20px] bg-card p-6 text-sm text-muted-foreground">Geen open taken.</div>}
       {groups.filter((g) => g.tasks.length).map((g) => (

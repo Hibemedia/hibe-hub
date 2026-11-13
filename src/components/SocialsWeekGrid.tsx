@@ -1,3 +1,4 @@
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { Tag } from "@/components/ui/tag";
 import { useMemo, useState } from "react";
@@ -317,10 +318,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
         <Tag className="">{label}</Tag>
         <button aria-label={view === "week" ? "Volgende week" : "Volgende maand"} className="round-btn h-8 w-8" onClick={() => setOffset(offset + 1)}><ChevronRight className="h-4 w-4" /></button>
         </>}
-        {!weekOnly && <div className="flex overflow-hidden rounded-full border border-border">
-          <button className={cn("h-8 px-3 text-xs font-medium transition", view === "week" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "week"} onClick={() => { setView("week"); setOffset(0); }}>Deze week</button>
-          <button className={cn("h-8 px-3 text-xs font-medium transition", view === "month" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground")} aria-pressed={view === "month"} onClick={() => { setView("month"); setOffset(0); }}>Deze maand</button>
-        </div>}
+        {!weekOnly && <SegmentedControl<"week" | "month"> label="Checklistperiode" value={view} onChange={(v) => { setView(v); setOffset(0); }} options={[{ value: "week", label: "Deze week" }, { value: "month", label: "Deze maand" }]} />}
         <FilterChip className=" h-8 px-3 text-xs" aria-pressed={openOnly} onClick={() => setOpenOnly(!openOnly)}>Alleen open</FilterChip>
         <span className="ml-auto text-sm text-muted-foreground tabular"><b className="text-foreground">{totDone}</b> van {totPlanned} posts ingepland {periodWord}</span>
       </div>

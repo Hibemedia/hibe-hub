@@ -76,7 +76,7 @@ export function ClientScopeBar({ id }: { id: string }) {
       <nav className="-mx-4 flex w-full gap-2 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:px-0" aria-label="Klantpagina's">
         {HIBE_CLIENT_TABS.map((m) => (
           <NavLink key={m.url} end to={base + (m.url === "/" ? "" : m.url)}
-            className={({ isActive }) => cn("chip-filter shrink-0", isActive && "border-foreground bg-foreground text-background hover:bg-foreground")}>{m.title}</NavLink>
+            className={({ isActive }) => cn("chip-filter shrink-0", isActive && "border-lime bg-filter-active text-foreground hover:bg-filter-active")}>{m.title}</NavLink>
         ))}
       </nav>
       <Link to={`/hibe/als/${id}`} className="ml-auto inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-foreground px-3 text-sm font-semibold text-background"><Eye className="h-4 w-4" />Bekijk als klant</Link>

@@ -36,10 +36,10 @@ export const fmtDate = (d: string | null, time = true) =>
   d ? new Date(d).toLocaleString("nl-NL", { day: "numeric", month: "short", year: "numeric", ...(time ? { hour: "2-digit", minute: "2-digit" } : {}) }) : "Geen datum";
 
 const STATUS_STYLE: Record<ReviewStatus, string> = {
-  pending: "bg-lime text-lime-foreground",
-  approved: "bg-foreground text-background",
-  rejected: "bg-popover text-destructive",
-  changes_requested: "bg-muted text-foreground",
+  pending: "bg-tag-info text-foreground",
+  approved: "bg-tag-success text-foreground",
+  rejected: "bg-tag-danger text-foreground",
+  changes_requested: "bg-tag-warning text-foreground",
 };
 export function StatusLabel({ status }: { status: ReviewStatus }) {
   return <Tag className={cn("inline-flex shrink-0 items-center rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{REVIEW_STATUS_LABEL[status]}</Tag>;

@@ -66,7 +66,7 @@ function Avatar({ m, size = 24 }: { m?: Member; size?: number }) {
 }
 
 const STATUS_CLS: Record<EditStatus, string> = {
-  assign: "bg-warning/15 text-warning", todo: "bg-muted text-foreground", editing: "bg-foreground text-background", on_hold: "bg-muted text-muted-foreground", delivered: "bg-lime text-lime-foreground",
+  assign: "bg-tag-warning text-foreground", todo: "bg-tag-neutral text-foreground", editing: "bg-tag-neutral text-foreground", on_hold: "bg-tag-info text-foreground", delivered: "bg-tag-success text-foreground",
 };
 const fmtDeadline = (d: string) => new Date(d + "T00:00").toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
 const overdue = (e: Edit) => !!e.deadline && e.status !== "delivered" && new Date(e.deadline + "T23:59") < new Date();
@@ -140,7 +140,7 @@ export default function HibeEdits() {
                   <div className="col-span-2 flex min-w-0 items-center gap-2 lg:col-span-1">
                     <button onClick={() => setOpen(e)} className="min-w-0 truncate text-left text-sm font-medium hover:underline">{e.title}</button>
                     {e.video?.status === "feedback" && e.video_item_id && (
-                      <Link to={`/hibe/videos/${e.video_item_id}`} className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning"><MessageSquareWarning className="h-3 w-3" />Feedback</Link>
+                      <Link to={`/hibe/videos/${e.video_item_id}`} className="ui-tag ui-tag-warning shrink-0"><MessageSquareWarning className="h-3 w-3" />Feedback</Link>
                     )}
                     {e.video_item_id && e.video?.status !== "feedback" && <Link to={`/hibe/videos/${e.video_item_id}`} aria-label="Open video" className="shrink-0 text-muted-foreground hover:text-foreground"><Film className="h-3.5 w-3.5" /></Link>}
                     {e.drive_link && <a href={e.drive_link} target="_blank" rel="noreferrer" aria-label="Google Drive-link" className="shrink-0 text-muted-foreground hover:text-foreground"><Link2 className="h-3.5 w-3.5" /></a>}

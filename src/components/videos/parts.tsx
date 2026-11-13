@@ -34,7 +34,7 @@ export function ClientMark({ id, name, url, size = 28, className }: { id: string
 }
 
 export function StatusLabel({ status, label, className }: { status: VideoStatus; label?: string; className?: string }) {
-  return <Tag className={cn("inline-flex items-center whitespace-nowrap rounded-tag px-2.5 py-0.5 text-xs font-medium", status === "approved_client" || status === "approved_internal" ? "bg-tag-success text-foreground" : "bg-muted text-foreground", className)}>{label ?? VIDEO_STATUS_LABEL[status]}</Tag>;
+  return <Tag className={className} variant={status === "approved_client" || status === "approved_internal" || status === "scheduled" ? "success" : status === "feedback" ? "warning" : status === "client_review" || status === "internal_review" ? "info" : "neutral"}>{label ?? VIDEO_STATUS_LABEL[status]}</Tag>;
 }
 
 /** First frame of the latest version, loaded only when scrolled into view. */
