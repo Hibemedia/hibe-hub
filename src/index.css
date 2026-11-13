@@ -423,7 +423,8 @@
 
 /* Contentmomenten use their available page width, not the viewport beside the sidebar. */
 .content-moments-page { container-type: inline-size; }
-.content-moments-page [aria-label="Agendafilters"] { gap: 12px; }
+.content-moments-page [aria-label="Agendafilters"] { gap: 8px; }
+.content-moments-page [aria-label="Wie"] > button { padding-inline: 10px; }
 .content-moment-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 12px; align-items: center; min-height: 104px; }
 .content-moment-main { grid-column: 1 / -1; min-height: 48px; }
 .content-moment-title { word-break: normal; overflow-wrap: anywhere; }

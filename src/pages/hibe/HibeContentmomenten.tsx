@@ -81,7 +81,7 @@ export default function HibeContentmomenten() {
               return <li key={m.id} className="content-moment-row min-w-0 px-3 py-4 transition-colors hover:bg-muted/40 sm:px-4">
                 <Button variant="ghost" className="content-moment-main h-auto w-full min-w-0 justify-start gap-3 rounded-md p-0 text-left hover:bg-transparent" onClick={() => setOpenId(m.id)}>
                   <span className="w-14 shrink-0 self-start whitespace-nowrap text-sm font-semibold tabular-nums">{m.date ? new Date(m.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric" }) : "—"}<span className="mt-1 block text-xs font-normal text-muted-foreground">{m.start_time?.slice(0, 5) ?? ""}</span></span>
-                  {reference && <img src={reference} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />}
+                  {reference ? <img src={reference} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" /> : <span aria-hidden className="w-16 shrink-0" />}
                   <span className="content-moment-title min-w-0 flex-1 whitespace-normal text-sm font-semibold leading-6 sm:text-base" title={m.title}>{m.title}</span>
                 </Button>
                 <div className="content-moment-tags flex min-w-0 flex-wrap items-center gap-1.5">
