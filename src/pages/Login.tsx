@@ -64,6 +64,7 @@ const Login = () => {
       </header>
       <main className="relative mx-auto -mt-24 w-full max-w-[440px] px-4 md:-mt-36">
       <div className="rounded-lg border border-border bg-card p-6 md:p-8">
+        <img src={logo} alt="HIBE" width={400} height={225} className="mx-auto mb-5 h-10 w-auto brightness-0 dark:invert" />
         <h2 className="text-center text-2xl font-semibold">{sent ? "Controleer je inbox" : "Inloggen"}</h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">{sent ? "Je resetlink is onderweg." : "Jouw HIBE-account"}</p>
         {sent ? (
