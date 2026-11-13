@@ -44,7 +44,7 @@ export function AgendaControls({ filters, onChange, entries, me, team, clients, 
       <Popover>
         <SegmentedControl label="Wie" value={filters.who} onChange={(who) => onChange({ ...filters, who })} options={[
           { value: "everyone", label: "Iedereen" }, { value: "me", label: "Alleen ik" },
-          { value: "team", label: <PopoverTrigger asChild><span className="inline-flex items-center gap-1" aria-label="Team selecteren">Team{filters.who === "team" && filters.people.length > 0 && ` ${filters.people.length}`}<ChevronDown className="h-3 w-3" /></span></PopoverTrigger>, action: () => undefined },
+          { value: "team", label: <PopoverTrigger asChild><span className="inline-flex items-center gap-1" aria-label="Team selecteren">Team{filters.who === "team" && filters.people.length > 0 && ` ${filters.people.length}`}<ChevronDown className="h-3 w-3" /></span></PopoverTrigger>, action: () => undefined, trigger: true },
         ]} />
           <PopoverContent align="start" className="w-64 p-2"><p className="px-2 py-1 text-xs font-semibold text-muted-foreground">Teamleden</p><div className="max-h-72 overflow-y-auto">{team.map((t) => <Button key={t.id} variant="ghost" className="h-10 w-full justify-start gap-2 rounded-md px-2" role="menuitemcheckbox" aria-checked={filters.who === "team" && filters.people.includes(t.id)} onClick={() => onChange({ ...filters, who: "team", people: toggle(filters.people, t.id) })}><UserAvatar userId={t.id} size={26} /><span className="min-w-0 flex-1 truncate text-left">{t.name}</span>{filters.who === "team" && filters.people.includes(t.id) && <Check className="h-4 w-4 text-foreground" />}</Button>)}</div></PopoverContent>
       </Popover>
