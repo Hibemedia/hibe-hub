@@ -1,5 +1,10 @@
 # Roadmap
 
+## Centraal label- en filtersysteem
+- [ ] Centrale lichte componenten en tokens toevoegen.
+- [ ] HIBE-pagina’s en klantpagina’s migreren zonder datawijzigingen.
+- [ ] Filters, labels, avatarstapels en doorklikken controleren op desktop en mobiel; uitzonderingen benoemen.
+
 ## HIBE-contentmomenten
 - [x] Maandlijst met klantlogo, optioneel referentiebeeld en maximaal drie crewavatars; huidige contentmomenten hebben geen opgeslagen referentiebeelden.
 - [x] Wie/Klant/Status-filters toegevoegd en bestaande handelingen behouden.

@@ -1,0 +1,2 @@
+- Use Tag, FilterChip, SegmentedControl, DropdownButton and AvatarStack for shared presentation; preserve page data and handlers when migrating legacy controls.
+- Badge is a compatibility adapter over Tag; semantic CSS tokens own colour, radius, height and interaction states.
