@@ -135,7 +135,7 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <div className="flex flex-wrap gap-1.5"><span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{STATUS[m.status]}</span><span className="chip">{TYPES[m.type]}</span></div>
+          <div className="flex flex-wrap gap-1.5"><span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{STATUS[status]}</span><span className="chip">{TYPES[m.type]}</span></div>
           <DialogTitle className="text-2xl">{m.title}</DialogTitle>
           <p className="text-sm text-muted-foreground">{fmtDate(m.date)}{m.start_time && ` · ${m.start_time.slice(0, 5)}`}{m.location && ` · ${m.location}`}</p>
         </DialogHeader>
@@ -147,11 +147,11 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
 
         {isAdmin && (
           <div className="flex flex-wrap gap-2 border-t border-border/70 pt-4">
-            {m.status === "aangevraagd" && <Button onClick={() => setStatus("bevestigd")}>Bevestigen</Button>}
-            {(m.status === "aangevraagd" || m.status === "bevestigd") && <Button variant="outline" onClick={() => setStatus("gepland")}>Inplannen</Button>}
-            {m.status === "gepland" && <Button onClick={() => setStatus("afgerond")}>Afronden</Button>}
+            {status === "aangevraagd" && <Button onClick={() => setStatus("bevestigd")}>Bevestigen</Button>}
+            {(status === "aangevraagd" || status === "bevestigd") && <Button variant="outline" onClick={() => setStatus("gepland")}>Inplannen</Button>}
+            {status === "gepland" && <Button onClick={() => setStatus("afgerond")}>Afronden</Button>}
             <Button variant="outline" onClick={onEdit}>Bewerken</Button>
-            {m.status !== "geannuleerd" && m.status !== "afgerond" && <Button variant="ghost" onClick={() => setStatus("geannuleerd")}>Annuleren</Button>}
+            {status !== "geannuleerd" && status !== "afgerond" && <Button variant="ghost" onClick={() => setStatus("geannuleerd")}>Annuleren</Button>}
           </div>
         )}
 
