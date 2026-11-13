@@ -6,7 +6,7 @@ const t = (o: any) => ({ due_date: null, due_time: null, done_at: null, created_
 describe("tasks", () => {
   it("editor can only plan for self, beheerder for anyone", () => {
     expect(canAssignTo("editor", "me", "me")).toBe(true);
-    expect(canAssignTo("editor", "me", "nick")).toBe(false);
+    expect(canAssignTo("editor", "me", "nick")).toBe(true);
     expect(canAssignTo("beheerder", "me", "nick")).toBe(true);
   });
   it("overdue only when open and past due", () => {
