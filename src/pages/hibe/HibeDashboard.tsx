@@ -9,11 +9,12 @@ import { useUnread } from "@/hooks/useChat";
 import { useMyTeamRole } from "@/hooks/useTeamRole";
 import { MyDay } from "@/components/dashboard/MyDay";
 import { callSocials, weekDates, weekItems, type SClient, type Post, type Week } from "@/lib/socials";
-import { canSeeTotals, isNewGrowth, normName, weekBehind, weekElapsed } from "@/lib/dashboard";
+import { canSeeTotals, isNewGrowth, normName, weekBehind, weekElapsed, RANK_SCOPES, rankGrowthNote, type RankScope } from "@/lib/dashboard";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
-import { useHibeOverview, useHibeActions, useTopVideosLastWeek, ClientSummary, type TopVideo } from "@/hooks/useHibeOverview";
+import { useHibeOverview, useHibeActions, useTopVideosLastWeek, useClientRanking, ClientSummary, type TopVideo } from "@/hooks/useHibeOverview";
 import { useMySettings } from "@/hooks/useMySettings";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { useVideoItems } from "@/hooks/useVideos";
@@ -24,7 +25,7 @@ import { Section, EmptyState, Change } from "@/components/StatsOverview";
 import { WeatherCard } from "@/components/WeatherCard";
 import { SocialsChecklistPreview } from "@/components/SocialsChecklistCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatNumber, NETWORK_LABELS, Network, PeriodKey } from "@/lib/stats";
+import { formatNumber, NETWORK_LABELS, Network, PeriodKey, pctChange } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
 const TZ = "Europe/Amsterdam";
@@ -131,7 +132,7 @@ export default function HibeDashboard() {
         {data && <ViewsChart data={data} names={names} />}
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          {data && <Ranking rows={data.summaries} className="xl:col-span-2" logos={logos} />}
+          {data && <Ranking className="xl:col-span-2" logos={logos} />}
           <ActionNeeded className="xl:col-span-1" actions={actions} />
         </div>
       </>}
