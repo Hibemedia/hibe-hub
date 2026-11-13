@@ -1,1 +1,2 @@
 - Keep client shoot photos in content-moment-photos.ts so Dashboard and Contentmomenten reuse the same uploaded artwork.
+- Normalize legacy moment statuses in content-moment-list.ts instead of rewriting stored records, preserving compatibility across filters and display surfaces.
