@@ -4,10 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/hibe-logo.png";
+import studio from "@/assets/hibe-login-studio.jpg";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const Login = () => {
   const {user, signInUser} = UserAuth();
@@ -49,11 +49,23 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md rounded-lg bg-card p-6 md:p-10">
-        <img src={logo} alt="HIBE Media" className="mb-8 h-8 w-auto invert" />
-        <h1 className="wordmark text-5xl md:text-6xl">Inloggen</h1>
-        <p className="mt-2 text-muted-foreground">Log in op het HIBE Klantportaal.</p>
+    <div className="min-h-screen bg-background p-2 pb-8 md:p-3 md:pb-10">
+      <header className="relative h-[340px] overflow-hidden rounded-lg bg-foreground text-background md:h-[430px]">
+        <img src={studio} alt="" width={1920} height={1024} className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" />
+        <div className="absolute inset-0 bg-foreground/20" />
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8 md:py-7">
+          <div className="flex items-center gap-3"><img src={logo} alt="HIBE" className="h-7 w-auto md:h-8" /><span className="border-l border-background/30 pl-3 text-sm font-medium">Hub</span></div>
+          <span className="flex items-center gap-2 text-xs font-medium"><span className="h-1.5 w-1.5 rounded-full bg-lime" />Klant & team</span>
+        </div>
+        <div className="relative mx-auto max-w-lg px-6 pt-7 text-center md:pt-9">
+          <h1 className="text-4xl font-semibold md:text-5xl">Welkom bij HIBE</h1>
+          <p className="mt-3 text-sm text-background/80 md:text-base">Goed je weer te zien.</p>
+        </div>
+      </header>
+      <main className="relative mx-auto -mt-24 w-full max-w-[440px] px-4 md:-mt-36">
+      <div className="rounded-lg border border-border bg-card p-6 md:p-8">
+        <h2 className="text-center text-2xl font-semibold">{sent ? "Controleer je inbox" : "Inloggen"}</h2>
+        <p className="mt-2 text-center text-sm text-muted-foreground">{sent ? "Je resetlink is onderweg." : "Jouw HIBE-account"}</p>
         {sent ? (
           <div className="mt-8 space-y-4">
             <p className="rounded-lg bg-popover p-4 text-sm">Als <span className="font-semibold">{email}</span> bij ons bekend is, staat er nu een e-mail met een resetlink in je inbox. Open de link om een nieuw wachtwoord in te stellen.</p>
@@ -73,14 +85,14 @@ const Login = () => {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 pl-10 pr-12" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Verberg wachtwoord" : "Toon wachtwoord"} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="icon" type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Verberg wachtwoord" : "Toon wachtwoord"} className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
             </div>
-            <button type="button" onClick={handleForgot} disabled={forgotBusy} className="text-sm font-medium underline underline-offset-4">
+            <Button variant="link" type="button" onClick={handleForgot} disabled={forgotBusy} className="h-auto p-0 text-sm font-medium underline underline-offset-4">
               {forgotBusy ? "Versturen…" : "Wachtwoord vergeten?"}
-            </button>
+            </Button>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="h-12 w-full text-base" disabled={isLoading}>
               {isLoading ? "Inloggen…" : <>Inloggen <ArrowRight className="h-4 w-4" /></>}
@@ -88,6 +100,8 @@ const Login = () => {
           </form>
         )}
       </div>
+      <p className="mt-6 text-center text-xs text-muted-foreground">HIBE Media · Samen maken we het.</p>
+      </main>
     </div>
   );
 };
