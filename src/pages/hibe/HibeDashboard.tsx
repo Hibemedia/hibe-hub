@@ -42,7 +42,7 @@ export default function HibeDashboard() {
   const { data: me } = useMySettings();
   const { data, isLoading } = useHibeOverview(period);
   const { data: weekVideos } = useTopVideosLastWeek();
-  const { data: actions } = useHibeActions(clients.map((c) => c.id));
+  const { data: actions } = useHibeActions(clients.filter((c) => !c.video_only).map((c) => c.id));
   const { data: videos = [] } = useVideoItems();
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
   const today = new Intl.DateTimeFormat("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: TZ }).format(new Date());
