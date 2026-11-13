@@ -71,6 +71,43 @@ export async function unlinkSocialVideo(id: string) {
   if (error) throw error;
 }
 
+/** Compact dashboard preview: one row per client, open work first, capped at `limit`. */
+export type PreviewCell = { date: string; status: PostStatus; linked: boolean };
+export type PreviewRow = { id: string; name: string; abbreviation: string; cells: PreviewCell[]; done: number; target: number; open: boolean };
+export function socialPreviewRows(
+  clients: SClient[],
+  posts: Post[],
+  weeks: Week[],
+  links: SocialVideoLink[],
+  videos: { id: string; status: string }[],
+  dates: string[],
+  weekFrom: string,
+  limit: number,
+): { rows: PreviewRow[]; hidden: number; done: number; planned: number } {
+  const rows = clients.filter((c) => c.is_active).map((c) => {
+    let cells: PreviewCell[];
+    if (c.tracking_mode === "weekly") {
+      const w = weeks.find((x) => x.client_id === c.id && x.week_start === weekFrom);
+      const items = weekItems(w);
+      cells = [...items.map((it) => ({ date: weekFrom, status: it.status, linked: false })),
+        ...Array.from({ length: Math.max(0, c.weekly_target - items.length) }, () => ({ date: weekFrom, status: "none" as PostStatus, linked: false }))];
+    } else {
+      cells = dates.map((d) => {
+        const l = links.find((x) => x.social_client_id === c.id && x.post_date === d);
+        const v = l ? videos.find((x) => x.id === l.video_item_id) : undefined;
+        return { date: d, status: v ? videoToPostStatus(v.status) : posts.find((p) => p.client_id === c.id && p.post_date === d)?.status ?? "none", linked: !!v };
+      });
+    }
+    const done = cells.filter((x) => x.status === "scheduled").length;
+    const target = c.tracking_mode === "weekly" ? c.weekly_target : cells.filter((x) => x.status !== "none").length;
+    return { id: c.id, name: c.name, abbreviation: c.abbreviation, cells, done, target, open: !(target > 0 && done >= target) };
+  });
+  rows.sort((a, b) => (a.open === b.open ? a.name.localeCompare(b.name) : a.open ? -1 : 1));
+  const done = rows.reduce((n, r) => n + r.done, 0);
+  const planned = rows.reduce((n, r) => n + r.target, 0);
+  return { rows: rows.slice(0, limit), hidden: Math.max(0, rows.length - limit), done, planned };
+}
+
 /** Live call to the HIBE Review Hub checklist through the server-side proxy. */
 export async function callSocials<T>(body: unknown): Promise<T> {
   const { data, error } = await supabase.functions.invoke("socials-proxy", { body });
