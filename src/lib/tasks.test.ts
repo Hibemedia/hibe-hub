@@ -4,7 +4,7 @@ import { canAssignTo, groupByPerson, isOverdue, sortTasks } from "./tasks";
 
 const t = (o: any) => ({ due_date: null, due_time: null, done_at: null, created_at: "2026-01-01", assignee_id: "a", ...o });
 describe("tasks", () => {
-  it("editor can only plan for self, beheerder for anyone", () => {
+  it("editors and beheerders can select other team members for assignment", () => {
     expect(canAssignTo("editor", "me", "me")).toBe(true);
     expect(canAssignTo("editor", "me", "nick")).toBe(true);
     expect(canAssignTo("beheerder", "me", "nick")).toBe(true);

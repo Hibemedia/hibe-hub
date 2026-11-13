@@ -1,5 +1,8 @@
 # Roadmap
 
+## Taak doorgeven
+- [ ] Taakrechten herstellen en doorgeven van een door iemand anders gemaakte taak als Editor testen.
+
 ## Centraal label- en filtersysteem
 - [x] Gemelde parsefout in Socials-checklist en Agenda herstellen en preview opnieuw controleren.
 - [x] Centrale lichte componenten en tokens toevoegen.

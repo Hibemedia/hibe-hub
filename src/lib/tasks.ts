@@ -1,7 +1,7 @@
 /** Pure helpers for the HIBE task list (Taken). */
 export type Task = { id: string; title: string; notes: string | null; client_id: string | null; assignee_id: string; due_date: string | null; due_time: string | null; done_at: string | null; created_by: string | null; created_at: string };
 
-/** Only beheerders may give tasks to someone else; editors plan only for themselves. */
+/** All HIBE team members can assign tasks; database policies govern which existing tasks they may edit. */
 export const canAssignTo = (_role: string | null | undefined, _me: string, _assignee: string) => true;
 
 export const isOverdue = (t: Pick<Task, "due_date" | "done_at">, today: string) => !t.done_at && !!t.due_date && t.due_date < today;
