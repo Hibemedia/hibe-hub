@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useViewAs } from "@/context/ViewAs";
 import { useCrew, CrewBadge, CrewEditor } from "@/components/MomentCrew";
+import { momentStatus } from "@/lib/content-moment-list";
 
 const TYPES = { shoot: "Shoot", post: "Post", evenement: "Evenement", actie: "Actie", idee: "Idee" } as const;
 const STATUS = { aangevraagd: "Aangevraagd", bevestigd: "Bevestigd", gepland: "Gepland", afgerond: "Afgerond", geannuleerd: "Geannuleerd" } as const;
@@ -50,8 +51,8 @@ export default function ContentMoments() {
   const [editing, setEditing] = useState<Moment | "new" | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"actief" | "alles">("actief");
-  const count = (s: Status) => list.filter((m) => m.status === s).length;
-  const shown = filter === "actief" ? list.filter((m) => m.status !== "afgerond" && m.status !== "geannuleerd") : list;
+  const count = (s: Status) => list.filter((m) => momentStatus(m) === s).length;
+  const shown = filter === "actief" ? list.filter((m) => momentStatus(m) !== "afgerond" && momentStatus(m) !== "geannuleerd") : list;
   const selected = list.find((m) => m.id === openId) ?? null;
   const crew = useCrew(list);
 
@@ -80,7 +81,7 @@ export default function ContentMoments() {
             <li key={m.id}>
               <button onClick={() => setOpenId(m.id)} className="flex h-full w-full flex-col rounded-lg bg-card p-5 text-left transition-colors hover:bg-popover">
                 <div className="flex flex-wrap gap-1.5">
-                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{STATUS[m.status]}</span>
+                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[momentStatus(m) as Status])}>{STATUS[momentStatus(m) as Status]}</span>
                   <span className="chip">{TYPES[m.type]}</span>
                 </div>
                 <p className="mt-3 line-clamp-2 text-xl font-semibold leading-snug">{m.title}</p>
@@ -122,6 +123,8 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
     toast.success(`Status: ${STATUS[status].toLowerCase()}`);
     qc.invalidateQueries({ queryKey: ["content-moments"] });
   };
+  /** Past moments read as finished, so the actions below follow the same reading. */
+  const status = momentStatus(m) as Status;
   const send = async () => {
     const { error } = await supabase.from("content_moment_comments").insert({ moment_id: m.id, text: text.trim() });
     if (error) return toast.error(error.message);
@@ -132,7 +135,7 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <div className="flex flex-wrap gap-1.5"><span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[m.status])}>{STATUS[m.status]}</span><span className="chip">{TYPES[m.type]}</span></div>
+          <div className="flex flex-wrap gap-1.5"><span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[status])}>{STATUS[status]}</span><span className="chip">{TYPES[m.type]}</span></div>
           <DialogTitle className="text-2xl">{m.title}</DialogTitle>
           <p className="text-sm text-muted-foreground">{fmtDate(m.date)}{m.start_time && ` · ${m.start_time.slice(0, 5)}`}{m.location && ` · ${m.location}`}</p>
         </DialogHeader>
@@ -144,11 +147,11 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
 
         {isAdmin && (
           <div className="flex flex-wrap gap-2 border-t border-border/70 pt-4">
-            {m.status === "aangevraagd" && <Button onClick={() => setStatus("bevestigd")}>Bevestigen</Button>}
-            {(m.status === "aangevraagd" || m.status === "bevestigd") && <Button variant="outline" onClick={() => setStatus("gepland")}>Inplannen</Button>}
-            {m.status === "gepland" && <Button onClick={() => setStatus("afgerond")}>Afronden</Button>}
+            {status === "aangevraagd" && <Button onClick={() => setStatus("bevestigd")}>Bevestigen</Button>}
+            {(status === "aangevraagd" || status === "bevestigd") && <Button variant="outline" onClick={() => setStatus("gepland")}>Inplannen</Button>}
+            {status === "gepland" && <Button onClick={() => setStatus("afgerond")}>Afronden</Button>}
             <Button variant="outline" onClick={onEdit}>Bewerken</Button>
-            {m.status !== "geannuleerd" && m.status !== "afgerond" && <Button variant="ghost" onClick={() => setStatus("geannuleerd")}>Annuleren</Button>}
+            {status !== "geannuleerd" && status !== "afgerond" && <Button variant="ghost" onClick={() => setStatus("geannuleerd")}>Annuleren</Button>}
           </div>
         )}
 

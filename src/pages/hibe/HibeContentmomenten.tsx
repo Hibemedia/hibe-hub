@@ -18,7 +18,7 @@ import { filterAgendaEntries, defaultAgendaFilters, writeAgendaFilters } from "@
 import { ClientLogo, useLogoUrls } from "@/hooks/useLogoUrl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronDown } from "lucide-react";
-import { filterMomentStatus, momentReferenceImage } from "@/lib/content-moment-list";
+import { filterMomentStatus, momentReferenceImage, momentStatus } from "@/lib/content-moment-list";
 
 export default function HibeContentmomenten() {
   const { clients } = useClient();
@@ -48,7 +48,7 @@ export default function HibeContentmomenten() {
   const crew = useCrew(all);
   const peopleEntries = all.map((m) => ({ id: m.id, kind: "shoot" as const, start: m.date ?? "", end: m.date ?? "", title: m.title, clientId: m.client_id, people: crew.byMoment(m.id).flatMap((c) => c.user_id ? [c.user_id] : []) }));
   const visibleIds = new Set(filterAgendaEntries(peopleEntries, { ...filters, kinds: defaultAgendaFilters().kinds }, me).map((m) => m.id));
-  const list = filterMomentStatus(all.filter((m) => visibleIds.has(m.id)), statuses);
+  const list = filterMomentStatus(all.filter((m) => visibleIds.has(m.id)).map((m) => ({ ...m, status: momentStatus(m) as Moment["status"] })), statuses);
   const groups = new Map<string, (Moment & { thumbnail_url?: string | null; reference_image_url?: string | null })[]>();
   for (const m of list) {
     const k = m.date ? new Date(m.date + "T12:00:00").toLocaleDateString("nl-NL", { month: "long", year: "numeric" }) : "Nog geen datum";
