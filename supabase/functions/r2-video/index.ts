@@ -12,7 +12,7 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("sign_parts"), version_id: uuid }),
   z.object({ action: z.literal("complete"), version_id: uuid, parts: z.array(z.object({ PartNumber: z.number().int().min(1).max(10000), ETag: z.string().max(200) })).min(1).max(10000) }),
   z.object({ action: z.literal("abort"), version_id: uuid }),
-  z.object({ action: z.literal("play_url"), version_id: uuid }),
+  z.object({ action: z.literal("play_url"), version_id: uuid, download: z.boolean().optional() }),
   z.object({ action: z.literal("delete_item"), item_id: uuid }),
 ]);
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -53,9 +53,10 @@ Deno.serve(async (req) => {
 
     if (b.action === "play_url") {
       // RLS decides visibility: clients only see ready versions of their own client-visible items.
-      const { data: v } = await user.from("video_versions").select("r2_key,upload_status").eq("id", b.version_id).maybeSingle();
+      const { data: v } = await user.from("video_versions").select("r2_key,upload_status,file_name").eq("id", b.version_id).maybeSingle();
       if (!v || v.upload_status !== "ready") return json({ error: "Video niet gevonden" }, 404);
-      return json({ url: await presign("GET", v.r2_key, {}, 14400) });
+      const params: Record<string, string> = b.download ? { "response-content-disposition": `attachment; filename="${(v.file_name ?? "video.mp4").replace(/[^\w.\- ]/g, "_")}"` } : {};
+      return json({ url: await presign("GET", v.r2_key, params, b.download ? 600 : 14400) });
     }
 
     const { data: isAdmin } = await user.rpc("has_role", { _user_id: u.user.id, _role: "admin" });

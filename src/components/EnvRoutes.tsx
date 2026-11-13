@@ -94,3 +94,10 @@ export function ViewAsEnv() {
     </ProtectedRoute>
   );
 }
+
+/** Video-only clients (HIBE doesn't post for them) never see statistics pages; send them to Video's. */
+export function FullClientOnly({ children }: { children: JSX.Element }) {
+  const { client } = useClient();
+  if (client?.video_only) return <Navigate to="videos" relative="path" replace />;
+  return children;
+}

@@ -29,6 +29,8 @@ export const CLIENT_MENU: Item[] = [
   { title: "Contentmomenten", url: "/content-moments", icon: CalendarDays },
   { title: "Branding & Archief", url: "/branding", icon: Archive },
 ];
+/** Klanten waarvoor HIBE niet post: alleen video's goedkeuren/downloaden, geen cijfers. */
+export const VIDEO_ONLY_URLS = ["/videos", "/content-moments", "/branding"];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
@@ -182,7 +184,9 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const toggle = () => setCollapsed((c) => { localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1"); return !c; });
   const viewAs = useViewAs();
   const base = useBase();
-  const items = variant === "hibe" ? HIBE_MENU : CLIENT_MENU.map((i) => ({ ...i, url: i.url === "/" ? base || "/" : base + i.url, prefix: i.prefix ? base + i.prefix : undefined }));
+  const { client } = useClient();
+  const clientMenu = client?.video_only ? CLIENT_MENU.filter((i) => VIDEO_ONLY_URLS.includes(i.url)) : CLIENT_MENU;
+  const items = variant === "hibe" ? HIBE_MENU : clientMenu.map((i) => ({ ...i, url: i.url === "/" ? base || "/" : base + i.url, prefix: i.prefix ? base + i.prefix : undefined }));
   const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Mijn account", url: "/settings", icon: User };
   const { data: chatUnread = {} } = useUnread(variant === "hibe");
   const chatCount = Object.values(chatUnread).reduce((a, b) => a + b, 0);

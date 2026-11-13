@@ -9,6 +9,7 @@ export interface ClientRow {
   metricool_brand_label?: string | null;
   tiktok_handle: string | null;
   logo_url: string | null;
+  video_only?: boolean;
 }
 
 interface Ctx {
@@ -39,7 +40,7 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     const [{ data: role }, { data: me }, { data: list }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
       supabase.from("users").select("client_id").eq("id", user.id).maybeSingle(),
-      supabase.from("clients").select("id,name,metricool_blog_id,metricool_brand_label,tiktok_handle,logo_url").order("name"),
+      supabase.from("clients").select("id,name,metricool_blog_id,metricool_brand_label,tiktok_handle,logo_url,video_only").order("name"),
     ]);
     const admin = !!role;
     const rows = (list ?? []) as ClientRow[];
