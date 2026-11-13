@@ -18,11 +18,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useViewAs } from "@/context/ViewAs";
 import { useCrew, CrewBadge, CrewEditor } from "@/components/MomentCrew";
-import { momentStatus } from "@/lib/content-moment-list";
+import { momentStatus, normalizeMomentStatus } from "@/lib/content-moment-list";
 
 const TYPES = { shoot: "Shoot", post: "Post", evenement: "Evenement", actie: "Actie", idee: "Idee" } as const;
-const STATUS = { aangevraagd: "Aangevraagd", bevestigd: "Bevestigd", gepland: "Gepland", afgerond: "Afgerond", geannuleerd: "Geannuleerd" } as const;
-type Status = keyof typeof STATUS;
+const STATUS = { bevestigd: "Bevestigd", aangevraagd: "In optie", afgerond: "Afgerond", geannuleerd: "Geannuleerd" } as const;
+type Status = keyof typeof STATUS | "gepland";
 export type Moment = {
   id: string; client_id: string; title: string; type: keyof typeof TYPES; date: string | null; start_time: string | null;
   location: string | null; script: string | null; notes: string | null; attendees: string[]; status: Status; requested_by: string | null; created_at: string; show_crew_to_client: boolean;
@@ -62,8 +62,8 @@ export default function ContentMoments() {
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <PageHeader title="Contentmomenten" action={clientId ? <PrimaryAction icon={Plus} onClick={() => setEditing("new")}>{isAdmin ? "Moment toevoegen" : "Moment aanvragen"}</PrimaryAction> : null} />
 
-      <section className="grid grid-cols-3 gap-3">
-        {(["gepland", "bevestigd", "aangevraagd"] as Status[]).map((s) => (
+      <section className="grid grid-cols-2 gap-3">
+        {(["bevestigd", "aangevraagd"] as const).map((s) => (
           <div key={s} className="rounded-lg bg-card p-4 md:p-6">
             <div className="flex flex-wrap items-baseline gap-2"><span className="text-[40px] font-light leading-none tabular md:text-[56px]">{count(s)}</span><span className="text-sm text-muted-foreground md:text-base">{STATUS[s]}</span></div>
           </div>
@@ -83,7 +83,7 @@ export default function ContentMoments() {
             <li key={m.id}>
               <button onClick={() => setOpenId(m.id)} className="flex h-full w-full flex-col rounded-lg bg-card p-5 text-left transition-colors hover:bg-popover">
                 <div className="flex flex-wrap gap-1.5">
-                  <Tag className={cn("inline-flex rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[momentStatus(m) as Status])}>{STATUS[momentStatus(m) as Status]}</Tag>
+                  <Tag className={cn("inline-flex rounded-tag px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[momentStatus(m) as Status])}>{STATUS[momentStatus(m) as keyof typeof STATUS]}</Tag>
                   <Tag className="">{TYPES[m.type]}</Tag>
                 </div>
                 <p className="mt-3 line-clamp-2 text-xl font-semibold leading-snug">{m.title}</p>
@@ -122,11 +122,11 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
   const setStatus = async (status: Status) => {
     const { error } = await supabase.from("content_moments").update({ status }).eq("id", m.id);
     if (error) return toast.error(error.message);
-    toast.success(`Status: ${STATUS[status].toLowerCase()}`);
+    toast.success(`Status: ${STATUS[normalizeMomentStatus(status) as keyof typeof STATUS].toLowerCase()}`);
     qc.invalidateQueries({ queryKey: ["content-moments"] });
   };
   /** Past moments read as finished, so the actions below follow the same reading. */
-  const status = momentStatus(m) as Status;
+  const status = momentStatus(m) as keyof typeof STATUS;
   const send = async () => {
     const { error } = await supabase.from("content_moment_comments").insert({ moment_id: m.id, text: text.trim() });
     if (error) return toast.error(error.message);
@@ -150,8 +150,8 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
         {isAdmin && (
           <div className="flex flex-wrap gap-2 border-t border-border/70 pt-4">
             {status === "aangevraagd" && <Button onClick={() => setStatus("bevestigd")}>Bevestigen</Button>}
-            {(status === "aangevraagd" || status === "bevestigd") && <Button variant="outline" onClick={() => setStatus("gepland")}>Inplannen</Button>}
-            {status === "gepland" && <Button onClick={() => setStatus("afgerond")}>Afronden</Button>}
+            {status === "bevestigd" && <Button variant="outline" onClick={() => setStatus("aangevraagd")}>In optie zetten</Button>}
+            {status === "bevestigd" && <Button onClick={() => setStatus("afgerond")}>Afronden</Button>}
             <Button variant="outline" onClick={onEdit}>Bewerken</Button>
             {status !== "geannuleerd" && status !== "afgerond" && <Button variant="ghost" onClick={() => setStatus("geannuleerd")}>Annuleren</Button>}
           </div>
@@ -184,7 +184,7 @@ export function EditDialog({ clientId, moment, onClose }: { clientId: string; mo
   const [f, setF] = useState({
     title: moment?.title ?? "", type: moment?.type ?? "shoot", date: moment?.date ?? "", start_time: moment?.start_time?.slice(0, 5) ?? "",
     location: moment?.location ?? "", script: moment?.script ?? "", notes: moment?.notes ?? "", attendees: moment?.attendees.join(", ") ?? "",
-    status: (moment?.status ?? (isAdmin ? "bevestigd" : "aangevraagd")) as Status,
+    status: normalizeMomentStatus(moment?.status ?? (isAdmin ? "bevestigd" : "aangevraagd")) as Status,
   });
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
