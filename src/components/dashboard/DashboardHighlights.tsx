@@ -88,7 +88,10 @@ export function DashboardHighlights() {
         <div className="absolute inset-0 -z-10 bg-foreground/80" />
         <h2 className="w-full truncate text-sm font-medium text-background/80" title="Eerstvolgende contentmoment">Eerstvolgende contentmoment</h2>
         {momentLoading ? <Skeleton className="mt-4 h-20 w-full bg-background/15" /> : moment ? <>
-          <p className="mt-3 line-clamp-2 w-full break-words text-xl font-semibold">{momentClient?.name ?? "Klant"}</p>
+          <p className="mt-3 flex w-full min-w-0 items-center gap-2 text-xl font-semibold">
+            {momentLogo && <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-background"><ClientImage key={momentLogo} url={momentLogo} className="h-full w-full object-contain p-0.5" /></span>}
+            <span className="line-clamp-2 min-w-0 break-words">{momentClient?.name ?? "Klant"}</span>
+          </p>
           <p className="mt-1 line-clamp-2 w-full break-words text-sm text-background/80">{moment.title}</p>
           <p className="mt-2 text-sm text-background/80">{dateLabel}{moment.start_time ? ` · ${moment.start_time.slice(0, 5)}` : ""}</p>
           <Button asChild size="sm" variant="secondary" className="mt-auto bg-background text-foreground hover:bg-background/90"><Link to="/hibe/agenda">Open agenda<ArrowUpRight aria-hidden /></Link></Button>
