@@ -44,7 +44,7 @@ function putPart(url: string, blob: Blob, onProgress: (n: number) => void, signa
  * is uploaded again for the same target after a dropped connection.
  */
 export async function uploadVideo(opts: {
-  file: File; itemId?: string; clientId?: string; title?: string; uploaderId?: string;
+  file: File; itemId?: string; clientId?: string; title?: string; uploaderId?: string; targetStatus?: string;
   onProgress: (fraction: number) => void; signal: AbortSignal;
 }) {
   const { file, signal } = opts;
@@ -94,7 +94,7 @@ export async function uploadVideo(opts: {
   };
   await Promise.all(Array.from({ length: 3 }, worker));
   const parts = [...done].map(([PartNumber, ETag]) => ({ PartNumber, ETag }));
-  await invokeVideo({ action: "complete", version_id: target.version_id, parts });
+  await invokeVideo({ action: "complete", version_id: target.version_id, parts, target_status: opts.targetStatus });
   const after = readResume(); delete after[key]; writeResume(after);
   return target;
 }

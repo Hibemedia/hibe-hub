@@ -41,7 +41,7 @@ export default function MediaStep() {
   const m = useMedia(status === "archived" || trashView);
   const [f, setF] = useSavedFilters();
   const [sel, setSel] = useState<Set<string>>(new Set());
-  const up = useUploader(f.client !== "all" ? f.client : undefined);
+  const up = useUploader(f.client !== "all" ? f.client : undefined, status && status !== "approved_internal" ? status : undefined, status && status !== "approved_internal" ? VIDEO_STATUS_LABEL[status] : undefined);
   const sender = useSendToClient();
   const verInput = useRef<HTMLInputElement>(null);
   const [verFor, setVerFor] = useState<BoardItem | null>(null);

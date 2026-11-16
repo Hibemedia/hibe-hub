@@ -31,7 +31,7 @@ export function useSavedFilters() {
 }
 
 /** Upload button + page-wide file drop. */
-export function useUploader(defaultClient?: string) {
+export function useUploader(defaultClient?: string, targetStatus?: string, targetLabel?: string) {
   const [files, setFiles] = useState<File[]>([]);
   const [open, setOpen] = useState(false);
   const [over, setOver] = useState(false);
@@ -44,7 +44,7 @@ export function useUploader(defaultClient?: string) {
   const ui = (
     <>
       {over && <div className="pointer-events-none fixed inset-4 z-40 flex items-center justify-center rounded-lg border-2 border-dashed border-foreground bg-background/80 text-xl font-semibold">Laat los om te uploaden</div>}
-      <UploadDialog files={files} open={open} onOpenChange={setOpen} defaultClient={defaultClient} onPick={setFiles} />
+      <UploadDialog files={files} open={open} onOpenChange={setOpen} defaultClient={defaultClient} onPick={setFiles} targetStatus={targetStatus} targetLabel={targetLabel} />
     </>
   );
   return { openPicker: () => pick([]), dropProps, ui };
