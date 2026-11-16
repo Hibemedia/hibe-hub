@@ -30,7 +30,7 @@ async def main():
             await page.goto("http://localhost:8080")
             await page.evaluate("([k,v]) => localStorage.setItem(k,v)", [os.environ["LOVABLE_BROWSER_SUPABASE_STORAGE_KEY"], session_json])
             await page.evaluate("() => localStorage.removeItem('hibe.media.filters')")
-            await page.goto("http://localhost:8080/hibe/videos/stap/feedback")
+            await page.goto("http://localhost:8080/hibe/videos/stap/feedback-verwerken")
             picker = page.get_by_role("combobox", name="Editor voor " + item["title"], exact=True)
             await picker.click()
             await page.get_by_role("option", name=editor["name"], exact=True).click()
