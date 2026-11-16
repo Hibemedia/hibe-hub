@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Feedbackeditor
-- [ ] Bij feedback de gekoppelde editor tonen en een HIBE-teamlid kunnen kiezen; toewijzing bewaren en op desktop/mobiel controleren.
+- [x] Bij feedback editor met foto tonen en kiezen; opslaan, teruglezen en verwijderen getest met echte video, oorspronkelijke keuze hersteld; desktop/mobiel zonder overflow, 27 bestaande tests slagen.
 
 ## Ruimte rond pagina’s
 - [x] Gelijke buitenruimte in HIBE- en klantomgeving zonder dubbele paginamarges; tien HIBE-pagina’s en Bekijk als klant gecontroleerd op desktop/mobiel, geen horizontale overflow en build OK.

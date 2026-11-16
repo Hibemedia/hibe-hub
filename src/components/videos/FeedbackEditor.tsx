@@ -26,10 +26,10 @@ export function FeedbackEditor({ itemId, title, editorId }: { itemId: string; ti
   return (
     <Select value={editorId ?? "none"} onValueChange={assign} disabled={saving || isLoading}>
       <SelectTrigger aria-label={`Editor voor ${title}`} className="h-8 w-44 shrink-0 text-xs">
-        <span className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {editorId && <UserAvatar userId={editorId} name={editor?.name} size={22} />}
           <span className="truncate">{saving ? "Opslaan…" : editor?.name ?? (editorId ? "Editor" : "Editor kiezen")}</span>
-        </span>
+        </div>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="none">Geen editor</SelectItem>
