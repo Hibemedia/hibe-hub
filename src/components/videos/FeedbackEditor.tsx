@@ -33,7 +33,7 @@ export function FeedbackEditor({ itemId, title, editorId }: { itemId: string; ti
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="none">Geen editor</SelectItem>
-        {team.map((member) => <SelectItem key={member.id} value={member.id}><span className="flex items-center gap-2"><UserAvatar userId={member.id} name={member.name} size={22} />{member.name}</span></SelectItem>)}
+        {team.map((member) => <SelectItem key={member.id} value={member.id} aria-label={member.name}><span className="flex items-center gap-2"><span aria-hidden="true"><UserAvatar userId={member.id} name={member.name} size={22} /></span>{member.name}</span></SelectItem>)}
       </SelectContent>
     </Select>
   );
