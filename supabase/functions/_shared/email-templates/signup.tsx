@@ -27,33 +27,34 @@ export const SignupEmail = ({
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="nl" dir="ltr">
     <Head>
       <style>{darkModeCss}</style>
     </Head>
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Bevestig je e-mailadres voor {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Text style={{ fontSize: '20px', fontWeight: 'bold', color: '#111111', margin: '0 0 24px' }}>HIBE</Text>
+        <Heading style={h1}>Bevestig je e-mailadres</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
+          Welkom bij{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
           !
         </Text>
         <Text style={text}>
-          Please confirm your email address (
+          Bevestig je e-mailadres (
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) by clicking the button below:
+          ) met de knop hieronder:
         </Text>
         <Button className="dm-btn" style={button} href={confirmationUrl}>
-          Verify Email
+          E-mailadres bevestigen
         </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          Heb je geen account aangemaakt? Dan kun je deze e-mail negeren.
         </Text>
       </Container>
     </Body>
@@ -62,17 +63,17 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Urbanist, Arial, sans-serif' }
+const container = { padding: '32px 24px', maxWidth: '560px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#111111',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
+  color: '#6b6b6b',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
@@ -82,7 +83,7 @@ const button = {
   color: '#ffffff',
   fontSize: '14px',
   border: '1px solid #000000',
-  borderRadius: '8px',
+  borderRadius: '12px',
   padding: '12px 20px',
   textDecoration: 'none',
 }

@@ -32,34 +32,34 @@ export const EmailChangeEmail = ({
   newEmail,
   confirmationUrl,
 }: EmailChangeEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="nl" dir="ltr">
     <Head>
       <style>{darkModeCss}</style>
     </Head>
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>Bevestig je nieuwe e-mailadres voor {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email change</Heading>
+        <Text style={{ fontSize: '20px', fontWeight: 'bold', color: '#111111', margin: '0 0 24px' }}>HIBE</Text>
+        <Heading style={h1}>E-mailadres wijzigen</Heading>
         <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
+          Je wilt je e-mailadres voor {siteName} wijzigen van{' '}
           <Link href={`mailto:${oldEmail}`} style={link}>
             {oldEmail}
           </Link>{' '}
-          to{' '}
+          naar{' '}
           <Link href={`mailto:${newEmail}`} style={link}>
             {newEmail}
           </Link>
           .
         </Text>
         <Text style={text}>
-          Click the button below to confirm this change:
+          Bevestig de wijziging met de knop hieronder:
         </Text>
         <Button className="dm-btn" style={button} href={confirmationUrl}>
-          Confirm Email Change
+          Wijziging bevestigen
         </Button>
         <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
+          Heb je deze wijziging niet aangevraagd? Beveilig dan direct je account.
         </Text>
       </Container>
     </Body>
@@ -68,17 +68,17 @@ export const EmailChangeEmail = ({
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Urbanist, Arial, sans-serif' }
+const container = { padding: '32px 24px', maxWidth: '560px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#111111',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
+  color: '#6b6b6b',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
@@ -88,7 +88,7 @@ const button = {
   color: '#ffffff',
   fontSize: '14px',
   border: '1px solid #000000',
-  borderRadius: '8px',
+  borderRadius: '12px',
   padding: '12px 20px',
   textDecoration: 'none',
 }
