@@ -3,3 +3,15 @@ project_id = "zokuetwtswlicalyvgqd"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+
+[functions.preview-transactional-email]
+verify_jwt = false
+
+[functions.assign-feedback-editor]
+verify_jwt = true
+
+[functions.assign-edit-editor]
+verify_jwt = true
+
+[functions.assign-task]
+verify_jwt = true
