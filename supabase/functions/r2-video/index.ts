@@ -97,7 +97,8 @@ Deno.serve(async (req) => {
       const xml = await call("GET", ver.r2_key, `?uploadId=${encodeURIComponent(ver.upload_id)}&max-parts=10000`);
       const done = [...xml.matchAll(/<Part>[\s\S]*?<PartNumber>(\d+)<\/PartNumber>[\s\S]*?<ETag>([^<]+)<\/ETag>[\s\S]*?<\/Part>/g)].map((m) => ({ PartNumber: Number(m[1]), ETag: m[2].replace(/&quot;/g, '"') }));
       const first = xml.match(/<Part>[\s\S]*?<PartNumber>1<\/PartNumber>[\s\S]*?<Size>(\d+)<\/Size>/);
-      const partSize = first && Number(first[1]) > PART ? LEGACY_PART : PART;
+      const legacy = new Date(ver.created_at) < new Date("2026-11-16T10:05:00Z") || (first && Number(first[1]) > PART);
+      const partSize = legacy ? LEGACY_PART : PART;
       return json({ done, ...(await signAll(ver.r2_key, ver.upload_id, ver.size_bytes, partSize)) });
     }
     if (b.action === "complete") {

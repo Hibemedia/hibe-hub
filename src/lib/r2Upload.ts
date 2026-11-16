@@ -31,6 +31,7 @@ function putPart(url: string, blob: Blob, onProgress: (n: number) => void, signa
       else reject(new Error(tag ? `Upload-fout ${x.status}` : "Opslag gaf geen ETag terug (controleer de CORS-instelling)"));
     };
     x.onerror = () => reject(new Error("Verbinding verbroken"));
+    x.onabort = () => reject(new Error("Geannuleerd"));
     x.ontimeout = () => reject(new Error("Upload duurde te lang"));
     x.timeout = 10 * 60 * 1000;
     signal.addEventListener("abort", () => x.abort());
