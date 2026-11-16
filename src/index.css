@@ -16,7 +16,6 @@
     --primary-foreground: 0 0% 100%;
     --primary-light: 60 6% 95%;
     --primary-dark: 0 0% 0%;
-    --login-overlay: linear-gradient(180deg, hsl(var(--primary-dark) / 0.7) 0%, hsl(var(--primary-dark) / 0.45) 50%, hsl(var(--primary-dark) / 0.8) 100%);
     --lime: 76 87% 58%;             /* #C8F135 */
     --lime-foreground: 0 0% 7%;
     --agenda-shoot-fill: 76 75% 90%; --agenda-shoot-line: 76 65% 48%;
