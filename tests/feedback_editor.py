@@ -33,7 +33,6 @@ async def main():
             await page.goto("http://localhost:8080/hibe/videos/stap/feedback-verwerken")
             picker = page.get_by_role("combobox", name="Editor voor " + item["title"], exact=True)
             await picker.click()
-            print("Options:", await page.get_by_role("option").all_text_contents())
             await page.get_by_role("option", name=editor["name"], exact=True).click()
             await page.get_by_text("Feedback toegewezen", exact=True).wait_for()
             response = await api.get(url + "/video_items?id=eq." + item["id"] + "&select=editor_id,status", headers=headers)
@@ -50,7 +49,6 @@ async def main():
             assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile page must not overflow"
             await page.screenshot(path=str(screenshots / "mobile.png"))
             await picker.click()
-            print("Options:", await page.get_by_role("option").all_text_contents())
             await page.get_by_role("option", name="Geen editor", exact=True).click()
             await page.get_by_text("Editor verwijderd", exact=True).wait_for()
             response = await api.get(url + "/video_items?id=eq." + item["id"] + "&select=editor_id", headers=headers)
