@@ -14,7 +14,8 @@ export function FeedbackEditor({ itemId, title, editorId }: { itemId: string; ti
   const assign = async (value: string) => {
     setSaving(true);
     try {
-      const { error } = await supabase.rpc("set_video_feedback_editor", { _item_id: itemId, _editor_id: value === "none" ? null : value });
+      // Generated RPC argument types omit SQL nullability.
+      const { error } = await (supabase as any).rpc("set_video_feedback_editor", { _item_id: itemId, _editor_id: value === "none" ? null : value });
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["video-items"] });
       toast.success(value === "none" ? "Editor verwijderd" : "Feedback toegewezen");
