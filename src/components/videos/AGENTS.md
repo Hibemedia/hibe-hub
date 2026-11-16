@@ -1,0 +1,1 @@
+- Feedback responsibility is stored on video_items.editor_id, initialized from linked edits and changed through set_video_feedback_editor; uploader history remains separate.
