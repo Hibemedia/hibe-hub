@@ -5,6 +5,7 @@ import { Upload, MessageSquare, MoreHorizontal, Search, Send, Trash2, RotateCcw 
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useMedia";
 import { VideoThumb } from "@/components/videos/parts";
+import { FeedbackEditor } from "@/components/videos/FeedbackEditor";
 import { useSendToClient, copyText, portalLink } from "@/components/videos/SendDialog";
 import { UploadProgress } from "@/components/UploadProgress";
 import { EmptyState } from "@/components/StatsOverview";
@@ -123,7 +124,7 @@ export default function MediaStep() {
             {list.map((i) => {
               const a = status && !trashView ? STEP_ACTION[status] : undefined;
               return (
-                <li key={i.id} onClick={() => status === "approved_internal" ? downloadVideo(i.versionId, i.file_name ?? i.title) : nav(`/hibe/videos/${i.id}`)} title={status === "approved_internal" ? "Klik om te downloaden" : undefined} className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
+                <li key={i.id} onClick={() => status === "approved_internal" ? downloadVideo(i.versionId, i.file_name ?? i.title) : nav(`/hibe/videos/${i.id}`)} title={status === "approved_internal" ? "Klik om te downloaden" : undefined} className="flex cursor-pointer flex-wrap items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
                   <span onClick={(e) => e.stopPropagation()}><Checkbox checked={sel.has(i.id)} onCheckedChange={(v) => setSel((s) => { const n = new Set(s); v ? n.add(i.id) : n.delete(i.id); return n; })} aria-label={`Selecteer ${i.title}`} /></span>
                   {m.mark(i.client_id, 24)}
                   <VideoThumb versionId={i.versionId} className="h-12 w-[27px]" />
@@ -133,7 +134,8 @@ export default function MediaStep() {
                   </div>
                   <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>
                   <span className={cn("hidden w-16 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtDate(i.status_changed_at)}</span>
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className={cn("flex flex-wrap items-center gap-2", status === "feedback" && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
+                    {status === "feedback" && !trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} />}
                     {trashView ? <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>
                       : <>{status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</Button>}{a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}</>}
                     <DropdownMenu>

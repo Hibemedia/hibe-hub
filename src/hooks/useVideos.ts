@@ -61,12 +61,12 @@ export const setVideoStatus = async (id: string, status: VideoStatus) => {
 };
 
 /** Overview rows: items + uploader + latest ready version + open comment count. */
-export type BoardItem = VideoItem & { uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null };
+export type BoardItem = VideoItem & { editor_id: string | null; uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null };
 export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
   return useQuery({
     queryKey: ["video-items", "board", !!opts.includeDone],
     queryFn: async () => {
-      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at,created_by,archived_at").order("created_at", { ascending: false });
+      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at,created_by,archived_at,editor_id").order("created_at", { ascending: false });
       if (!opts.includeDone) q = q.neq("status", "archived");
       const { data: items, error } = await q;
       if (error) throw error;
