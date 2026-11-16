@@ -29,6 +29,9 @@
 - [x] Dagpopover en zijpaneel met bestaande itemdetails toevoegen.
 - [x] Filters en echte itemdetails getest op desktop, tablet en mobiel; 15 tests geslaagd, inclusief +2-meer-regel. De huidige maand bevat geen dag met drie items voor een live popovercontrole; klantmenu ongemoeid gelaten.
 
+## E-mailmeldingen bij toewijzing
+- [x] Feedback-editor, edit-editor en taakdoelgeefder lopen langs eigen functies die de persoon zelf een mail sturen; taak, edit en feedback echte toewijzing getest (opgeslagen, teruggelezen, hersteld), mail wacht op domeinverificatie.
+
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
 - [x] Klantvideoarchief zichtbaar bij Video's en Branding & Archief, met zoeken en downloads van bestaande R2-video's.
