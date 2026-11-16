@@ -12,7 +12,7 @@ const uuid = z.string().uuid();
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create"), item_id: uuid.optional(), client_id: uuid.optional(), title: z.string().trim().min(1).max(300).optional(), file_name: z.string().min(1).max(300), size: z.number().int().positive().max(MAX), mime: z.string().max(100).optional(), uploader_id: uuid.optional() }),
   z.object({ action: z.literal("sign_parts"), version_id: uuid }),
-  z.object({ action: z.literal("complete"), version_id: uuid, parts: z.array(z.object({ PartNumber: z.number().int().min(1).max(10000), ETag: z.string().max(200) })).min(1).max(10000) }),
+  z.object({ action: z.literal("complete"), version_id: uuid, target_status: z.enum(["internal_review","feedback","approved_internal","ready_for_client","client_review","approved_client","scheduled","archived"]).optional(), parts: z.array(z.object({ PartNumber: z.number().int().min(1).max(10000), ETag: z.string().max(200) })).min(1).max(10000) }),
   z.object({ action: z.literal("abort"), version_id: uuid }),
   z.object({ action: z.literal("play_url"), version_id: uuid, download: z.boolean().optional() }),
   z.object({ action: z.literal("delete_item"), item_id: uuid }),
@@ -108,7 +108,8 @@ Deno.serve(async (req) => {
       await admin.from("video_versions").update({ upload_status: "ready", upload_id: null }).eq("id", ver.id);
       // A final uploaded in the CapCut step (approved_internal) goes straight to Ter controle bij klant.
       const { data: cur } = await admin.from("video_items").select("status").eq("id", ver.item_id).single();
-      const next = cur?.status === "approved_internal" ? "client_review" : "internal_review";
+      // A brand-new video uploaded on a specific step page lands in that step.
+      const next = ver.version === 1 && b.target_status && b.target_status !== "approved_internal" ? b.target_status : cur?.status === "approved_internal" ? "client_review" : "internal_review";
       await admin.from("video_items").update({ current_version: ver.version, status: next }).eq("id", ver.item_id);
       return json({ ok: true });
     }

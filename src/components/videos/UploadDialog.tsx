@@ -21,7 +21,7 @@ export function validVideos(files: FileList | File[]) {
 }
 
 /** Bulk upload: drop many files, then pick a client per video (or one for all); uploads keep running in the background. */
-export function UploadDialog({ files, open, onOpenChange, defaultClient, onPick }: { files: File[]; open: boolean; onOpenChange: (o: boolean) => void; defaultClient?: string; onPick: (f: File[]) => void }) {
+export function UploadDialog({ files, open, onOpenChange, defaultClient, onPick, targetStatus, targetLabel }: { targetStatus?: string; targetLabel?: string; files: File[]; open: boolean; onOpenChange: (o: boolean) => void; defaultClient?: string; onPick: (f: File[]) => void }) {
   const { clients } = useClient();
   const qc = useQueryClient();
   const [rows, setRows] = useState<{ title: string; client: string }[]>([]);
@@ -35,7 +35,7 @@ export function UploadDialog({ files, open, onOpenChange, defaultClient, onPick 
   const ready = files.length > 0 && rows.length === files.length && rows.every((r) => r.client && r.title.trim());
   const missing = rows.filter((r) => !r.client).length;
   const go = () => {
-    files.forEach((f, i) => { const r = rows[i]; startUpload({ file: f, clientId: r.client, title: r.title.trim() || f.name, onDone: () => { qc.invalidateQueries({ queryKey: ["video-items"] }); toast.success(`${r.title} staat in Interne controle`); } }); });
+    files.forEach((f, i) => { const r = rows[i]; startUpload({ file: f, clientId: r.client, title: r.title.trim() || f.name, targetStatus, onDone: () => { qc.invalidateQueries({ queryKey: ["video-items"] }); toast.success(`${r.title} staat in ${targetLabel ?? "Interne controle"}`); } }); });
     onOpenChange(false);
   };
   const ClientSelect = ({ value, onChange, label, placeholder }: { value: string; onChange: (v: string) => void; label: string; placeholder: string }) => (
