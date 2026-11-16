@@ -18,5 +18,7 @@ export function startUpload(a: { file: File; clientId?: string; title?: string; 
     .catch((e) => patch(id, { state: "error", error: e.message }));
   return id;
 }
+// Warn before closing/reloading the tab while a video is still uploading (that would stop it).
+if (typeof window !== "undefined") window.addEventListener("beforeunload", (e) => { if (jobs.some((j) => j.state === "uploading")) { e.preventDefault(); e.returnValue = ""; } });
 export const dismissUpload = (id: string) => { jobs = jobs.filter((j) => j.id !== id); emit(); };
 export const useUploads = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, () => jobs);
