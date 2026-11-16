@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTeamMembers } from "@/hooks/useChat";
 import { supabase } from "@/integrations/supabase/client";
+import { errorMessage } from "@/lib/functions";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -14,9 +15,11 @@ export function FeedbackEditor({ itemId, title, editorId }: { itemId: string; ti
   const assign = async (value: string) => {
     setSaving(true);
     try {
-      // Generated RPC argument types omit SQL nullability.
-      const { error } = await (supabase as any).rpc("set_video_feedback_editor", { _item_id: itemId, _editor_id: value === "none" ? null : value });
-      if (error) throw error;
+      // The server function saves the editor and mails that person.
+      const { error } = await supabase.functions.invoke("assign-feedback-editor", {
+        body: { item_id: itemId, editor_id: value === "none" ? null : value },
+      });
+      if (error) throw new Error(await errorMessage(error));
       await qc.invalidateQueries({ queryKey: ["video-items"] });
       toast.success(value === "none" ? "Editor verwijderd" : "Feedback toegewezen");
     } catch (error) {

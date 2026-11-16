@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { errorMessage } from "@/lib/functions";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -102,6 +103,15 @@ export default function HibeEdits() {
     refresh();
   };
 
+  // Choosing an editor runs server-side so that person gets a mail.
+  const assignEditor = async (e: Row, editorId: string | null) => {
+    const next = { editor_id: editorId, status: statusAfterAssign(e.status, editorId) };
+    qc.setQueryData<Row[]>(["edits"], (l) => l?.map((x) => (x.id === e.id ? { ...x, ...next } : x)));
+    const { error } = await supabase.functions.invoke("assign-edit-editor", { body: { edit_id: e.id, editor_id: editorId } });
+    if (error) toast.error(await errorMessage(error));
+    refresh();
+  };
+
   const visible = filterEdits(edits, f, me) as Row[];
   const groups = useMemo(() => {
     const ids = [...new Set(visible.map((e) => e.client_id))];
@@ -147,7 +157,7 @@ export default function HibeEdits() {
                     {e.planned_date && <Tag className="shrink-0 rounded-tag bg-foreground/10 px-2 py-0.5 text-xs">Montage {fmtDeadline(e.planned_date)}</Tag>}
                     {e.shoot_date && <Tag className="shrink-0 rounded-tag bg-muted px-2 py-0.5 text-xs text-muted-foreground">Draaidag {fmtDeadline(e.shoot_date)}</Tag>}
                   </div>
-                  <Select value={e.editor_id ?? "none"} onValueChange={(v) => update(e, { editor_id: v === "none" ? null : v })}>
+                  <Select value={e.editor_id ?? "none"} onValueChange={(v) => assignEditor(e, v === "none" ? null : v)}>
                     <SelectTrigger aria-label={`Editor voor ${e.title}`} className="h-8 border-transparent px-2 hover:border-border"><div className="flex min-w-0 items-center gap-2"><Avatar m={member(e.editor_id)} size={22} /><div className="truncate text-sm">{member(e.editor_id)?.name ?? "Geen editor"}</div></div></SelectTrigger>
                     <SelectContent><SelectItem value="none">Geen editor</SelectItem>{team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
                   </Select>

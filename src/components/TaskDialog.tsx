@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { errorMessage } from "@/lib/functions";
 import { toast } from "sonner";
 import { canAssignTo, type Task } from "@/lib/tasks";
 
@@ -54,9 +55,19 @@ export function TaskFields({ form, setForm }: { form: TaskForm; setForm: (f: Tas
 
 export async function saveTask(form: TaskForm, me: string) {
   if (!form.title.trim()) throw new Error("Geef de taak een naam");
-  const row = { title: form.title.trim(), notes: form.notes.trim() || null, client_id: form.client_id || null, assignee_id: form.assignee_id || me, due_date: form.due_date || null, due_time: form.due_time || null };
-  const { error } = form.id ? await db.from("tasks").update(row).eq("id", form.id) : await db.from("tasks").insert({ ...row, created_by: me });
-  if (error) throw error;
+  // Saving runs server-side so the person on the task gets a mail.
+  const { error } = await supabase.functions.invoke("assign-task", {
+    body: {
+      id: form.id ?? null,
+      title: form.title.trim(),
+      notes: form.notes.trim() || null,
+      client_id: form.client_id || null,
+      assignee_id: form.assignee_id || me,
+      due_date: form.due_date || null,
+      due_time: form.due_time || null,
+    },
+  });
+  if (error) throw new Error(await errorMessage(error));
 }
 
 export function TaskDialog({ initial, onClose }: { initial: TaskForm | null; onClose: () => void }) {
