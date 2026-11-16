@@ -1,5 +1,8 @@
 # Roadmap
 
+## Feedbackeditor
+- [ ] Bij feedback de gekoppelde editor tonen en een HIBE-teamlid kunnen kiezen; toewijzing bewaren en op desktop/mobiel controleren.
+
 ## Ruimte rond pagina’s
 - [x] Gelijke buitenruimte in HIBE- en klantomgeving zonder dubbele paginamarges; tien HIBE-pagina’s en Bekijk als klant gecontroleerd op desktop/mobiel, geen horizontale overflow en build OK.
 
