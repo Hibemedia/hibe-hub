@@ -246,6 +246,13 @@
       "when": 1794565502723,
       "tag": "0034_allow_assigned_team_task_handoff",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794848806083,
+      "tag": "0035_video_feedback_editor",
+      "breakpoints": true
     }
   ]
 }

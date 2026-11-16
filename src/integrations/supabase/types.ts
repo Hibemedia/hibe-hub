@@ -1039,6 +1039,7 @@ export type Database = {
           created_by: string | null
           current_version: number
           drive_link: string | null
+          editor_id: string | null
           id: string
           status: string
           status_changed_at: string
@@ -1051,6 +1052,7 @@ export type Database = {
           created_by?: string | null
           current_version?: number
           drive_link?: string | null
+          editor_id?: string | null
           id?: string
           status?: string
           status_changed_at?: string
@@ -1063,6 +1065,7 @@ export type Database = {
           created_by?: string | null
           current_version?: number
           drive_link?: string | null
+          editor_id?: string | null
           id?: string
           status?: string
           status_changed_at?: string
@@ -1289,6 +1292,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_video_feedback_editor: {
+        Args: { _editor_id: string; _item_id: string }
+        Returns: {
+          archived_at: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          current_version: number
+          drive_link: string | null
+          editor_id: string | null
+          id: string
+          status: string
+          status_changed_at: string
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "video_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       start_view_as: { Args: { _client: string }; Returns: string }
       video_client_action: {
         Args: { _action: string; _item_id: string }
@@ -1299,6 +1324,7 @@ export type Database = {
           created_by: string | null
           current_version: number
           drive_link: string | null
+          editor_id: string | null
           id: string
           status: string
           status_changed_at: string
