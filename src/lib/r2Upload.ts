@@ -31,6 +31,8 @@ function putPart(url: string, blob: Blob, onProgress: (n: number) => void, signa
       else reject(new Error(tag ? `Upload-fout ${x.status}` : "Opslag gaf geen ETag terug (controleer de CORS-instelling)"));
     };
     x.onerror = () => reject(new Error("Verbinding verbroken"));
+    x.ontimeout = () => reject(new Error("Upload duurde te lang"));
+    x.timeout = 10 * 60 * 1000;
     signal.addEventListener("abort", () => x.abort());
     x.send(blob);
   });
@@ -82,13 +84,14 @@ export async function uploadVideo(opts: {
           const tag = await putPart(p.url, blob, (b) => { loaded.set(p.n, b); report(); }, signal);
           done.set(p.n, tag); loaded.set(p.n, blob.size); report(); break;
         } catch (e) {
-          if (signal.aborted || ++tries >= 4) throw e;
-          await new Promise((r) => setTimeout(r, 1000 * 2 ** tries));
+          if (signal.aborted || ++tries >= 8) throw e;
+          loaded.set(p.n, 0); report();
+          await new Promise((r) => setTimeout(r, Math.min(30000, 1000 * 2 ** tries)));
         }
       }
     }
   };
-  await Promise.all(Array.from({ length: 4 }, worker));
+  await Promise.all(Array.from({ length: 3 }, worker));
   const parts = [...done].map(([PartNumber, ETag]) => ({ PartNumber, ETag }));
   await invokeVideo({ action: "complete", version_id: target.version_id, parts });
   const after = readResume(); delete after[key]; writeResume(after);

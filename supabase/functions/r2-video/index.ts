@@ -4,7 +4,9 @@ import { AwsClient } from "npm:aws4fetch@1.0.20";
 import { z } from "npm:zod@3";
 
 // Videos live in Cloudflare R2; the browser uploads/streams directly via presigned URLs.
-const PART = 64 * 1024 * 1024;
+// Small parts: a dropped connection only costs one 16 MB retry, not 64 MB. Older uploads keep 64 MB.
+const PART = 16 * 1024 * 1024;
+const LEGACY_PART = 64 * 1024 * 1024;
 const MAX = 5 * 1024 * 1024 * 1024;
 const uuid = z.string().uuid();
 const Body = z.discriminatedUnion("action", [
@@ -94,7 +96,9 @@ Deno.serve(async (req) => {
       if (!ver || ver.upload_status !== "uploading") return json({ gone: true });
       const xml = await call("GET", ver.r2_key, `?uploadId=${encodeURIComponent(ver.upload_id)}&max-parts=10000`);
       const done = [...xml.matchAll(/<Part>[\s\S]*?<PartNumber>(\d+)<\/PartNumber>[\s\S]*?<ETag>([^<]+)<\/ETag>[\s\S]*?<\/Part>/g)].map((m) => ({ PartNumber: Number(m[1]), ETag: m[2].replace(/&quot;/g, '"') }));
-      return json({ done, ...(await signAll(ver.r2_key, ver.upload_id, ver.size_bytes)) });
+      const first = xml.match(/<Part>[\s\S]*?<PartNumber>1<\/PartNumber>[\s\S]*?<Size>(\d+)<\/Size>/);
+      const partSize = first && Number(first[1]) > PART ? LEGACY_PART : PART;
+      return json({ done, ...(await signAll(ver.r2_key, ver.upload_id, ver.size_bytes, partSize)) });
     }
     if (b.action === "complete") {
       if (!ver || ver.upload_status !== "uploading") return json({ error: "Upload niet gevonden" }, 404);
@@ -130,8 +134,8 @@ Deno.serve(async (req) => {
   }
 });
 
-async function signAll(key: string, uploadId: string, size: number) {
-  const count = Math.max(1, Math.ceil(size / PART));
+async function signAll(key: string, uploadId: string, size: number, part = PART) {
+  const count = Math.max(1, Math.ceil(size / part));
   const urls = await Promise.all(Array.from({ length: count }, (_, i) => presign("PUT", key, { partNumber: String(i + 1), uploadId })));
-  return { part_size: PART, urls };
+  return { part_size: part, urls };
 }
