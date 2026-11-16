@@ -5,16 +5,19 @@ import * as React from 'npm:react@18.3.1'
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
   Html,
   Preview,
+  Row,
   Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
 import type { TemplateEntry } from './registry.ts'
+import * as s from './mail-styles.ts'
 
 interface TaakToegewezenProps {
   name?: string
@@ -40,36 +43,48 @@ const TaakToegewezen = ({
     <Preview>
       {taskTitle ? `Taak voor jou: ${taskTitle}` : 'Taak voor jou'}
     </Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Text style={brand}>HIBE</Text>
-        <Heading style={h1}>Taak voor jou</Heading>
-        <Text style={text}>
-          {name ? `Hi ${name},` : 'Hi,'} deze taak staat op jouw naam:{' '}
-          <strong style={strong}>{taskTitle ?? 'naam volgt'}</strong>
-          {clientName ? ` voor ${clientName}` : ''}.
+    <Body style={s.main}>
+      <Container style={s.card}>
+        <Row>
+          <Column>
+            <Text style={s.brand}>HIBE</Text>
+          </Column>
+          <Column align="right">
+            <Text style={s.pill}>Taak</Text>
+          </Column>
+        </Row>
+        <Heading style={s.h1}>Taak voor jou</Heading>
+        <Text style={s.text}>
+          {name ? `Hi ${name},` : 'Hi,'} deze taak staat op jouw naam.
         </Text>
-        {dueDate ? (
-          <Text style={text}>
-            Ingepland op {dueDate}
-            {dueTime ? ` om ${dueTime}` : ''}.
+        <Section style={s.infoCard}>
+          <Text style={s.infoLabel}>Taak</Text>
+          <Text style={s.infoValue}>{taskTitle ?? 'Naam volgt'}</Text>
+          {clientName ? (
+            <>
+              <Text style={s.infoLabel}>Klant</Text>
+              <Text style={s.infoValue}>{clientName}</Text>
+            </>
+          ) : null}
+          <Text style={s.infoLabel}>Ingepland</Text>
+          <Text style={s.infoValueLast}>
+            {dueDate ? `${dueDate}${dueTime ? ` om ${dueTime}` : ''}` : 'Nog geen datum'}
           </Text>
-        ) : (
-          <Text style={text}>Nog geen datum ingepland.</Text>
-        )}
-        {notes ? <Text style={note}>{notes}</Text> : null}
+        </Section>
+        {notes ? <Text style={s.note}>{notes}</Text> : null}
         {tasksUrl ? (
-          <Section style={cta}>
-            <Button style={button} href={tasksUrl}>
+          <Section style={s.cta}>
+            <Button style={s.button} href={tasksUrl}>
               Bekijk je taken
             </Button>
           </Section>
         ) : null}
-        <Text style={footer}>
+        <Text style={s.footer}>
           Verwachtte je deze melding niet? Geef het even door, dan kijken we
           ernaar.
         </Text>
       </Container>
+      <Text style={s.footerBrand}>HIBE · hibespace.com</Text>
     </Body>
   </Html>
 )
@@ -89,50 +104,3 @@ export const template = {
     tasksUrl: 'https://hibespace.com/hibe/taken',
   },
 } satisfies TemplateEntry
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Urbanist, Arial, sans-serif' }
-const container = { padding: '32px 24px', maxWidth: '560px' }
-const brand = {
-  fontSize: '20px',
-  fontWeight: 'bold',
-  color: '#111111',
-  margin: '0 0 24px',
-}
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#111111',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#6b6b6b',
-  lineHeight: '1.5',
-  margin: '0 0 18px',
-}
-const strong = { color: '#111111' }
-const note = {
-  fontSize: '14px',
-  color: '#111111',
-  lineHeight: '1.5',
-  margin: '0 0 18px',
-  padding: '12px 14px',
-  backgroundColor: '#F4F4F2',
-  borderRadius: '8px',
-}
-const cta = { margin: '0 0 24px' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  border: '1px solid #000000',
-  borderRadius: '12px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = {
-  fontSize: '12px',
-  color: '#9a9a9a',
-  lineHeight: '1.5',
-  margin: '0',
-}
