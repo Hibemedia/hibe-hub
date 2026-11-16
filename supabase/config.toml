@@ -15,3 +15,6 @@ verify_jwt = true
 
 [functions.assign-task]
 verify_jwt = true
+
+[functions.notify-feedback]
+verify_jwt = false

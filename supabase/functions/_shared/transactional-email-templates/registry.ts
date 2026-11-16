@@ -1,5 +1,6 @@
 import type { ComponentType } from 'npm:react@18.3.1'
 
+import { template as feedbackOntvangen } from './feedback-ontvangen.tsx'
 import { template as feedbackToegewezen } from './feedback-toegewezen.tsx'
 import { template as editToegewezen } from './edit-toegewezen.tsx'
 import { template as taakToegewezen } from './taak-toegewezen.tsx'
@@ -22,6 +23,7 @@ export interface TemplateEntry {
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
+  'feedback-ontvangen': feedbackOntvangen,
   'feedback-toegewezen': feedbackToegewezen,
   'edit-toegewezen': editToegewezen,
   'taak-toegewezen': taakToegewezen,
