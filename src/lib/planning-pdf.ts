@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import logoUrl from "@/assets/hibe-logo.png";
 
 export type PlanPost = { date: string | null; networks: string[]; text: string; image: string | null; video?: string | null };
-const NET: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", linkedin: "LinkedIn", youtube: "YouTube", threads: "Threads", twitter: "X", pinterest: "Pinterest", gmb: "Google", ig: "Instagram", tt: "TikTok", fb: "Facebook", yt: "YouTube", li: "LinkedIn" };
+const NET: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", linkedin: "LinkedIn", youtube: "YouTube", threads: "Threads", twitter: "X", pinterest: "Pinterest", gmb: "Google", ig: "Instagram", tt: "TikTok", fb: "Facebook", yt: "YouTube", li: "LinkedIn", th: "Threads", tw: "X", pi: "Pinterest" };
 
 /** Keep only characters the built-in PDF font can draw (drops emoji). */
 export const pdfSafe = (s: string) => s.replace(/\s+/g, " ").replace(/[^\x20-\x7E\u00A0-\u00FF\u20AC\u2018-\u201E\u2013\u2014\u2026]/g, "").replace(/\s+/g, " ").trim();
@@ -98,7 +98,7 @@ export async function buildPlanningPdf(clientName: string, posts: PlanPost[], re
       const pk = `Piek: ${fmt(max)}`; page.drawText(pk, { x: M + cw - 12 - bold.widthOfTextAtSize(pk, 8), y: y - 14, size: 8, font: bold, color: ink });
       y -= ch + 18;
     }
-    const chans = (results.channels ?? []).filter((c) => c.views > 0);
+    const chans = (results.channels ?? []).filter((c, _i, a) => c.views > 0 && c.views / a.reduce((s, x) => s + x.views, 0) >= 0.005);
     const wd = results.weekdays ?? [];
     if (chans.length || wd.some((v) => v > 0)) {
       ensure(30 + Math.max(chans.length, 2) * 20 + 20);
