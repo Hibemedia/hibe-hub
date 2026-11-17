@@ -65,12 +65,17 @@ Deno.serve(async (req) => {
       const list: any[] = Array.isArray(j) ? j : (j?.data ?? []);
       const posts = list.filter((p) => p && !p.draft && (p.providers ?? []).some((x: any) => x.status !== "PUBLISHED")).map((p) => {
         const media = (p.media ?? [])[0];
+        const pick = (...v: any[]) => v.find((x) => typeof x === "string" && x.startsWith("http")) ?? null;
+        const url = typeof media === "string" ? media : pick(media?.url, media?.mediaUrl, media?.src);
+        const thumb = typeof media === "object" ? pick(media?.thumbnailUrl, media?.thumbnail, media?.previewUrl, media?.coverUrl, p.videoThumbnailUrl, p.thumbnailUrl) : pick(p.videoThumbnailUrl, p.thumbnailUrl);
+        const isVideo = /\.(mp4|mov|m4v|webm)(\?|$)/i.test(url ?? "") || String(media?.type ?? media?.mediaType ?? "").toLowerCase().includes("video");
         return {
           id: String(p.id),
           date: p.publicationDate?.dateTime ?? null,
           networks: (p.providers ?? []).map((x: any) => String(x.network ?? x).toLowerCase()),
           text: (p.text ?? "").slice(0, 400),
-          image: typeof media === "string" ? media : (media?.url ?? media?.thumbnailUrl ?? null),
+          image: isVideo ? thumb : (thumb ?? url),
+          video: isVideo ? url : null,
         };
       }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
       return new Response(JSON.stringify({ posts }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
