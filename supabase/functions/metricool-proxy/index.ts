@@ -76,7 +76,6 @@ Deno.serve(async (req) => {
           text: (p.text ?? "").slice(0, 400),
           image: isVideo ? thumb : (thumb ?? url),
           video: isVideo ? url : null,
-          debugMedia: body.debug ? { media: p.media, keys: Object.keys(p) } : undefined,
         };
       }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
       return new Response(JSON.stringify({ posts }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
