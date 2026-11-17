@@ -87,5 +87,5 @@ export async function buildPlanningPdf(clientName: string, posts: PlanPost[]) {
     y -= h + 8;
   }
   doc.getPages().forEach((pg) => pg.drawText("HIBE · hibespace.com", { x: M, y: 22, size: 8, font: reg, color: grey }));
-  return new Blob([await doc.save()], { type: "application/pdf" });
+  return new Blob([(await doc.save()) as BlobPart], { type: "application/pdf" });
 }
