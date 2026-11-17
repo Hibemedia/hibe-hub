@@ -13,8 +13,8 @@ async function still(p: PlanPost): Promise<Uint8Array | null> {
     const ctx = c.getContext("2d")!;
     const draw = (el: CanvasImageSource, w: number, h: number) => { const s = Math.max(180 / w, 320 / h); ctx.drawImage(el, (180 - w * s) / 2, (320 - h * s) / 2, w * s, h * s); };
     if (p.video) {
-      const v = document.createElement("video"); v.crossOrigin = "anonymous"; v.muted = true; v.preload = "auto"; v.src = `${p.video}#t=0.5`;
-      await new Promise<void>((ok, bad) => { v.onseeked = () => ok(); v.onloadeddata = () => { v.currentTime = 0.5; }; v.onerror = () => bad(); setTimeout(bad, 8000); });
+      const v = document.createElement("video"); v.crossOrigin = "anonymous"; v.muted = true; v.preload = "auto"; v.src = p.video;
+      await new Promise<void>((ok, bad) => { v.onseeked = () => ok(); v.onloadeddata = () => { v.currentTime = 0.6; }; v.onerror = () => bad(); setTimeout(() => (v.readyState >= 2 ? ok() : bad()), 20000); });
       draw(v, v.videoWidth, v.videoHeight);
     } else if (p.image) {
       const i = new Image(); i.crossOrigin = "anonymous"; i.src = p.image; await i.decode(); draw(i, i.naturalWidth, i.naturalHeight);
