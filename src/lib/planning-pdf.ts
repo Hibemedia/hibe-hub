@@ -5,7 +5,7 @@ export type PlanPost = { date: string | null; networks: string[]; text: string; 
 const NET: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", linkedin: "LinkedIn", youtube: "YouTube", threads: "Threads", twitter: "X", pinterest: "Pinterest", gmb: "Google" };
 
 /** Keep only characters the built-in PDF font can draw (drops emoji). */
-export const pdfSafe = (s: string) => s.replace(/[^\x20-\x7E\u00A0-\u00FF\u20AC\u2018-\u201E\u2013\u2014\u2026]/g, "").replace(/\s+/g, " ").trim();
+export const pdfSafe = (s: string) => s.replace(/\s+/g, " ").replace(/[^\x20-\x7E\u00A0-\u00FF\u20AC\u2018-\u201E\u2013\u2014\u2026]/g, "").replace(/\s+/g, " ").trim();
 
 async function still(p: PlanPost): Promise<Uint8Array | null> {
   try {
@@ -40,7 +40,10 @@ function wrap(text: string, font: any, size: number, width: number, maxLines: nu
 export async function buildPlanningPdf(clientName: string, posts: PlanPost[]) {
   const doc = await PDFDocument.create();
   const reg = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const logo = await doc.embedPng(await (await fetch(logoUrl)).arrayBuffer());
+  const li = new Image(); li.src = logoUrl; await li.decode();
+  const lc = document.createElement("canvas"); lc.width = li.naturalWidth; lc.height = li.naturalHeight;
+  const lx = lc.getContext("2d")!; lx.drawImage(li, 0, 0); lx.globalCompositeOperation = "source-in"; lx.fillStyle = "#111111"; lx.fillRect(0, 0, lc.width, lc.height);
+  const logo = await doc.embedPng(await (await new Promise<Blob>((r) => lc.toBlob((b) => r(b!), "image/png"))).arrayBuffer());
   const ink = rgb(0.07, 0.07, 0.07), grey = rgb(0.4, 0.4, 0.4), lime = rgb(0.784, 0.945, 0.208), card = rgb(0.957, 0.957, 0.949), line = rgb(0.906, 0.906, 0.89);
   const W = 595, H = 842, M = 40;
   const stills = await Promise.all(posts.map(still));
