@@ -52,8 +52,18 @@ export default function Planning() {
               const last = new Map<string, number>(); for (const r of st ?? []) if (r.followers != null) last.set(r.network, r.followers);
               if (st?.length) results = { from, to, views: sum("views"), reach: sum("reach"), interactions: sum("interactions"), posts: sum("posts"),
                 followers: last.size ? [...last.values()].reduce((a, b) => a + b, 0) : null, prevViews: (pr ?? []).reduce((a, r) => a + Number(r.views ?? 0), 0), top: vids ?? [] };
+              if (results && st) {
+                const byDay = new Map<string, number>(), byNet = new Map<string, number>(), wdS = Array(7).fill(0), wdN = Array(7).fill(0);
+                for (const r of st) { const v = Number(r.views ?? 0); byDay.set(r.date, (byDay.get(r.date) ?? 0) + v); byNet.set(r.network, (byNet.get(r.network) ?? 0) + v); }
+                for (const [d, v] of byDay) { const w = new Date(`${d}T12:00:00`).getDay(); wdS[w] += v; wdN[w]++; }
+                results.daily = [...byDay].sort(([a], [b]) => a.localeCompare(b)).map(([date, views]) => ({ date, views }));
+                results.channels = [...byNet].sort((a, b) => b[1] - a[1]).map(([network, views]) => ({ network, views }));
+                results.weekdays = wdS.map((v, i) => (wdN[i] ? v / wdN[i] : 0));
+              }
             }
-            const blob = await buildPlanningPdf(client?.name ?? "Planning", data, results);
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const { data: mom } = clientId ? await supabase.from("content_moments").select("title,date,start_time,location,type,status").eq("client_id", clientId).gte("date", todayIso).not("status", "in", "(geannuleerd,aangevraagd,afgewezen)").order("date").limit(6) : { data: [] };
+            const blob = await buildPlanningPdf(client?.name ?? "Planning", data, results, mom ?? []);
             const url = URL.createObjectURL(blob); const a = document.createElement("a");
             a.href = url; a.download = `HIBE overzicht ${client?.name ?? ""}.pdf`.trim(); document.body.appendChild(a); a.click(); a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 30_000);
