@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { CalendarClock, Download, ImageOff, Loader2, Play } from "lucide-react";
 import { PrimaryAction } from "@/components/PageHeader";
-import { buildPlanningPdf } from "@/lib/planning-pdf";
+import { buildPlanningPdf, type Results } from "@/lib/planning-pdf";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,9 +39,23 @@ export default function Planning() {
         <PrimaryAction icon={busy ? Loader2 : Download} disabled={busy} onClick={async () => {
           setBusy(true);
           try {
-            const blob = await buildPlanningPdf(client?.name ?? "Planning", data);
+            let results: Results | undefined;
+            if (clientId && !client?.video_only) {
+              const iso = (d: Date) => d.toISOString().slice(0, 10); const now = Date.now();
+              const to = iso(new Date(now - 86400000)), from = iso(new Date(now - 30 * 86400000)), pFrom = iso(new Date(now - 60 * 86400000));
+              const [{ data: st }, { data: pr }, { data: vids }] = await Promise.all([
+                supabase.from("daily_stats").select("date,network,views,reach,interactions,posts,followers").eq("client_id", clientId).gte("date", from).lte("date", to).order("date"),
+                supabase.from("daily_stats").select("views").eq("client_id", clientId).gte("date", pFrom).lt("date", from),
+                supabase.from("videos").select("title,network,views,likes,published_at").eq("client_id", clientId).gte("published_at", from).order("views", { ascending: false, nullsFirst: false }).limit(5),
+              ]);
+              const sum = (k: "views" | "reach" | "interactions" | "posts") => (st ?? []).reduce((a, r) => a + Number(r[k] ?? 0), 0);
+              const last = new Map<string, number>(); for (const r of st ?? []) if (r.followers != null) last.set(r.network, r.followers);
+              if (st?.length) results = { from, to, views: sum("views"), reach: sum("reach"), interactions: sum("interactions"), posts: sum("posts"),
+                followers: last.size ? [...last.values()].reduce((a, b) => a + b, 0) : null, prevViews: (pr ?? []).reduce((a, r) => a + Number(r.views ?? 0), 0), top: vids ?? [] };
+            }
+            const blob = await buildPlanningPdf(client?.name ?? "Planning", data, results);
             const url = URL.createObjectURL(blob); const a = document.createElement("a");
-            a.href = url; a.download = `HIBE planning ${client?.name ?? ""}.pdf`.trim(); document.body.appendChild(a); a.click(); a.remove();
+            a.href = url; a.download = `HIBE overzicht ${client?.name ?? ""}.pdf`.trim(); document.body.appendChild(a); a.click(); a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 30_000);
           } catch { toast.error("Overzicht kon niet worden gemaakt"); } finally { setBusy(false); }
         }}>{busy ? "Bezig…" : "Download overzicht"}</PrimaryAction>

@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import logoUrl from "@/assets/hibe-logo.png";
 
 export type PlanPost = { date: string | null; networks: string[]; text: string; image: string | null; video?: string | null };
-const NET: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", linkedin: "LinkedIn", youtube: "YouTube", threads: "Threads", twitter: "X", pinterest: "Pinterest", gmb: "Google" };
+const NET: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", linkedin: "LinkedIn", youtube: "YouTube", threads: "Threads", twitter: "X", pinterest: "Pinterest", gmb: "Google", ig: "Instagram", tt: "TikTok", fb: "Facebook", yt: "YouTube", li: "LinkedIn" };
 
 /** Keep only characters the built-in PDF font can draw (drops emoji). */
 export const pdfSafe = (s: string) => s.replace(/\s+/g, " ").replace(/[^\x20-\x7E\u00A0-\u00FF\u20AC\u2018-\u201E\u2013\u2014\u2026]/g, "").replace(/\s+/g, " ").trim();
@@ -37,7 +37,9 @@ function wrap(text: string, font: any, size: number, width: number, maxLines: nu
 }
 
 /** Branded A4 overview of scheduled posts. */
-export async function buildPlanningPdf(clientName: string, posts: PlanPost[]) {
+export type Results = { from: string; to: string; views: number; reach: number; interactions: number; posts: number; followers: number | null; prevViews: number;
+  top: { title: string | null; network: string; views: number | null; likes: number | null; published_at: string | null }[] };
+export async function buildPlanningPdf(clientName: string, posts: PlanPost[], results?: Results) {
   const doc = await PDFDocument.create();
   const reg = await doc.embedFont(StandardFonts.Helvetica), bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const li = new Image(); li.src = logoUrl; await li.decode();
@@ -57,12 +59,42 @@ export async function buildPlanningPdf(clientName: string, posts: PlanPost[]) {
   };
   header();
   page.drawRectangle({ x: M, y: y - 92, width: W - 2 * M, height: 92, color: card });
-  page.drawRectangle({ x: M + 18, y: y - 34, width: bold.widthOfTextAtSize("CONTENTPLANNING", 8) + 16, height: 18, color: lime });
-  page.drawText("CONTENTPLANNING", { x: M + 26, y: y - 28, size: 8, font: bold, color: ink });
+  page.drawRectangle({ x: M + 18, y: y - 34, width: bold.widthOfTextAtSize("OVERZICHT", 8) + 16, height: 18, color: lime });
+  page.drawText("OVERZICHT", { x: M + 26, y: y - 28, size: 8, font: bold, color: ink });
   page.drawText(pdfSafe(clientName), { x: M + 18, y: y - 62, size: 22, font: bold, color: ink });
   const today = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
-  page.drawText(`${posts.length} ingeplande posts · opgesteld ${today}`, { x: M + 18, y: y - 80, size: 9, font: reg, color: grey });
+  page.drawText(`Overzicht · ${posts.length} ingeplande posts · opgesteld ${today}`, { x: M + 18, y: y - 80, size: 9, font: reg, color: grey });
   y -= 116;
+  const fmt = (v: number | null) => v == null ? "–" : v >= 1e6 ? `${(v / 1e6).toFixed(1).replace(".", ",")}M` : v >= 1e4 ? `${Math.round(v / 1e3)}K` : v.toLocaleString("nl-NL");
+  const section = (t: string) => { page.drawText(t, { x: M, y: y - 14, size: 14, font: bold, color: ink }); y -= 28; };
+  if (results) {
+    const d = (x: string) => new Date(`${x}T12:00:00`).toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+    section("Resultaten");
+    page.drawText(`Laatste 30 dagen · ${d(results.from)} t/m ${d(results.to)}`, { x: M, y: y - 2, size: 9, font: reg, color: grey }); y -= 16;
+    const tiles: [string, string][] = [["Weergaven", fmt(results.views)], ["Bereik", fmt(results.reach)], ["Interacties", fmt(results.interactions)], ["Volgers", fmt(results.followers)], ["Posts", fmt(results.posts)]];
+    const tw = (W - 2 * M - 4 * 8) / 5;
+    tiles.forEach(([l, v], i) => { const x = M + i * (tw + 8);
+      page.drawRectangle({ x, y: y - 72, width: tw, height: 72, color: card });
+      page.drawText(l, { x: x + 10, y: y - 18, size: 8, font: reg, color: grey });
+      page.drawText(v, { x: x + 10, y: y - 42, size: 17, font: bold, color: ink }); });
+    if (results.prevViews > 0) { const ch = Math.round(((results.views - results.prevViews) / results.prevViews) * 100);
+      const t = `${ch >= 0 ? "+" : ""}${ch}% t.o.v. vorige 30 dagen`; const w = reg.widthOfTextAtSize(t, 7) + 10;
+      page.drawRectangle({ x: M + 10, y: y - 64, width: w, height: 12, color: ch >= 0 ? lime : line }); page.drawText(t, { x: M + 15, y: y - 60.5, size: 7, font: reg, color: ink }); }
+    y -= 94;
+    if (results.top.length) {
+      page.drawText("Best bekeken video's", { x: M, y: y - 10, size: 11, font: bold, color: ink }); y -= 20;
+      results.top.forEach((v, i) => {
+        page.drawRectangle({ x: M, y: y - 24, width: W - 2 * M, height: 24, color: i % 2 ? rgb(1, 1, 1) : card });
+        page.drawText(String(i + 1), { x: M + 10, y: y - 16, size: 9, font: bold, color: ink });
+        const t = wrap(pdfSafe(v.title ?? "") || "Zonder titel", reg, 9, 300, 1)[0];
+        page.drawText(t, { x: M + 28, y: y - 16, size: 9, font: reg, color: ink });
+        page.drawText(NET[v.network] ?? v.network, { x: M + 345, y: y - 16, size: 8, font: reg, color: grey });
+        const vv = `${fmt(v.views)} weergaven`; page.drawText(vv, { x: W - M - 10 - bold.widthOfTextAtSize(vv, 9), y: y - 16, size: 9, font: bold, color: ink });
+        y -= 24; });
+      y -= 18;
+    }
+  }
+  section("Gepland");
   let lastDay = "";
   for (let i = 0; i < posts.length; i++) {
     const p = posts[i]; const day = p.date?.slice(0, 10) ?? "";
