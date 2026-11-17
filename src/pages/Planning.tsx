@@ -1,7 +1,10 @@
 import { Tag } from "@/components/ui/tag";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { CalendarClock, ImageOff, Play } from "lucide-react";
+import { CalendarClock, Download, ImageOff, Loader2, Play } from "lucide-react";
+import { PrimaryAction } from "@/components/PageHeader";
+import { buildPlanningPdf } from "@/lib/planning-pdf";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
@@ -14,7 +17,8 @@ const NET: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", 
 
 /** Read-only list of posts scheduled in Metricool for the selected client. */
 export default function Planning() {
-  const { clientId } = useClient();
+  const { clientId, client } = useClient();
+  const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);
   const { data, isLoading, isError } = useQuery({
     queryKey: ["planning", clientId],
@@ -31,6 +35,17 @@ export default function Planning() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 p-4 md:p-8">
       <PageHeader title="Planning" />
+      {!!data?.length && (
+        <PrimaryAction icon={busy ? Loader2 : Download} disabled={busy} onClick={async () => {
+          setBusy(true);
+          try {
+            const blob = await buildPlanningPdf(client?.name ?? "Planning", data);
+            const url = URL.createObjectURL(blob); const a = document.createElement("a");
+            a.href = url; a.download = `HIBE planning ${client?.name ?? ""}.pdf`.trim(); document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30_000);
+          } catch { toast.error("Overzicht kon niet worden gemaakt"); } finally { setBusy(false); }
+        }}>{busy ? "Bezig…" : "Download overzicht"}</PrimaryAction>
+      )}
       <Dialog open={!!playing} onOpenChange={(o) => !o && setPlaying(null)}>
         <DialogContent className="max-w-md p-2">
           <DialogTitle className="sr-only">Video</DialogTitle>
