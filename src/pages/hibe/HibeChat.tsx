@@ -50,7 +50,16 @@ export default function HibeChat() {
   useEffect(() => { if (roomId) sessionStorage.setItem("hibe.chat.room", roomId); else sessionStorage.removeItem("hibe.chat.room"); return () => sessionStorage.removeItem("hibe.chat.room"); }, [roomId]);
 
   const channels = rooms.filter((r) => r.kind === "channel");
-  const convos = rooms.filter((r) => r.kind !== "channel");
+  const convos = rooms.filter((r) => r.kind !== "channel" && r.kind !== "hibby");
+  const myHibby = rooms.find((r) => r.kind === "hibby");
+  const openHibby = async () => {
+    if (myHibby) return open(myHibby.id);
+    const id = crypto.randomUUID();
+    const { error } = await db.from("chat_rooms").insert({ id, kind: "hibby", name: "Hibby", created_by: me });
+    if (!error) { const { error: e2 } = await db.from("chat_members").insert({ room_id: id, user_id: me }); if (e2) return toast.error(e2.message); }
+    else return toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["chat-rooms"] }); open(id);
+  };
   const enableNotify = async () => { localStorage.setItem(ASKED, "1"); setAskNotify(false); try { await Notification.requestPermission(); } catch { /* ignore */ } };
 
   const RoomLink = ({ r }: { r: Room }) => (
@@ -72,6 +81,11 @@ export default function HibeChat() {
               <div className="flex gap-2"><Button size="sm" onClick={enableNotify}><Bell className="mr-1 h-3.5 w-3.5" />Aanzetten</Button><Button size="sm" variant="ghost" onClick={() => { localStorage.setItem(ASKED, "1"); setAskNotify(false); }}>Niet nu</Button></div>
             </div>
           )}
+          <button onClick={openHibby} className={cn("mb-3 flex w-full items-center gap-2.5 rounded-lg border border-border p-2.5 text-left", myHibby?.id === roomId ? "bg-lime text-lime-foreground" : "hover:bg-muted")}>
+            <Avatar m={HIBBY} size={30} />
+            <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Hibby</span><span className="block truncate text-xs opacity-70">Je persoonlijke assistent</span></span>
+            {myHibby && myHibby.id !== roomId && <Count n={unread[myHibby.id]} />}
+          </button>
           <Section title="Kanalen" onAdd={() => setDialog("channel")} addLabel="Kanaal aanmaken">{channels.map((r) => <RoomLink key={r.id} r={r} />)}</Section>
           <Section title="Directe berichten" onAdd={() => setDialog("dm")} addLabel="Nieuw gesprek">
             {convos.length ? convos.map((r) => <RoomLink key={r.id} r={r} />) : <p className="px-2.5 py-2 text-xs text-muted-foreground">Nog geen gesprekken. Start er een met de plusknop.</p>}
@@ -139,7 +153,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         if (error) throw error;
       }
       const { error } = await db.from("chat_messages").insert({ room_id: room.id, user_id: me, body, image_path, mentions: extractMentions(body, roomTeam) });
-      if (!error && isInfo(room) && body.trim()) {
+      if (!error && (isInfo(room) || room.kind === "hibby") && body.trim()) {
         setHibbyBusy(true);
         supabase.functions.invoke("hibby", { body: { room_id: room.id } }).finally(() => { setHibbyBusy(false); qc.invalidateQueries({ queryKey: ["chat-messages", room.id] }); });
       }
@@ -157,10 +171,10 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
     <section className="fixed inset-0 z-50 flex min-w-0 flex-1 flex-col bg-card md:static md:z-auto" aria-label={`Gesprek ${title}`}>
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-3">
         <button onClick={onBack} aria-label="Terug naar lijst" className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted md:hidden"><ArrowLeft className="h-5 w-5" /></button>
-        {room.kind === "channel" ? <Hash className="h-4 w-4" /> : room.kind === "dm" ? <Avatar m={others[0]} size={26} /> : <Users className="h-4 w-4" />}
+        {room.kind === "hibby" ? <Avatar m={HIBBY} size={26} /> : room.kind === "channel" ? <Hash className="h-4 w-4" /> : room.kind === "dm" ? <Avatar m={others[0]} size={26} /> : <Users className="h-4 w-4" />}
         <h2 className="min-w-0 flex-1 truncate font-semibold">{title}</h2>
-        {room.kind !== "dm" && <span className="hidden text-xs text-muted-foreground sm:inline">{room.members.length} leden</span>}
-        {room.kind !== "dm" && <button onClick={onSettings} aria-label="Kanaalinstellingen" className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted"><Settings2 className="h-4 w-4" /></button>}
+        {room.kind !== "dm" && room.kind !== "hibby" && <span className="hidden text-xs text-muted-foreground sm:inline">{room.members.length} leden</span>}
+        {room.kind !== "dm" && room.kind !== "hibby" && <button onClick={onSettings} aria-label="Kanaalinstellingen" className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted"><Settings2 className="h-4 w-4" /></button>}
       </header>
       <div className="flex-1 overflow-y-auto px-3 py-3 md:px-5" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); pickImage(e.dataTransfer.files[0]); }}>
         {msgs.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Nog geen berichten. Stuur het eerste bericht.</p>}
@@ -194,6 +208,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
           );
         })}
         {isInfo(room) && msgs.length === 0 && <p className="px-2 py-6 text-center text-sm text-muted-foreground">Stel Hibby een vraag over draaidagen, edits of video's. Elke maandag om 08:00 zet Hibby hier het weekoverzicht neer.</p>}
+        {room.kind === "hibby" && msgs.length === 0 && <p className="px-2 py-6 text-center text-sm text-muted-foreground">Vraag Hibby iets of laat hem iets regelen. Bijvoorbeeld: "Wanneer kan ik met Jeroen een overleg plannen?", "Plan een draaidag in voor Jebroer op vrijdag om 10:00" of "Maak een taak voor mij: offerte sturen, morgen".</p>}
         {hibbyBusy && <div className="flex items-center gap-3 px-2 py-1.5 text-sm text-muted-foreground"><Avatar m={HIBBY} size={34} /><span className="animate-pulse">Hibby denkt na…</span></div>}
         <div ref={endRef} />
       </div>

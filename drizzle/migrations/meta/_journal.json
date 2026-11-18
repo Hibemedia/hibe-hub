@@ -253,6 +253,13 @@
       "when": 1794848806083,
       "tag": "0035_video_feedback_editor",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1795000736200,
+      "tag": "0036_migration",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,2 @@
+alter table public.chat_rooms drop constraint if exists chat_rooms_kind_check;
+alter table public.chat_rooms add constraint chat_rooms_kind_check check (kind = any (array['channel','dm','group','hibby']));

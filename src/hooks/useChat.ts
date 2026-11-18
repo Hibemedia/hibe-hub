@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Member } from "@/lib/chat";
 
 const db = supabase as any;
-export type Room = { id: string; kind: "channel" | "dm" | "group"; name: string | null; created_at: string; members: string[] };
+export type Room = { id: string; kind: "channel" | "dm" | "group" | "hibby"; name: string | null; created_at: string; members: string[] };
 export type Message = { id: string; room_id: string; user_id: string; body: string; image_path: string | null; mentions: string[]; created_at: string; edited_at: string | null };
 export type ChatNote = { id: string; room_id: string; kind: "dm" | "mention"; actor_id: string | null; preview: string; created_at: string; read_at: string | null };
 

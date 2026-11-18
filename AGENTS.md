@@ -33,3 +33,4 @@
 - Productieboard (/hibe/pipeline) is read-only, derived live in src/lib/pipeline.ts from existing tables/timestamps — one source of truth.
 
 - Scope Agenda light styles to Agenda; preserve other pages.
+- Personal Hibby = chat_rooms kind 'hibby' with exactly one member; there the hibby function runs an agent with tools (tasks, calendar_events, content_moments shoots) that write with the caller's own session — RLS decides what is allowed, no extra privileges.
