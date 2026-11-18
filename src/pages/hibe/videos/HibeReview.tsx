@@ -125,6 +125,7 @@ export default function HibeReview() {
             <input ref={file} type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) startUpload({ file: f, itemId: item.id, onDone: () => { reload(); toast.success(`V${item.current_version + 1} staat klaar`); } }); }} />
           </div>
           <UploadProgress />
+          <CapcutStyle clientId={item.client_id} />
         </main>
 
         <aside className="hidden w-[360px] shrink-0 flex-col border-l border-border bg-card md:flex">
@@ -161,5 +162,17 @@ export default function HibeReview() {
         </aside>
       </div>
     </div>
+  );
+}
+
+function CapcutStyle({ clientId }: { clientId: string }) {
+  const [style, setStyle] = useState<string | null>(null);
+  useEffect(() => { supabase.from("clients").select("capcut_style").eq("id", clientId).maybeSingle().then(({ data }) => setStyle((data as any)?.capcut_style ?? null)); }, [clientId]);
+  if (!style) return null;
+  return (
+    <section className="mx-auto max-w-xl rounded-xl border border-border bg-card p-4">
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">CapCut-stijl van deze klant</p>
+      <p className="whitespace-pre-line text-sm leading-relaxed">{style}</p>
+    </section>
   );
 }

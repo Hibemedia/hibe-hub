@@ -239,6 +239,7 @@ export type Database = {
       clients: {
         Row: {
           archived_at: string | null
+          capcut_style: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -251,6 +252,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          capcut_style?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -263,6 +265,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          capcut_style?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null

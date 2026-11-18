@@ -72,7 +72,7 @@ export default function Klanten() {
     if (dup) return toast.error(`Dit Metricool-merk hoort al bij "${dup.name}"`);
     setBusy(true);
     try {
-      const payload = { name, video_only: videoOnly, metricool_blog_id: blog, tiktok_handle: (editing.tiktok_handle ?? "").replace(/^@/, "").trim() || null };
+      const payload = { name, video_only: videoOnly, metricool_blog_id: blog, tiktok_handle: (editing.tiktok_handle ?? "").replace(/^@/, "").trim() || null, capcut_style: ((editing as any).capcut_style ?? "").trim() || null } as any;
       let id = editing.id;
       if (id) {
         const { error } = await supabase.from("clients").update(payload).eq("id", id);
@@ -175,6 +175,7 @@ export default function Klanten() {
               </Select>
             </div>
             <div className="space-y-2"><Label htmlFor="tt">TikTok-handle</Label><Input id="tt" placeholder="bijv. dehollandsetulp" value={editing?.tiktok_handle ?? ""} onChange={(e) => setEditing({ ...editing, tiktok_handle: e.target.value })} maxLength={100} /></div>
+            <div className="space-y-2"><Label htmlFor="capcut">CapCut-stijl</Label><textarea id="capcut" rows={6} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder={"Lettertype: Poppins\nGrootte: 8px\nKleur: #FFFFFF\nStroke: zwart, 40px"} value={(editing as any)?.capcut_style ?? ""} onChange={(e) => setEditing({ ...editing, capcut_style: e.target.value } as any)} maxLength={3000} /></div>
             <div className="space-y-2"><Label htmlFor="logo">Logo</Label><Input id="logo" type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)} /></div>
           </div>
           <DialogFooter><Button onClick={save} disabled={busy}>Opslaan</Button></DialogFooter>
