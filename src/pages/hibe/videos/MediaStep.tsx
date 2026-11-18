@@ -14,6 +14,7 @@ import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
 import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize, fmtStamp } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,7 +46,9 @@ export default function MediaStep() {
   const sender = useSendToClient();
   const verInput = useRef<HTMLInputElement>(null);
   const [verFor, setVerFor] = useState<BoardItem | null>(null);
+  const [styleFor, setStyleFor] = useState<BoardItem | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["video-items"] });
+  const capcutOf = (cid: string) => m.clients.find((c) => c.id === cid)?.capcut_style ?? null;
 
   const base = trashView ? m.trash : m.live.filter((i) => i.status === status);
   const uploaders = useMemo(() => [...new Set(base.map((i) => i.uploader).filter(Boolean) as string[])], [base]);
@@ -136,7 +139,7 @@ export default function MediaStep() {
                   <div className={cn("flex flex-wrap items-center gap-2", status === "feedback" && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
                     {status === "feedback" && !trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} />}
                     {trashView ? <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>
-                      : <>{status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</Button>}{a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}</>}
+                      : <>{status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}{status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</Button>}{a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}</>}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><button aria-label="Meer acties" className="round-btn h-8 w-8"><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -161,6 +164,12 @@ export default function MediaStep() {
         if (file && verFor) startUpload({ file, itemId: verFor.id, onDone: () => { refresh(); toast.success(`V${verFor.current_version + 1} van ${verFor.title} staat in ${verFor.status === "approved_internal" ? "Ter controle bij klant" : "Interne controle"}`); } });
       }} />
       {up.ui}{sender.dialog}
+      <Dialog open={!!styleFor} onOpenChange={(o) => { if (!o) setStyleFor(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>CapCut-stijl van {styleFor ? m.clientName(styleFor.client_id) : ""}</DialogTitle></DialogHeader>
+          <p className="whitespace-pre-line text-sm leading-relaxed">{styleFor ? capcutOf(styleFor.client_id) : ""}</p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
