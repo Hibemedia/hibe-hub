@@ -4,7 +4,7 @@ import type { VideoStatus } from "@/lib/videos";
 import { invokeVideo } from "@/lib/r2Upload";
 
 export type VideoItem = { id: string; client_id: string; title: string; status: VideoStatus; current_version: number; drive_link: string | null; created_at: string; status_changed_at: string };
-export type VideoVersion = { id: string; item_id: string; version: number; file_name: string; size_bytes: number | null; upload_status: string; created_at: string };
+export type VideoVersion = { id: string; item_id: string; version: number; file_name: string; size_bytes: number | null; upload_status: string; source: string | null; created_at: string };
 export type VideoComment = { id: string; item_id: string; version_id: string; number: number; time_seconds: number; text: string; internal: boolean; resolved: boolean; user_id: string; created_at: string };
 
 const db = supabase as any;
@@ -28,7 +28,7 @@ export function useVideoItem(id?: string) {
     queryFn: async () => {
       const [{ data: item, error }, { data: versions }] = await Promise.all([
         db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at").eq("id", id).maybeSingle(),
-        db.from("video_versions").select("id,item_id,version,file_name,size_bytes,upload_status,created_at").eq("item_id", id).eq("upload_status", "ready").order("version"),
+        db.from("video_versions").select("id,item_id,version,file_name,size_bytes,upload_status,source,created_at").eq("item_id", id).eq("upload_status", "ready").order("version"),
       ]);
       if (error) throw error;
       return { item: item as VideoItem | null, versions: (versions ?? []) as VideoVersion[] };
@@ -61,7 +61,7 @@ export const setVideoStatus = async (id: string, status: VideoStatus) => {
 };
 
 /** Overview rows: items + uploader + latest ready version + open comment count. */
-export type BoardItem = VideoItem & { editor_id: string | null; uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null };
+export type BoardItem = VideoItem & { editor_id: string | null; uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null; source: string | null };
 export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
   return useQuery({
     queryKey: ["video-items", "board", !!opts.includeDone],
@@ -77,7 +77,7 @@ export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
       const vers: any[] = [], open: any[] = [];
       await Promise.all(chunks.map(async (c) => {
         const [{ data: v }, { data: o }] = await Promise.all([
-          db.from("video_versions").select("id,item_id,version,uploaded_by,file_name,size_bytes,mime_type").in("item_id", c).eq("upload_status", "ready"),
+          db.from("video_versions").select("id,item_id,version,uploaded_by,file_name,size_bytes,mime_type,source").in("item_id", c).eq("upload_status", "ready"),
           db.from("video_comments").select("item_id").in("item_id", c).eq("resolved", false),
         ]);
         vers.push(...(v ?? [])); open.push(...(o ?? []));
@@ -87,7 +87,7 @@ export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
       const counts = new Map<string, number>();
       for (const o of open) counts.set(o.item_id, (counts.get(o.item_id) ?? 0) + 1);
       return (items as any[]).map((i) => ({
-        ...i, uploader: latest.get(i.id)?.uploaded_by ?? i.created_by ?? null, versionId: latest.get(i.id)?.id ?? null, file_name: latest.get(i.id)?.file_name ?? null, size_bytes: latest.get(i.id)?.size_bytes ?? null, mime_type: latest.get(i.id)?.mime_type ?? null, openComments: counts.get(i.id) ?? 0,
+        ...i, uploader: latest.get(i.id)?.uploaded_by ?? i.created_by ?? null, versionId: latest.get(i.id)?.id ?? null, file_name: latest.get(i.id)?.file_name ?? null, size_bytes: latest.get(i.id)?.size_bytes ?? null, mime_type: latest.get(i.id)?.mime_type ?? null, source: latest.get(i.id)?.source ?? null, openComments: counts.get(i.id) ?? 0,
       })) as BoardItem[];
     },
   });

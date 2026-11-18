@@ -1090,6 +1090,7 @@ export type Database = {
           mime_type: string | null
           r2_key: string
           size_bytes: number | null
+          source: string
           upload_id: string | null
           upload_status: string
           uploaded_by: string | null
@@ -1103,6 +1104,7 @@ export type Database = {
           mime_type?: string | null
           r2_key: string
           size_bytes?: number | null
+          source?: string
           upload_id?: string | null
           upload_status?: string
           uploaded_by?: string | null
@@ -1116,6 +1118,7 @@ export type Database = {
           mime_type?: string | null
           r2_key?: string
           size_bytes?: number | null
+          source?: string
           upload_id?: string | null
           upload_status?: string
           uploaded_by?: string | null

@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
 import { useVideoBoard, BoardItem } from "@/hooks/useVideos";
-import { VideoThumb } from "@/components/videos/parts";
+import { VideoThumb, SourceTag } from "@/components/videos/parts";
 import { EmptyState } from "@/components/StatsOverview";
 import { Button } from "@/components/ui/button";
 import { useViewAs } from "@/context/ViewAs";
@@ -31,7 +31,7 @@ export default function ClientVideos() {
           {list.map((i) => (
             <li key={i.id}><Link to={`${base}/videos/${i.id}`} className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50">
               <VideoThumb versionId={i.versionId} className="h-14 w-8" />
-              <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.title}</span><span className="text-xs text-muted-foreground">Versie {i.current_version}</span></span>
+              <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.title}</span><span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">Versie {i.current_version}<SourceTag source={i.source} /></span></span>
             </Link></li>
           ))}
         </ul>

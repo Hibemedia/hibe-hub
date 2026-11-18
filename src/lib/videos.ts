@@ -16,6 +16,14 @@ export const VIDEO_STATUS_LABEL: Record<VideoStatus, string> = {
 export const CLIENT_VISIBLE: VideoStatus[] = ["client_review", "approved_client", "scheduled", "archived"];
 export const isClientVisible = (s: VideoStatus) => CLIENT_VISIBLE.includes(s);
 
+/** Where a version came from: a normal upload, or the final that was finished in CapCut. */
+export type VersionSource = "upload" | "capcut";
+export const VERSION_SOURCE_LABEL: Record<VersionSource, string> = { upload: "Montage", capcut: "CapCut-final" };
+/** Only "capcut" is a CapCut final; anything missing or unknown reads as a normal upload. */
+export const versionSource = (s: string | null | undefined): VersionSource => (s === "capcut" ? "capcut" : "upload");
+/** Shown to the client next to the CapCut final so they know what they are looking at. */
+export const CAPCUT_FINAL_NOTE = "Dit is de definitieve versie: gemonteerd door HIBE en afgewerkt in CapCut met ondertiteling.";
+
 /** Archive status is client-visible even when archiving also stamps archived_at. */
 export function clientArchive<T extends { client_id: string; status: VideoStatus; current_version: number }>(items: T[], clientId: string | null) {
   return items.filter((item) => item.client_id === clientId && item.status === "archived" && item.current_version > 0);

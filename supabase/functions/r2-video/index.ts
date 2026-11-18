@@ -105,11 +105,12 @@ Deno.serve(async (req) => {
       if (!ver || ver.upload_status !== "uploading") return json({ error: "Upload niet gevonden" }, 404);
       const parts = [...b.parts].sort((a, c) => a.PartNumber - c.PartNumber).map((x) => `<Part><PartNumber>${x.PartNumber}</PartNumber><ETag>${x.ETag.replace(/[<>&]/g, "")}</ETag></Part>`).join("");
       await call("POST", ver.r2_key, `?uploadId=${encodeURIComponent(ver.upload_id)}`, `<CompleteMultipartUpload>${parts}</CompleteMultipartUpload>`);
-      await admin.from("video_versions").update({ upload_status: "ready", upload_id: null }).eq("id", ver.id);
       // A final uploaded in the CapCut step (approved_internal) goes straight to Ter controle bij klant.
       const { data: cur } = await admin.from("video_items").select("status").eq("id", ver.item_id).single();
+      const fromCapcut = cur?.status === "approved_internal";
       // A brand-new video uploaded on a specific step page lands in that step.
-      const next = ver.version === 1 && b.target_status && b.target_status !== "approved_internal" ? b.target_status : cur?.status === "approved_internal" ? "client_review" : "internal_review";
+      const next = ver.version === 1 && b.target_status && b.target_status !== "approved_internal" ? b.target_status : fromCapcut ? "client_review" : "internal_review";
+      await admin.from("video_versions").update({ upload_status: "ready", upload_id: null, source: fromCapcut ? "capcut" : "upload" }).eq("id", ver.id);
       await admin.from("video_items").update({ current_version: ver.version, status: next }).eq("id", ver.item_id);
       return json({ ok: true });
     }

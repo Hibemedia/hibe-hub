@@ -10,7 +10,8 @@ import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
 import { useVideoBoard, useVideoItem, usePlayUrl, useItemComments, getDownloadUrl } from "@/hooks/useVideos";
 import { Player, PlayerHandle } from "@/components/videos/Player";
-import { fmtStamp, fmtTime, isClientVisible } from "@/lib/videos";
+import { SourceTag } from "@/components/videos/parts";
+import { CAPCUT_FINAL_NOTE, fmtStamp, fmtTime, isClientVisible, versionSource } from "@/lib/videos";
 import { useViewAs, ReadOnlyTip } from "@/context/ViewAs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,6 +123,12 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
       )}
       <div className="flex items-center gap-3"><h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{item.title}</h1>
         {version && <Button variant="outline" size="sm" onClick={download}><Download className="h-4 w-4" />Download</Button>}</div>
+      {versionSource(version?.source) === "capcut" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <SourceTag source={version?.source} />
+          <p className="text-xs text-muted-foreground">{CAPCUT_FINAL_NOTE}</p>
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-3">
           <Player ref={player} url={url} maxH="min(60vh, calc(100vh - 300px))" markers={mine.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number) }))} />

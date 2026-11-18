@@ -5,7 +5,7 @@ import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
 import { clientArchive } from "@/lib/videos";
 import { getDownloadUrl, useVideoBoard } from "@/hooks/useVideos";
-import { VideoThumb } from "@/components/videos/parts";
+import { VideoThumb, SourceTag } from "@/components/videos/parts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -43,7 +43,7 @@ export function ClientVideoArchive() {
             <li key={item.id} className="flex items-center gap-3 p-3">
               <Link to={`${base}/videos/${item.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                 <VideoThumb versionId={item.versionId} className="h-14 w-8" />
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{item.title}</span><span className="text-xs text-muted-foreground">Versie {item.current_version} · {new Date(item.status_changed_at).toLocaleDateString("nl-NL")}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{item.title}</span><span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">Versie {item.current_version} · {new Date(item.status_changed_at).toLocaleDateString("nl-NL")}<SourceTag source={item.source} /></span></span>
               </Link>
               <Button variant="outline" size="icon" className="shrink-0" aria-label={`Download ${item.title}`} title={`Download ${item.title}`} disabled={!item.versionId || busy !== null} onClick={() => { if (item.versionId) void download(item.versionId); }}>
                 {busy === item.versionId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}

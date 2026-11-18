@@ -4,7 +4,7 @@ import { Film } from "lucide-react";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls } from "@/hooks/useLogoUrl";
 import { usePlayUrl } from "@/hooks/useVideos";
-import { VIDEO_STATUS_LABEL, VideoStatus, clientColorSlot } from "@/lib/videos";
+import { VIDEO_STATUS_LABEL, VERSION_SOURCE_LABEL, VideoStatus, clientColorSlot, versionSource } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 
 const LETTER = [
@@ -35,6 +35,12 @@ export function ClientMark({ id, name, url, size = 28, className }: { id: string
 
 export function StatusLabel({ status, label, className }: { status: VideoStatus; label?: string; className?: string }) {
   return <Tag className={className} variant={status === "approved_client" || status === "approved_internal" || status === "scheduled" ? "success" : status === "feedback" ? "warning" : status === "client_review" || status === "internal_review" ? "info" : "neutral"}>{label ?? VIDEO_STATUS_LABEL[status]}</Tag>;
+}
+
+/** Marks the version that was finished in CapCut; a normal upload shows nothing. */
+export function SourceTag({ source, className }: { source: string | null | undefined; className?: string }) {
+  if (versionSource(source) !== "capcut") return null;
+  return <Tag variant="info" className={className}>{VERSION_SOURCE_LABEL.capcut}</Tag>;
 }
 
 /** First frame of the latest version, loaded only when scrolled into view. */
