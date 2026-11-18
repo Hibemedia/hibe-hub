@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, clientArchive } from "./videos";
+import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, fmtStamp, clientArchive } from "./videos";
 
 describe("client video archive", () => {
   const archived = { client_id: "own", status: "archived" as const, current_version: 2, archived_at: "2026-11-13T09:00:00Z" };
@@ -88,4 +88,20 @@ describe("media management steps", () => {
 describe("CapCut final skips Mag naar klant", () => {
   it("no Mag naar klant step", () => expect(STEPS.includes("ready_for_client")).toBe(false));
   it("approve from CapCut goes to client", () => expect(hibeNext("approved_internal", "approve")).toBe("client_review"));
+});
+
+describe("feedback date and time", () => {
+  const now = new Date("2026-11-18T11:56:00");
+  it("shows the time the feedback was placed", () => {
+    expect(fmtStamp("2026-11-17T12:50:09", now)).toBe("gisteren 12:50");
+    expect(fmtStamp("2026-11-13T08:42:57", now)).toBe("13 nov 08:42");
+  });
+  it("same day reads vandaag, other years keep the year", () => {
+    expect(fmtStamp("2026-11-18T11:52:07", now)).toBe("vandaag 11:52");
+    expect(fmtStamp("2025-11-13T08:42:57", now)).toBe("13 nov 2025 08:42");
+  });
+  it("missing or broken dates stay empty", () => {
+    expect(fmtStamp(null, now)).toBe("");
+    expect(fmtStamp("niet een datum", now)).toBe("");
+  });
 });

@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { BoardItem, setVideoStatus, renameVideo, trashVideo } from "@/hooks/useVideos";
 import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
-import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize } from "@/lib/videos";
+import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize, fmtStamp } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ import { toast } from "sonner";
 
 const ALL: VideoStatus[] = [...STEPS, "archived"];
 const toneCls = { ok: "text-muted-foreground", warn: "text-warning font-medium", late: "text-destructive font-medium" };
-const fmtDate = (d: string) => new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
 const typeOf = (m: string | null, n: string | null) => (m?.split("/")[1] ?? n?.split(".").pop() ?? "").toUpperCase();
 
 export async function downloadVideo(versionId: string | null, name: string) {
@@ -133,7 +132,7 @@ export default function MediaStep() {
                     <p className="truncate text-xs text-muted-foreground">{m.clientName(i.client_id)}{i.file_name ? ` · ${typeOf(i.mime_type, i.file_name)}` : ""}{i.size_bytes ? ` · ${fmtSize(i.size_bytes)}` : ""}</p>
                   </div>
                   <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>
-                  <span className={cn("hidden w-16 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtDate(i.status_changed_at)}</span>
+                  <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>
                   <div className={cn("flex flex-wrap items-center gap-2", status === "feedback" && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
                     {status === "feedback" && !trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} />}
                     {trashView ? <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>

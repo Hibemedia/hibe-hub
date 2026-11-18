@@ -10,7 +10,7 @@ import { useClient } from "@/context/ClientContext";
 import { useBase } from "@/lib/paths";
 import { useVideoBoard, useVideoItem, usePlayUrl, useItemComments, getDownloadUrl } from "@/hooks/useVideos";
 import { Player, PlayerHandle } from "@/components/videos/Player";
-import { fmtTime, isClientVisible } from "@/lib/videos";
+import { fmtStamp, fmtTime, isClientVisible } from "@/lib/videos";
 import { useViewAs, ReadOnlyTip } from "@/context/ViewAs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -145,7 +145,7 @@ function ReviewOne({ itemId, pos, readOnly, onPrev, onNext, onDone }: { itemId: 
             <ol className="space-y-2">
               {mine.map((c) => (
                 <li key={c.id}><button onClick={() => player.current?.seek(c.time_seconds)} className="w-full rounded-md border border-border bg-background p-2.5 text-left">
-                  <UserAvatar userId={c.user_id} size={22} className="mr-2 inline-flex align-middle" /><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag>{c.resolved && <span className="ml-2 text-xs text-muted-foreground">Verwerkt</span>}
+                  <UserAvatar userId={c.user_id} size={22} className="mr-2 inline-flex align-middle" /><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag><span className="ml-2 text-xs tabular text-muted-foreground">{fmtStamp(c.created_at)}</span>{c.resolved && <span className="ml-2 text-xs text-muted-foreground">Verwerkt</span>}
                   <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.text}</p></button></li>
               ))}
             </ol>

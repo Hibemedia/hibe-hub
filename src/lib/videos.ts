@@ -46,6 +46,22 @@ export function fmtTime(sec: number) {
   return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
+const DAY_MS = 86400000;
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+/** When feedback was placed: "vandaag 12:50", "gisteren 12:50", "17 nov 12:50", "13 nov 2025 08:42". */
+export function fmtStamp(iso: string | null | undefined, now: Date = new Date()) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const time = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+  const days = Math.round((startOfDay(now) - startOfDay(d)) / DAY_MS);
+  if (days === 0) return `vandaag ${time}`;
+  if (days === 1) return `gisteren ${time}`;
+  const date = d.toLocaleDateString("nl-NL", d.getFullYear() === now.getFullYear() ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
+  return `${date} ${time}`;
+}
+
 export function fmtSize(bytes: number | null | undefined) {
   if (!bytes) return "";
   const u = ["B", "KB", "MB", "GB"]; let v = bytes, i = 0;

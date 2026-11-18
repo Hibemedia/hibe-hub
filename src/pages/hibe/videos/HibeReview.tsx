@@ -15,7 +15,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { useVideoItem, useItemComments, usePlayUrl, setVideoStatus, VideoComment } from "@/hooks/useVideos";
 import { downloadVideo } from "./MediaStep";
 import { startUpload } from "@/lib/uploadStore";
-import { STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, fmtTime } from "@/lib/videos";
+import { STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, fmtStamp, fmtTime } from "@/lib/videos";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -143,7 +143,7 @@ export default function HibeReview() {
                 <div className="flex items-start gap-2">
                   <UserAvatar userId={c.user_id} name={m.names[c.user_id]} size={24} className="mt-0.5" />
                   <button onClick={() => player.current?.seek(c.time_seconds)} className="min-w-0 flex-1 text-left">
-                    <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><b className="text-foreground">{m.names[c.user_id] ?? (c.internal ? "HIBE" : m.clientName(item.client_id))}</b><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag>{verOf(c) !== version?.version && <Tag className="">V{verOf(c)}</Tag>}</span>
+                    <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><b className="text-foreground">{m.names[c.user_id] ?? (c.internal ? "HIBE" : m.clientName(item.client_id))}</b><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag>{verOf(c) !== version?.version && <Tag className="">V{verOf(c)}</Tag>}<span className="tabular">{fmtStamp(c.created_at)}</span></span>
                     <p className={cn("mt-1 whitespace-pre-wrap break-words text-sm", c.resolved && "line-through")}>{c.text}</p>
                   </button>
                   <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"><Checkbox checked={c.resolved} onCheckedChange={(v) => resolve(c, !!v)} aria-label={`Opmerking ${c.number} verwerkt`} />verwerkt</label>
