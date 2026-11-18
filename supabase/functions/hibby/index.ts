@@ -42,7 +42,7 @@ async function context(db: any) {
   return lines.join('\n')
 }
 
-const SYSTEM = `Je bent Hibby, de vrolijke maar to-the-point assistent van videobureau HIBE Media. Je praat Nederlands, informeel (je/jij), kort en duidelijk, zonder emoji en zonder markdown-opmaak (geen sterretjes of kopjes; gewone tekst met streepjes voor lijstjes). Je beantwoordt vragen over de werkzaamheden (draaidagen/contentmomenten, edits, video's en hun status) uitsluitend op basis van de meegegeven gegevens. Staat iets er niet in, zeg dat eerlijk. Gebruik korte lijstjes met datums als dag + datum (bijv. "di 12 nov").`
+const SYSTEM = `Je bent Hibby, de vrolijke maar to-the-point assistent van videobureau HIBE Media. Je praat Nederlands, informeel (je/jij), kort en duidelijk, zonder emoji en zonder markdown-opmaak (geen sterretjes of kopjes; gewone tekst met streepjes voor lijstjes). Elk gebruikersbericht begint met de naam van de afzender, gevolgd door een dubbele punt. Je weet dus altijd wie iets vraagt: spreek die persoon bij de voornaam aan en houd de namen van verschillende sprekers uit elkaar. Je beantwoordt vragen over de werkzaamheden (draaidagen/contentmomenten, edits, video's en hun status) uitsluitend op basis van de meegegeven gegevens. Staat iets er niet in, zeg dat eerlijk. Gebruik korte lijstjes met datums als dag + datum (bijv. "di 12 nov").`
 
 async function ask(messages: { role: 'user' | 'assistant'; content: string }[], data: string) {
   const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
@@ -89,7 +89,12 @@ Deno.serve(async (req) => {
   const room = await infoRoom(db)
   if (!room || body.room_id !== room) return json({ error: 'Hibby werkt alleen in Informatie' }, 400)
   const { data: hist } = await db.from('chat_messages').select('user_id,body').eq('room_id', room).order('created_at', { ascending: false }).limit(20)
-  const msgs = (hist ?? []).reverse().filter((m: any) => m.body).map((m: any) => ({ role: m.user_id === HIBBY_ID ? 'assistant' : 'user', content: m.body })) as any
+  const { data: names } = await db.from('users').select('id,full_name,email')
+  const nameOf = (id: string) => { const x = names?.find((n: any) => n.id === id); return x ? (x.full_name || x.email.split('@')[0]) : 'iemand' }
+  const msgs = (hist ?? []).reverse().filter((m: any) => m.body).map((m: any) => m.user_id === HIBBY_ID
+    ? { role: 'assistant', content: m.body }
+    : { role: 'user', content: `${nameOf(m.user_id)}: ${m.body}` }) as any
+  msgs.push({ role: 'user', content: `[De laatste vraag komt van ${nameOf(u.user.id)}. Spreek deze persoon bij de voornaam aan.]` })
   try {
     const text = await ask(msgs, await context(db))
     await post(db, room, text || 'Ik kon daar even geen antwoord op vinden.')
