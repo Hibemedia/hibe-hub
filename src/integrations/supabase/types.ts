@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_feeds: {
+        Row: {
+          created_at: string
+          scope: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          scope?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          scope?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_attendees: {
         Row: {
           created_at: string

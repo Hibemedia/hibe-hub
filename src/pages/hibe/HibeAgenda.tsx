@@ -19,6 +19,7 @@ import { AgendaEntry, AgendaKind, DAY_CAPACITY, absentOn, entriesOn, monthGrid, 
 import { TaskDialog, TaskFields, blankTask, saveTask, taskToForm, type TaskForm } from "@/components/TaskDialog";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { AgendaControls, useAgendaFilters } from "@/components/agenda/AgendaControls";
+import { AgendaPhoneLink } from "@/components/agenda/AgendaPhoneLink";
 import { AgendaDetails } from "@/components/agenda/AgendaDetails";
 import { AgendaDayItems } from "@/components/agenda/AgendaDayItems";
 import { filterAgendaEntries } from "@/lib/agenda-filters";
@@ -67,7 +68,7 @@ export default function HibeAgenda() {
   const from = view === "week" ? ymd(week[0]) : ymd(grid[0]), to = view === "week" ? ymd(week[4]) : ymd(grid[41]);
   const { data, isLoading, error: agendaError } = useAgenda(from, to);
   const { data: team = [] } = useTeamMembers();
-  const { clients } = useClient();
+  const { clients, isAdmin } = useClient();
   const me = ((UserAuth() as any)?.user?.id as string) ?? "";
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -190,7 +191,7 @@ export default function HibeAgenda() {
           <Button variant="ghost" size="sm" onClick={() => { setCursor({ y: now.getFullYear(), m: now.getMonth() }); setWeekRef(new Date()); }}>Vandaag</Button>
         </div>
       </div>
-      <AgendaControls filters={filters} onChange={setFilters} entries={allEntries} me={me} team={team} clients={clients} light />
+      <AgendaControls filters={filters} onChange={setFilters} entries={allEntries} me={me} team={team} clients={clients} light extra={<AgendaPhoneLink me={me} isAdmin={isAdmin} />} />
       {isLoading && <p className="text-sm text-muted-foreground">Agenda laden…</p>}
       {agendaError && <p className="text-sm text-destructive">Agenda kon niet worden geladen.</p>}
       {view === "week" && <div className="overflow-x-auto rounded-[20px] border border-border bg-card">

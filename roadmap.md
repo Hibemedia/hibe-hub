@@ -29,6 +29,9 @@
 - [x] Dagpopover en zijpaneel met bestaande itemdetails toevoegen.
 - [x] Filters en echte itemdetails getest op desktop, tablet en mobiel; 15 tests geslaagd, inclusief +2-meer-regel. De huidige maand bevat geen dag met drie items voor een live popovercontrole; klantmenu ongemoeid gelaten.
 
+## Agenda syncen naar je telefoon
+- [x] Eigen agenda-adres (.ics) per beheerder in de Agenda, met keuze "alleen van jou" of "het hele team", kopieerknop en iPhone-stappen; adres werkt alleen zolang die persoon beheerder is en een verkeerd adres wordt geweigerd; 12 calendaritesten en 131 projecttesten slagen, build OK, feed live opgehaald (11 eigen / 32 team items).
+
 ## E-mailmeldingen bij toewijzing
 - [x] Feedback-editor, edit-editor en taakdoelgeefder lopen langs eigen functies die de persoon zelf een mail sturen; taak, edit en feedback echte toewijzing getest (opgeslagen, teruggelezen, hersteld), mail wacht op domeinverificatie.
 
