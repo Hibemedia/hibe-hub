@@ -49,7 +49,12 @@ export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: M
         <select aria-label="Snelheid" value={rate} onChange={(e) => { const r = Number(e.target.value); setRate(r); if (v.current) v.current.playbackRate = r; }} className="h-8 rounded-md border border-border bg-popover px-1 text-xs">
           {[0.5, 1, 1.5, 2].map((r) => <option key={r} value={r}>{String(r).replace(".", ",")}x</option>)}
         </select>
-        <button aria-label="Volledig scherm" onClick={() => (document.fullscreenElement ? document.exitFullscreen() : box.current?.requestFullscreen())} className="round-btn h-9 w-9 shrink-0"><Maximize className="h-4 w-4" /></button>
+        <button aria-label="Volledig scherm" onClick={() => {
+          if (document.fullscreenElement) { document.exitFullscreen(); return; }
+          const video = v.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+          if (box.current?.requestFullscreen) box.current.requestFullscreen().catch(() => video?.webkitEnterFullscreen?.());
+          else video?.webkitEnterFullscreen?.(); // iPhone-Safari kent alleen fullscreen op de video zelf
+        }} className="round-btn h-9 w-9 shrink-0"><Maximize className="h-4 w-4" /></button>
       </div>
     </div>
   );
