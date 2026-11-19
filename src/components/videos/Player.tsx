@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Play, Pause, Maximize } from "lucide-react";
+import { Play, Pause, Maximize, Airplay } from "lucide-react";
 import { fmtTime } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,9 @@ type Marker = { id: string; t: number; label: string; muted?: boolean };
 export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: Marker[]; maxH?: string; keyboard?: boolean }>(function Player({ url, markers, maxH = "calc(100vh - 220px)", keyboard = true }, ref) {
   const v = useRef<HTMLVideoElement>(null);
   const box = useRef<HTMLDivElement>(null);
-  const [dur, setDur] = useState(0), [now, setNow] = useState(0), [playing, setPlaying] = useState(false), [rate, setRate] = useState(1), [portrait, setPortrait] = useState(true);
+  const [dur, setDur] = useState(0), [now, setNow] = useState(0), [playing, setPlaying] = useState(false), [rate, setRate] = useState(1), [portrait, setPortrait] = useState(true), [airOk, setAirOk] = useState(false);
+  useEffect(() => { const el = v.current as any; setAirOk(!!el && ("WebKitPlaybackTargetAvailabilityEvent" in window || !!el.remote)); }, [url]);
+  const airplay = () => { const el = v.current as any; if (el?.webkitShowPlaybackTargetPicker) el.webkitShowPlaybackTargetPicker(); else el?.remote?.prompt().catch(() => {}); };
   useImperativeHandle(ref, () => ({ seek: (t) => { if (v.current) { v.current.currentTime = t; v.current.pause(); } }, pause: () => v.current?.pause(), time: () => v.current?.currentTime ?? 0 }));
   useEffect(() => {
     if (!keyboard) return;
@@ -29,7 +31,7 @@ export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: M
     <div ref={box} className="flex w-full flex-col items-center gap-2 bg-background [&:fullscreen]:justify-center [&:fullscreen]:bg-foreground">
       <div className="flex w-full justify-center">
         {url ? (
-          <video ref={v} src={url} playsInline preload="metadata" onClick={toggle}
+          <video ref={v} src={url} playsInline preload="metadata" onClick={toggle} x-webkit-airplay="allow"
             onLoadedMetadata={(e) => { const el = e.currentTarget; setDur(el.duration || 0); setPortrait(el.videoHeight >= el.videoWidth); el.playbackRate = rate; }}
             onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
             className={cn("rounded-lg bg-foreground", portrait ? "w-auto max-w-full" : "w-full")} style={portrait ? { height: maxH, maxHeight: maxH } : { maxHeight: maxH }} />
@@ -49,6 +51,7 @@ export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: M
         <select aria-label="Snelheid" value={rate} onChange={(e) => { const r = Number(e.target.value); setRate(r); if (v.current) v.current.playbackRate = r; }} className="h-8 rounded-md border border-border bg-popover px-1 text-xs">
           {[0.5, 1, 1.5, 2].map((r) => <option key={r} value={r}>{String(r).replace(".", ",")}x</option>)}
         </select>
+        {airOk && <button aria-label="AirPlay" title="Afspelen op Apple TV" onClick={airplay} className="round-btn h-9 w-9 shrink-0"><Airplay className="h-4 w-4" /></button>}
         <button aria-label="Volledig scherm" onClick={() => {
           if (document.fullscreenElement) { document.exitFullscreen(); return; }
           const video = v.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
