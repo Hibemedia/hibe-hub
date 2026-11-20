@@ -28,7 +28,7 @@ export function HibbyFloat() {
   const endRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { if (open) endRef.current?.scrollIntoView({ block: "end" }); }, [open, msgs.length]);
+  useEffect(() => { if (open) endRef.current?.scrollIntoView({ block: "end", behavior: "instant" as ScrollBehavior }); }, [open, msgs.length]);
 
   // The chat page already shows the conversation full-screen; don't double it.
   if (pathname.startsWith("/hibe/chat")) return null;
@@ -110,7 +110,7 @@ export function HibbyFloat() {
           </div>
         </section>
       )}
-      <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" className="hibby-fab fixed bottom-4 right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-full">
+      <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" data-open={open || undefined} className="hibby-fab fixed bottom-4 right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-full">
         <HibbyAvatar size={56} className="hibby-bob ring-2 ring-lime" />
         {!open && count > 0 && <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-foreground px-1 text-center text-[11px] font-bold leading-5 text-background tabular" aria-label={`${count} ongelezen`}>{count}</span>}
       </button>
