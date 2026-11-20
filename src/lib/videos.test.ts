@@ -1,6 +1,15 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, fmtStamp, clientArchive } from "./videos";
+import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, fmtStamp, clientArchive, missingFeedbackEditors } from "./videos";
+
+describe("feedback recipient", () => {
+  it("requires a selected editor for each video returned, not its uploader", () => {
+    const assigned = { id: "assigned", editor_id: "robin", uploader: "jeroen" };
+    const unassigned = { id: "unassigned", editor_id: null, uploader: "robin" };
+    expect(missingFeedbackEditors([assigned])).toEqual([]);
+    expect(missingFeedbackEditors([assigned, unassigned])).toEqual([unassigned]);
+  });
+});
 
 describe("client video archive", () => {
   const archived = { client_id: "own", status: "archived" as const, current_version: 2, archived_at: "2026-11-13T09:00:00Z" };

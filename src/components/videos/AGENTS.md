@@ -1,1 +1,2 @@
 - Feedback responsibility is stored on video_items.editor_id, initialized from linked edits and changed through set_video_feedback_editor; uploader history remains separate.
+- Reuse FeedbackEditor in every HIBE step and review header; invalidate board and item queries after assignment so return actions name the saved recipient and wait while it saves.

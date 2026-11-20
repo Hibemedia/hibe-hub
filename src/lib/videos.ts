@@ -16,6 +16,11 @@ export const VIDEO_STATUS_LABEL: Record<VideoStatus, string> = {
 export const CLIENT_VISIBLE: VideoStatus[] = ["client_review", "approved_client", "scheduled", "archived"];
 export const isClientVisible = (s: VideoStatus) => CLIENT_VISIBLE.includes(s);
 
+/** Feedback needs a saved recipient, including when moving several videos at once. */
+export function missingFeedbackEditors<T extends { editor_id: string | null }>(items: T[]) {
+  return items.filter((item) => !item.editor_id);
+}
+
 /** Where a version came from: a normal upload, or the final that was finished in CapCut. */
 export type VersionSource = "upload" | "capcut";
 export const VERSION_SOURCE_LABEL: Record<VersionSource, string> = { upload: "Montage", capcut: "CapCut-final" };

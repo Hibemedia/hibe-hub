@@ -9,13 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { useMedia } from "@/components/videos/useMedia";
 import { VideoThumb, StatusLabel } from "@/components/videos/parts";
+import { FeedbackEditor } from "@/components/videos/FeedbackEditor";
 import { Player, PlayerHandle } from "@/components/videos/Player";
 import { UploadProgress } from "@/components/UploadProgress";
 import { EmptyState } from "@/components/StatsOverview";
 import { useVideoItem, useItemComments, usePlayUrl, setVideoStatus, VideoComment } from "@/hooks/useVideos";
 import { downloadVideo } from "./MediaStep";
 import { startUpload } from "@/lib/uploadStore";
-import { STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, fmtStamp, fmtTime } from "@/lib/videos";
+import { STEP_SLUG, VIDEO_STATUS_LABEL, VideoStatus, fmtStamp, fmtTime, missingFeedbackEditors } from "@/lib/videos";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,6 +43,8 @@ export default function HibeReview() {
   const [text, setText] = useState(""); const [stamp, setStamp] = useState<number | null>(null);
   const [side, setSide] = useState(() => localStorage.getItem("hibe.review.side") !== "0");
   const [busy, setBusy] = useState(false);
+  const [editorSaving, setEditorSaving] = useState(false);
+  const editorName = item?.editor_id ? m.names[item.editor_id] ?? "editor" : null;
   // Remember the step we came from so "back" and the left list stay put after a status change.
   const stepRef = useRef<{ id?: string; status?: VideoStatus }>({});
   if (item && stepRef.current.id !== item.id) stepRef.current = { id: item.id, status: item.status };
@@ -69,10 +72,12 @@ export default function HibeReview() {
   };
   const resolve = async (c: VideoComment, v: boolean) => { const { error } = await db.from("video_comments").update({ resolved: v }).eq("id", c.id); if (error) toast.error(error.message); else reload(); };
   const decide = async (to: VideoStatus) => {
-    if (!item) return; setBusy(true);
+    if (!item || editorSaving) return;
+    if (to === "feedback" && missingFeedbackEditors([item]).length) return toast.error("Kies eerst een editor bij deze video");
+    setBusy(true);
     try {
       await setVideoStatus(item.id, to);
-      toast.success(to === "feedback" ? "Terug naar editor" : "Goedgekeurd, naar CapCut");
+      toast.success(to === "feedback" ? `Teruggestuurd naar ${editorName}` : "Goedgekeurd, naar CapCut");
       reload();
       const next = siblings[0];
       nav(next ? `/hibe/videos/${next.id}` : back);
@@ -94,8 +99,11 @@ export default function HibeReview() {
           <p className="flex min-w-0 items-center gap-2"><span className="truncate font-semibold">{item.title}</span><span className="text-sm text-muted-foreground">V{version?.version ?? item.current_version}</span>
             <StatusLabel status={item.status} label={VIDEO_STATUS_LABEL[item.status]} /></p>
         </div>
-        <Button variant="outline" disabled={busy || openCount === 0} title={openCount === 0 ? "Plaats eerst minstens één opmerking" : undefined} onClick={() => decide("feedback")}>Terug naar editor</Button>
-        <Button disabled={busy} onClick={() => decide("approved_internal")}>Goedkeuren</Button>
+        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+          <FeedbackEditor key={item.id} itemId={item.id} title={item.title} editorId={item.editor_id} disabled={busy} onSavingChange={setEditorSaving} />
+          <Button variant="outline" className="max-w-full" disabled={busy || editorSaving || !item.editor_id || openCount === 0} title={!item.editor_id ? "Kies eerst een editor" : openCount === 0 ? "Plaats eerst minstens één opmerking" : undefined} onClick={() => decide("feedback")}><span className="truncate">{editorName ? `Terug naar ${editorName}` : "Terug naar editor"}</span></Button>
+          <Button disabled={busy || editorSaving} onClick={() => decide("approved_internal")}>Goedkeuren</Button>
+        </div>
       </header>
 
       <div className="flex min-h-0 flex-1">

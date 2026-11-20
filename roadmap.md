@@ -2,6 +2,7 @@
 
 ## Feedbackeditor
 - [x] Bij feedback editor met foto tonen en kiezen; opslaan, teruglezen en verwijderen getest met echte video, oorspronkelijke keuze hersteld; desktop/mobiel zonder overflow, 27 bestaande tests slagen.
+- [x] Editor met foto en wisselkiezer in elke staplijst en beoordelingsheader; terugstuuracties noemen de ontvanger en wachten op een opgeslagen editor. Ingelogd opgeslagen/teruggelezen en naar Feedback verwerken verplaatst met tijdelijke video (verwijderd); desktop/mobiel zonder overflow of runtimefouten, 26 videotests slagen en build OK.
 
 ## Ruimte rond pagina’s
 - [x] Gelijke buitenruimte in HIBE- en klantomgeving zonder dubbele paginamarges; tien HIBE-pagina’s en Bekijk als klant gecontroleerd op desktop/mobiel, geen horizontale overflow en build OK.

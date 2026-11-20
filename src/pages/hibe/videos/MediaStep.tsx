@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { BoardItem, setVideoStatus, renameVideo, trashVideo } from "@/hooks/useVideos";
 import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
-import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize, fmtStamp } from "@/lib/videos";
+import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize, fmtStamp, missingFeedbackEditors } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,12 @@ export default function MediaStep() {
   const m = useMedia(status === "archived" || trashView);
   const [f, setF] = useSavedFilters();
   const [sel, setSel] = useState<Set<string>>(new Set());
+  const [savingEditors, setSavingEditors] = useState<Set<string>>(new Set());
+  const editorSaving = (id: string, saving: boolean) => setSavingEditors((previous) => {
+    const next = new Set(previous);
+    if (saving) next.add(id); else next.delete(id);
+    return next;
+  });
   const up = useUploader(f.client !== "all" ? f.client : undefined, status && status !== "approved_internal" ? status : undefined, status && status !== "approved_internal" ? VIDEO_STATUS_LABEL[status] : undefined);
   const sender = useSendToClient();
   const verInput = useRef<HTMLInputElement>(null);
@@ -56,6 +62,11 @@ export default function MediaStep() {
   const ready = status === "ready_for_client" ? [...new Set(m.live.filter((i) => i.status === "ready_for_client").map((i) => i.client_id))] : [];
 
   const move = async (ids: string[], to: VideoStatus) => {
+    if (ids.some((id) => savingEditors.has(id))) return toast.error("Wacht tot de editor is opgeslagen");
+    if (to === "feedback") {
+      const missing = missingFeedbackEditors([...m.live, ...m.trash].filter((item) => ids.includes(item.id)));
+      if (missing.length) return toast.error(`Kies eerst een editor voor ${missing.map((item) => `“${item.title}”`).join(", ")}`);
+    }
     try { for (const id of ids) await setVideoStatus(id, to); toast.success(`${ids.length > 1 ? `${ids.length} video's` : "Video"} naar ${VIDEO_STATUS_LABEL[to]}`); } catch (e: any) { toast.error(e.message); }
     setSel(new Set()); refresh();
   };
@@ -136,15 +147,15 @@ export default function MediaStep() {
                   </div>
                   <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>
                   <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>
-                  <div className={cn("flex flex-wrap items-center gap-2", status === "feedback" && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
-                    {status === "feedback" && !trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} />}
+                  <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
+                    {!trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
                     {trashView ? <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>
                       : <>{status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}{status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</Button>}{a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}</>}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><button aria-label="Meer acties" className="round-btn h-8 w-8"><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {!trashView && <DropdownMenuSub><DropdownMenuSubTrigger>Verplaats naar</DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent>{ALL.filter((s) => s !== i.status).map((s) => <DropdownMenuItem key={s} onClick={() => move([i.id], s)}>{s === "archived" ? "Archief" : VIDEO_STATUS_LABEL[s]}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>}
+                          <DropdownMenuSubContent>{ALL.filter((s) => s !== i.status).map((s) => <DropdownMenuItem key={s} disabled={savingEditors.has(i.id)} onClick={() => move([i.id], s)}>{s === "feedback" ? i.editor_id ? `Terug naar ${m.names[i.editor_id] ?? "editor"}` : "Editor kiezen voor feedback…" : s === "archived" ? "Archief" : VIDEO_STATUS_LABEL[s]}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>}
                         <DropdownMenuItem onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => rename(i)}>Hernoem</DropdownMenuItem>
                         <DropdownMenuSeparator />

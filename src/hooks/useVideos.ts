@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { VideoStatus } from "@/lib/videos";
 import { invokeVideo } from "@/lib/r2Upload";
 
-export type VideoItem = { id: string; client_id: string; title: string; status: VideoStatus; current_version: number; drive_link: string | null; created_at: string; status_changed_at: string };
+export type VideoItem = { id: string; client_id: string; title: string; status: VideoStatus; current_version: number; drive_link: string | null; editor_id: string | null; created_at: string; status_changed_at: string };
 export type VideoVersion = { id: string; item_id: string; version: number; file_name: string; size_bytes: number | null; upload_status: string; source: string | null; created_at: string };
 export type VideoComment = { id: string; item_id: string; version_id: string; number: number; time_seconds: number; text: string; internal: boolean; resolved: boolean; user_id: string; created_at: string };
 
@@ -13,7 +13,7 @@ export function useVideoItems(clientId?: string | null) {
   return useQuery({
     queryKey: ["video-items", clientId ?? "all"],
     queryFn: async () => {
-      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at").order("status_changed_at", { ascending: false });
+      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,editor_id,created_at,status_changed_at").order("status_changed_at", { ascending: false });
       if (clientId) q = q.eq("client_id", clientId);
       const { data, error } = await q;
       if (error) throw error;
@@ -27,7 +27,7 @@ export function useVideoItem(id?: string) {
     queryKey: ["video-item", id],
     queryFn: async () => {
       const [{ data: item, error }, { data: versions }] = await Promise.all([
-        db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at").eq("id", id).maybeSingle(),
+        db.from("video_items").select("id,client_id,title,status,current_version,drive_link,editor_id,created_at,status_changed_at").eq("id", id).maybeSingle(),
         db.from("video_versions").select("id,item_id,version,file_name,size_bytes,upload_status,source,created_at").eq("item_id", id).eq("upload_status", "ready").order("version"),
       ]);
       if (error) throw error;
