@@ -463,3 +463,20 @@
   .content-moments-topbar > :last-child { gap: 8px; }
   .content-moments-topbar h1 { font-size: 18px; }
 }
+
+/* Motion: short, soft, sitewide. One easing so everything feels the same. */
+:root { --ease-soft: cubic-bezier(.2, .8, .2, 1); }
+@keyframes page-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-enter { animation: page-enter .28s var(--ease-soft) both; }
+button, a, [role="button"], [role="tab"], [role="menuitem"], input, select, textarea, .ui-tag, .ui-filter, .chip-filter {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: .16s; transition-timing-function: var(--ease-soft);
+}
+button:not(:disabled):active, [role="button"]:active { transform: scale(.98); }
+[data-state="open"][role="dialog"], [data-radix-popper-content-wrapper] > * { animation-timing-function: var(--ease-soft) !important; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+  html { scroll-behavior: auto; }
+  button:active, [role="button"]:active { transform: none; }
+}

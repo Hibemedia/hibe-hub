@@ -10,6 +10,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { FrameTopBar, ClientScopeBar } from "@/components/TopBar";
 import { PageHeaderProvider } from "@/components/PageHeader";
 import { HibbyFloat } from "@/components/HibbyFloat";
+import { PageTransition } from "@/components/PageTransition";
 import { useBase } from "@/lib/paths";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -24,7 +25,7 @@ export function ClientEnv() {
         <PageHeaderProvider>
           <div className="flex min-h-screen w-full">
             <AppSidebar variant="client" />
-            <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="client" /><div className="app-page-content"><Outlet /></div></main>
+            <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="client" /><div className="app-page-content"><PageTransition /></div></main>
           </div>
         </PageHeaderProvider>
       )}
@@ -41,7 +42,7 @@ export function HibeEnv() {
         <PageHeaderProvider>
           <div className="flex min-h-screen w-full">
             <AppSidebar variant="hibe" />
-            <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="hibe" /><div className="app-page-content"><Outlet /></div></main>
+            <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="hibe" /><div className="app-page-content"><PageTransition /></div></main>
           </div>
           <HibbyFloat />
         </PageHeaderProvider>
@@ -89,7 +90,7 @@ export function ViewAsEnv() {
             </div>
             <div className="flex min-h-[calc(100vh-2.75rem)] w-full">
               <AppSidebar variant="client" />
-              <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="client" /><div className="app-page-content"><Outlet /></div></main>
+              <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="client" /><div className="app-page-content"><PageTransition /></div></main>
             </div>
           </PageHeaderProvider>
         </ViewAsProvider>
