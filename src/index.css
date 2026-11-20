@@ -491,6 +491,6 @@ html { scroll-behavior: smooth; }
 .hibby-blink{opacity:0;animation:hibby-blink 4.8s ease-in-out infinite}
 @keyframes hibby-blink{0%,91%,100%{opacity:0}93.5%,95.5%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.hibby-blink{animation:none;opacity:0}}
-.hibby-genie{transform-origin:calc(100% - 28px) calc(100% + 36px);animation:hibby-genie .45s cubic-bezier(.2,.9,.25,1.05) both}
-@keyframes hibby-genie{0%{opacity:0;transform:translateY(2.5rem) scale(.08,.02);clip-path:polygon(35% 0,65% 0,100% 100%,0 100%);filter:blur(4px)}45%{opacity:1;transform:translateY(.5rem) scale(.55,.7);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);filter:blur(1px)}100%{opacity:1;transform:none;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);filter:none}}
+.hibby-genie{transform-origin:calc(100% - 28px) calc(100% + 36px);animation:hibby-genie .38s cubic-bezier(.22,1,.36,1) both;will-change:transform,opacity;backface-visibility:hidden}
+@keyframes hibby-genie{0%{opacity:0;transform:translate3d(0,1.5rem,0) scale(.15,.1)}40%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
 @media (prefers-reduced-motion:reduce){.hibby-genie{animation:none}}
