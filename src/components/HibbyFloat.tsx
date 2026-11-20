@@ -22,7 +22,7 @@ export function HibbyFloat() {
   const { data: rooms = [] } = useRooms(!!me);
   const { data: unread = {} } = useUnread(!!me);
   const room = rooms.find((r) => r.kind === "hibby") ?? null;
-  const { data: msgs = [] } = useMessages(open ? room?.id ?? null : null);
+  const { data: msgs = [] } = useMessages(room?.id ?? null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
