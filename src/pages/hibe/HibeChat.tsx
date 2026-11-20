@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
+import { HibbyAvatar } from "@/components/HibbyAvatar";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Bell, Hash, ImagePlus, MoreHorizontal, Plus, Send, Settings2, Users, X } from "lucide-react";
@@ -25,6 +26,7 @@ const isInfo = (r: Room) => r.kind === "channel" && r.name === "Informatie";
 const ASKED = "hibe.chat.notifyAsked";
 
 function Avatar({ m, size = 32 }: { m?: Member; size?: number }) {
+  if (m?.id === HIBBY_ID) return <HibbyAvatar size={size} />;
   return <UserAvatar userId={m?.id} name={m?.name ?? "?"} url={m?.avatar_url ?? null} size={size} />;
 }
 const Count = ({ n }: { n?: number }) => (n ? <span className="ml-auto min-w-5 rounded-full bg-lime px-1.5 text-center text-[11px] font-bold leading-5 text-lime-foreground tabular" aria-label={`${n} ongelezen`}>{n}</span> : null);

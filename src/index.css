@@ -481,14 +481,13 @@ html { scroll-behavior: smooth; }
   button:active, [role="button"]:active { transform: none; }
 }
 
-/* Hibby mascot */
-.hibby-mascot .hibby-bob{animation:hibby-bob 3.2s var(--ease-soft,ease-in-out) infinite;transform-origin:50% 100%;transition:transform .2s}
-.hibby-mascot:hover .hibby-bob{animation:hibby-wave .7s ease-in-out}
-.hibby-mascot .hibby-shadow{position:absolute;bottom:0;width:2.5rem;height:.4rem;border-radius:9999px;background:hsl(var(--foreground)/.15);filter:blur(2px);animation:hibby-shadow 3.2s ease-in-out infinite}
-@keyframes hibby-bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(-2deg)}}
-@keyframes hibby-shadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.8);opacity:.6}}
-@keyframes hibby-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
-@media (prefers-reduced-motion:reduce){.hibby-mascot .hibby-bob,.hibby-mascot .hibby-shadow{animation:none}}
-.hibby-genie{transform-origin:calc(100% - 2rem) calc(100% + 3rem);animation:hibby-genie .45s cubic-bezier(.2,.9,.25,1.05) both}
+/* Hibby profile photo: floating assistant button */
+.hibby-fab{filter:drop-shadow(0 6px 14px hsl(var(--foreground)/.22))}
+.hibby-fab .hibby-bob{animation:hibby-bob 3.6s var(--ease-soft,ease-in-out) infinite;transition:transform .2s}
+.hibby-fab:hover .hibby-bob{animation:hibby-wave .8s ease-in-out}
+@keyframes hibby-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes hibby-wave{0%,100%{transform:rotate(0)}30%{transform:rotate(-5deg)}70%{transform:rotate(5deg)}}
+@media (prefers-reduced-motion:reduce){.hibby-fab .hibby-bob{animation:none}}
+.hibby-genie{transform-origin:calc(100% - 28px) calc(100% + 36px);animation:hibby-genie .45s cubic-bezier(.2,.9,.25,1.05) both}
 @keyframes hibby-genie{0%{opacity:0;transform:translateY(2.5rem) scale(.08,.02);clip-path:polygon(35% 0,65% 0,100% 100%,0 100%);filter:blur(4px)}45%{opacity:1;transform:translateY(.5rem) scale(.55,.7);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);filter:blur(1px)}100%{opacity:1;transform:none;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);filter:none}}
 @media (prefers-reduced-motion:reduce){.hibby-genie{animation:none}}

@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Send, X } from "lucide-react";
-import hibbyMascot from "@/assets/hibby_mascot.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
-import { UserAvatar } from "@/components/UserAvatar";
+import { HibbyAvatar } from "@/components/HibbyAvatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMessages, useRooms, useUnread, markRoomRead } from "@/hooks/useChat";
@@ -13,7 +12,6 @@ import { isSendKey } from "@/lib/chat";
 import { toast } from "sonner";
 
 const db = supabase as any;
-const HIBBY_ID = "00000000-0000-4000-8000-00000000b1bb";
 
 /** Floating personal-assistant button: opens the private Hibby conversation in a small panel, on every HIBE page. */
 export function HibbyFloat() {
@@ -78,7 +76,7 @@ export function HibbyFloat() {
       {open && room && (
         <section aria-label="Gesprek met Hibby" className="hibby-genie fixed bottom-20 right-4 z-[70] flex h-[30rem] max-h-[70dvh] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg">
           <header className="flex h-12 shrink-0 items-center gap-2.5 border-b border-border px-3">
-            <UserAvatar userId={HIBBY_ID} name="Hibby" url={null} size={26} />
+            <HibbyAvatar size={26} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold leading-tight">Hibby</p>
               <p className="text-xs text-muted-foreground leading-tight">Je persoonlijke assistent</p>
@@ -91,7 +89,7 @@ export function HibbyFloat() {
               const mine = m.user_id === me;
               return (
                 <div key={m.id} className={`mb-2 flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
-                  {!mine && <UserAvatar userId={HIBBY_ID} name="Hibby" url={null} size={24} />}
+                  {!mine && <HibbyAvatar size={24} />}
                   <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-foreground text-background" : "bg-muted"}`}>
                     <p className="whitespace-pre-wrap break-words">{m.body}</p>
                     <p className={`mt-0.5 text-[10px] ${mine ? "opacity-60" : "text-muted-foreground"}`}>{new Date(m.created_at).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}</p>
@@ -99,7 +97,7 @@ export function HibbyFloat() {
                 </div>
               );
             })}
-            {busy && <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground"><UserAvatar userId={HIBBY_ID} name="Hibby" url={null} size={24} /><span className="animate-pulse">Hibby denkt na…</span></div>}
+            {busy && <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground"><HibbyAvatar size={24} /><span className="animate-pulse">Hibby denkt na…</span></div>}
             <div ref={endRef} />
           </div>
           <div className="shrink-0 border-t border-border p-2.5">
@@ -112,9 +110,8 @@ export function HibbyFloat() {
           </div>
         </section>
       )}
-      <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" className="hibby-mascot fixed bottom-3 right-3 z-[70] flex h-20 w-16 items-end justify-center">
-        <span className="hibby-shadow" aria-hidden />
-        <img src={hibbyMascot.url} alt="" className="hibby-bob relative h-20 w-auto select-none" draggable={false} />
+      <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" className="hibby-fab fixed bottom-4 right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-full">
+        <HibbyAvatar size={56} className="hibby-bob ring-2 ring-lime" />
         {!open && count > 0 && <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-foreground px-1 text-center text-[11px] font-bold leading-5 text-background tabular" aria-label={`${count} ongelezen`}>{count}</span>}
       </button>
     </>
