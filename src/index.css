@@ -480,3 +480,12 @@ html { scroll-behavior: smooth; }
   html { scroll-behavior: auto; }
   button:active, [role="button"]:active { transform: none; }
 }
+
+/* Hibby mascot */
+.hibby-mascot .hibby-bob{animation:hibby-bob 3.2s var(--ease-soft,ease-in-out) infinite;transform-origin:50% 100%;transition:transform .2s}
+.hibby-mascot:hover .hibby-bob{animation:hibby-wave .7s ease-in-out}
+.hibby-mascot .hibby-shadow{position:absolute;bottom:0;width:2.5rem;height:.4rem;border-radius:9999px;background:hsl(var(--foreground)/.15);filter:blur(2px);animation:hibby-shadow 3.2s ease-in-out infinite}
+@keyframes hibby-bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(-2deg)}}
+@keyframes hibby-shadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.8);opacity:.6}}
+@keyframes hibby-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@media (prefers-reduced-motion:reduce){.hibby-mascot .hibby-bob,.hibby-mascot .hibby-shadow{animation:none}}

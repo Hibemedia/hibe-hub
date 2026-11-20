@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Send, X } from "lucide-react";
+import hibbyMascot from "@/assets/hibby_mascot.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -111,8 +112,9 @@ export function HibbyFloat() {
           </div>
         </section>
       )}
-      <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" className="fixed bottom-4 right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-lime text-lime-foreground shadow-md transition-transform hover:scale-105">
-        <UserAvatar userId={HIBBY_ID} name="Hibby" url={null} size={30} />
+      <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" className="hibby-mascot fixed bottom-3 right-3 z-[70] flex h-20 w-16 items-end justify-center">
+        <span className="hibby-shadow" aria-hidden />
+        <img src={hibbyMascot.url} alt="" className="hibby-bob relative h-20 w-auto select-none" draggable={false} />
         {!open && count > 0 && <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-foreground px-1 text-center text-[11px] font-bold leading-5 text-background tabular" aria-label={`${count} ongelezen`}>{count}</span>}
       </button>
     </>
