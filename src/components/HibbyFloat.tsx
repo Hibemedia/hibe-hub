@@ -47,11 +47,12 @@ export function HibbyFloat() {
 
   const toggle = async () => {
     if (open) return setOpen(false);
-    const id = await ensureRoom();
+    if (room) setOpen(true); // open immediately: no network wait before the animation
+    const id = room?.id ?? await ensureRoom();
     if (!id) return;
     setOpen(true);
     markRoomRead(id, me!).then(() => qc.invalidateQueries({ queryKey: ["chat-unread"] }));
-    setTimeout(() => taRef.current?.focus(), 50);
+    setTimeout(() => taRef.current?.focus({ preventScroll: true }), 520);
   };
 
   const send = async () => {
