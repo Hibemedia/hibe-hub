@@ -83,7 +83,7 @@ async function agendaContext(db: any) {
   const [ev, att, tasks, users, clients] = await Promise.all([
     db.from('calendar_events').select('id,kind,title,start_date,end_date,start_time,end_time,person_id').lte('start_date', to).gte('end_date', from).order('start_date'),
     db.from('calendar_attendees').select('event_id,user_id'),
-    db.from('tasks').select('title,assignee_id,due_date,due_time,client_id').is('done_at', null).order('due_date', { nullsFirst: false }),
+    db.from('tasks').select('id,title,assignee_id,due_date,due_time,client_id').is('done_at', null).order('due_date', { nullsFirst: false }),
     db.from('users').select('id,full_name,email'),
     db.from('clients').select('id,name').is('archived_at', null),
   ])
@@ -94,14 +94,15 @@ async function agendaContext(db: any) {
     l.push(`- ${e.start_date}${e.end_date !== e.start_date ? ' t/m ' + e.end_date : ''}${e.start_time ? ' ' + String(e.start_time).slice(0, 5) + (e.end_time ? '-' + String(e.end_time).slice(0, 5) : '') : ''} | ${e.kind === 'vacation' ? 'VAKANTIE' : 'afspraak'} | ${e.title} | ${who.join(', ') || 'iedereen'}`)
   }
   if (!ev.data?.length) l.push('- geen')
-  l.push('', 'OPEN TAKEN:')
-  for (const t of tasks.data ?? []) l.push(`- ${t.due_date ?? 'geen datum'}${t.due_time ? ' ' + String(t.due_time).slice(0, 5) : ''} | ${t.title} | voor ${un(t.assignee_id)}`)
+  l.push('', 'OPEN TAKEN ([id] datum | titel | voor):')
+  for (const t of tasks.data ?? []) l.push(`- [${t.id}] ${t.due_date ?? 'geen datum'}${t.due_time ? ' ' + String(t.due_time).slice(0, 5) : ''} | ${t.title} | voor ${un(t.assignee_id)}`)
   l.push('', 'TEAMLEDEN (id = naam):', ...(users.data ?? []).map((u: any) => `- ${u.id} = ${un(u.id)}`))
   l.push('', 'ACTIEVE KLANTEN (id = naam):', ...(clients.data ?? []).map((c: any) => `- ${c.id} = ${c.name}`))
   return l.join('\n')
 }
 
 const TOOLS = [
+  { type: 'function', name: 'complete_task', description: 'Vink een open taak af (zet op afgerond), of zet hem weer open.', parameters: { type: 'object', additionalProperties: false, required: ['task_id', 'done'], properties: { task_id: { type: 'string', description: 'id uit OPEN TAKEN' }, done: { type: 'boolean' } } } },
   { type: 'function', name: 'create_task', description: 'Maak een taak aan in de takenlijst.', parameters: { type: 'object', additionalProperties: false, required: ['title', 'assignee_id', 'due_date', 'due_time', 'client_id', 'notes'], properties: { title: { type: 'string' }, assignee_id: { type: 'string', description: 'id van teamlid; standaard de vrager' }, due_date: { type: ['string', 'null'], description: 'YYYY-MM-DD' }, due_time: { type: ['string', 'null'], description: 'HH:MM' }, client_id: { type: ['string', 'null'] }, notes: { type: ['string', 'null'] } } } },
   { type: 'function', name: 'create_calendar_event', description: 'Zet een afspraak (meeting) of vakantie in de HIBE-agenda.', parameters: { type: 'object', additionalProperties: false, required: ['kind', 'title', 'start_date', 'end_date', 'start_time', 'end_time', 'location', 'attendee_ids'], properties: { kind: { type: 'string', enum: ['meeting', 'vacation'] }, title: { type: 'string' }, start_date: { type: 'string' }, end_date: { type: 'string' }, start_time: { type: ['string', 'null'] }, end_time: { type: ['string', 'null'] }, location: { type: ['string', 'null'] }, attendee_ids: { type: 'array', items: { type: 'string' } } } } },
   { type: 'function', name: 'create_shoot_day', description: 'Plan een draaidag/contentmoment voor een klant in.', parameters: { type: 'object', additionalProperties: false, required: ['client_id', 'title', 'date', 'start_time', 'location', 'status', 'crew_ids'], properties: { client_id: { type: 'string' }, title: { type: 'string' }, date: { type: 'string' }, start_time: { type: ['string', 'null'] }, location: { type: ['string', 'null'] }, status: { type: 'string', enum: ['bevestigd', 'aangevraagd'], description: 'bevestigd = vast, aangevraagd = in optie' }, crew_ids: { type: 'array', items: { type: 'string' } } } } },
@@ -109,6 +110,11 @@ const TOOLS = [
 
 async function runTool(udb: any, me: string, name: string, a: any) {
   const nz = (v: any) => (v === '' || v === undefined ? null : v)
+  if (name === 'complete_task') {
+    const { data, error } = await udb.from('tasks').update({ done_at: a.done === false ? null : new Date().toISOString() }).eq('id', a.task_id).select('id')
+    if (error) return { ok: false, error: error.message }
+    return data?.length ? { ok: true } : { ok: false, error: 'taak niet gevonden of geen rechten' }
+  }
   if (name === 'create_task') {
     const { data, error } = await udb.from('tasks').insert({ title: a.title, assignee_id: a.assignee_id || me, due_date: nz(a.due_date), due_time: nz(a.due_time), client_id: nz(a.client_id), notes: nz(a.notes), created_by: me }).select('id').single()
     return error ? { ok: false, error: error.message } : { ok: true, id: data.id }
@@ -129,7 +135,7 @@ async function runTool(udb: any, me: string, name: string, a: any) {
   return { ok: false, error: 'onbekende actie' }
 }
 
-const AGENT = `Je bent nu de persoonlijke assistent van deze ene persoon (een privégesprek). Je kunt ook echt dingen regelen met je acties: taken aanmaken, afspraken of vakanties in de agenda zetten en draaidagen inplannen. Doe dat meteen als de vraag duidelijk is; vraag alleen door als iets essentieels ontbreekt (bijv. welke klant of welke datum). Vragen als "wanneer kan ik ..." beantwoord je door de agenda, vakanties, draaidagen en taken te bekijken en 2-3 concrete vrije momenten voor te stellen. Gebruik altijd de id's uit de lijsten. Bevestig na een actie kort wat je hebt vastgelegd (wat, wanneer, voor wie). Zeg nooit dat iets is gelukt als de actie een fout gaf.`
+const AGENT = `Je bent nu de persoonlijke assistent van deze ene persoon (een privégesprek). Je kunt ook echt dingen regelen met je acties: taken aanmaken en afvinken, afspraken of vakanties in de agenda zetten en draaidagen inplannen. Doe dat meteen als de vraag duidelijk is; vraag alleen door als iets essentieels ontbreekt (bijv. welke klant of welke datum). Vragen als "wanneer kan ik ..." beantwoord je door de agenda, vakanties, draaidagen en taken te bekijken en 2-3 concrete vrije momenten voor te stellen. Gebruik altijd de id's uit de lijsten. Bevestig na een actie kort wat je hebt vastgelegd (wat, wanneer, voor wie). Zeg nooit dat iets is gelukt als de actie een fout gaf.`
 
 async function agent(input: any[], data: string, udb: any, me: string) {
   for (let i = 0; i < 6; i++) {
