@@ -42,7 +42,41 @@ async function context(db: any) {
   return lines.join('\n')
 }
 
-const SYSTEM = `Je bent Hibby, de vrolijke maar to-the-point assistent van videobureau HIBE Media. Je praat Nederlands, informeel (je/jij), kort en duidelijk, zonder emoji en zonder markdown-opmaak (geen sterretjes of kopjes; gewone tekst met streepjes voor lijstjes). Elk gebruikersbericht begint met de naam van de afzender, gevolgd door een dubbele punt. Je weet dus altijd wie iets vraagt: spreek die persoon bij de voornaam aan en houd de namen van verschillende sprekers uit elkaar. Je beantwoordt vragen over de werkzaamheden (draaidagen/contentmomenten, edits, video's en hun status) uitsluitend op basis van de meegegeven gegevens. Staat iets er niet in, zeg dat eerlijk. Gebruik korte lijstjes met datums als dag + datum (bijv. "di 12 nov").`
+async function clientsContext(db: any) {
+  const now = new Date(); const d30 = ams(new Date(now.getTime() - 30 * 864e5)); const month = ams(now).slice(0, 7) + '-01'
+  const [cl, stats, vids, rev, users, runs] = await Promise.all([
+    db.from('clients').select('id,name,video_only,monthly_video_target,capcut_style,tiktok_handle,archived_at').order('name'),
+    db.from('daily_stats').select('client_id,network,date,followers,views,reach,interactions,posts').gte('date', d30),
+    db.from('video_items').select('client_id,status,status_changed_at,created_at').is('archived_at', null),
+    db.from('review_items').select('client_id,status').in('status', ['pending', 'to_review', 'changes_requested']),
+    db.from('users').select('client_id').not('client_id', 'is', null),
+    db.from('sync_runs').select('client_id,status,started_at').order('started_at', { ascending: false }).limit(300),
+  ])
+  const l = ['', 'KLANTEN (alles wat het portaal over ze weet):']
+  for (const c of cl.data ?? []) {
+    const st = (stats.data ?? []).filter((x: any) => x.client_id === c.id)
+    const sum = (k: string) => st.reduce((a: number, x: any) => a + Number(x[k] ?? 0), 0)
+    const fol: Record<string, number> = {}
+    for (const x of st.sort((a: any, b: any) => a.date.localeCompare(b.date))) if (x.followers != null) fol[x.network] = x.followers
+    const v = (vids.data ?? []).filter((x: any) => x.client_id === c.id)
+    const byS: Record<string, number> = {}; for (const x of v) byS[STATUS[x.status] ?? x.status] = (byS[STATUS[x.status] ?? x.status] ?? 0) + 1
+    const doneMonth = v.filter((x: any) => ['approved_client', 'scheduled'].includes(x.status) && x.status_changed_at >= month).length
+    const run = (runs.data ?? []).find((r: any) => r.client_id === c.id)
+    l.push(`- ${c.name}${c.archived_at ? ' (GEARCHIVEERD)' : ''} | id ${c.id} | ${c.video_only ? "alleen video's (geen socials-cijfers)" : 'socials + video'}${c.monthly_video_target ? ` | doel ${c.monthly_video_target} video's/maand, deze maand ${doneMonth} goedgekeurd/ingepland` : ''}${c.tiktok_handle ? ' | TikTok @' + c.tiktok_handle : ''} | klantaccounts: ${(users.data ?? []).filter((u: any) => u.client_id === c.id).length}`)
+    if (!c.video_only && st.length) l.push(`  cijfers laatste 30 dagen: weergaven ${sum('views')}, bereik ${sum('reach')}, interacties ${sum('interactions')}, posts ${sum('posts')}; volgers ${Object.entries(fol).map(([n, f]) => n + ' ' + f).join(', ') || 'onbekend'}`)
+    if (v.length) l.push(`  video's nu: ${Object.entries(byS).map(([k, n]) => k + ' ' + n).join(', ')}`)
+    const r = (rev.data ?? []).filter((x: any) => x.client_id === c.id).length; if (r) l.push(`  open beoordelingen (posts): ${r}`)
+    if (run) l.push(`  laatste sync: ${run.status} op ${ams(new Date(run.started_at))}`)
+    if (c.capcut_style) l.push(`  CapCut-stijl: ${String(c.capcut_style).replace(/\s+/g, ' ').slice(0, 600)}`)
+  }
+  return l.join('\n')
+}
+
+const PLATFORM = `OVER HET PLATFORM (HIBE Space, hibespace.com). Klanten loggen in op / en zien Overzicht, Performance (cijfers uit Instagram, TikTok, Facebook, YouTube via dagelijkse sync om 07:30), Planning (ingeplande posts, met "Download overzicht" pdf), Beoordelen (posts en video's goedkeuren of feedback geven), Video's, Contentmomenten (draaidagen aanvragen), Bibliotheek (bestanden), Medailles. Video-only klanten hebben geen cijfers. HIBE-team werkt op /hibe: Dashboard ("Mijn dag", tellers, Nieuw-knop, socials-checklist), Klanten (beheren, CapCut-stijl, maanddoel, archiveren, "Bekijk als klant"), Media Management (video-stappen: Interne controle -> Feedback verwerken (terug naar de gekoppelde editor) -> CapCut -> Ter controle bij klant -> Goedgekeurd (klant) -> Ingepland; uploaden kan in bulk, prullenbak voor gearchiveerd), Productieboard (fasen, tijd in fase, maand-SLA: Gehaald / Op schema / Aandacht / Loopt achter, doel gedeeld door 4 per week), Edits (montageplanning met editor, deadline, drive-link, draaidag), Agenda (afspraken, vakanties, draaidagen, taken, montages; "Koppelen aan je telefoon" voor iPhone), Taken, Chat (kanalen, privé, Hibby), Socials-checklist (gekoppeld aan de Review Hub). Contentmomenten zijn Bevestigd of In optie. Mails gaan alleen naar de betrokkene (editor bij feedback, edit-editor, taakdoel). Leg op vragen "hoe werkt..." stap voor stap uit waar iets staat.`
+
+const SYSTEM = `Je bent Hibby, de vrolijke maar to-the-point assistent van videobureau HIBE Media. Je praat Nederlands, informeel (je/jij), kort en duidelijk, zonder emoji en zonder markdown-opmaak (geen sterretjes of kopjes; gewone tekst met streepjes voor lijstjes). Elk gebruikersbericht begint met de naam van de afzender, gevolgd door een dubbele punt. Je weet dus altijd wie iets vraagt: spreek die persoon bij de voornaam aan en houd de namen van verschillende sprekers uit elkaar. Je kent alle klanten en het hele platform. Je beantwoordt vragen over klanten, cijfers, CapCut-stijlen, draaidagen, edits, video's en hoe het platform werkt uitsluitend op basis van de meegegeven gegevens. Staat iets er niet in, zeg dat eerlijk. Gebruik korte lijstjes met datums als dag + datum (bijv. "di 12 nov").`
+
+const fullContext = async (db: any) => `${PLATFORM}\n\n${await context(db)}\n${await clientsContext(db)}`
 
 async function agendaContext(db: any) {
   const today = new Date(); const from = ams(today); const to = ams(new Date(today.getTime() + 42 * 864e5))
@@ -173,7 +207,7 @@ Deno.serve(async (req) => {
     : { role: 'user', content: `${nameOf(m.user_id)}: ${m.body}` }) as any
   msgs.push({ role: 'user', content: `[De laatste vraag komt van ${nameOf(u.user.id)}. Spreek deze persoon bij de voornaam aan.]` })
   try {
-    const text = personal ? await agent(msgs, (await context(db)) + (await agendaContext(db)), user, u.user.id) : await ask(msgs, await context(db))
+    const text = personal ? await agent(msgs, (await fullContext(db)) + (await agendaContext(db)), user, u.user.id) : await ask(msgs, await fullContext(db))
     await post(db, room, text || 'Ik kon daar even geen antwoord op vinden.')
     return json({ ok: true })
   } catch (e: any) {
