@@ -77,7 +77,7 @@ export function HibbyFloat() {
       {open && room && (
         <section aria-label="Gesprek met Hibby" className="hibby-genie fixed bottom-20 right-4 z-[70] flex h-[30rem] max-h-[70dvh] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg">
           <header className="flex h-12 shrink-0 items-center gap-2.5 border-b border-border px-3">
-            <HibbyAvatar size={26} />
+            <HibbyAvatar size={26} thinking={busy} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold leading-tight">Hibby</p>
               <p className="text-xs text-muted-foreground leading-tight">Je persoonlijke assistent</p>
@@ -98,7 +98,7 @@ export function HibbyFloat() {
                 </div>
               );
             })}
-            {busy && <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground"><HibbyAvatar size={24} /><span className="animate-pulse">Hibby denkt na…</span></div>}
+            {busy && <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground"><HibbyAvatar size={24} thinking /><span className="animate-pulse">Hibby denkt na…</span></div>}
             <div ref={endRef} />
           </div>
           <div className="shrink-0 border-t border-border p-2.5">
@@ -112,7 +112,7 @@ export function HibbyFloat() {
         </section>
       )}
       <button onClick={toggle} aria-label="Hibby, je persoonlijke assistent" data-open={open || undefined} className="hibby-fab fixed bottom-4 right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-full">
-        <HibbyAvatar size={56} className="hibby-bob ring-2 ring-lime" />
+        <HibbyAvatar size={56} className="hibby-bob ring-2 ring-lime" thinking={busy} />
         {!open && count > 0 && <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-foreground px-1 text-center text-[11px] font-bold leading-5 text-background tabular" aria-label={`${count} ongelezen`}>{count}</span>}
       </button>
     </>

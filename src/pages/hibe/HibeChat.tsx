@@ -25,8 +25,8 @@ const HIBBY: Member = { id: HIBBY_ID, name: "Hibby", avatar_url: null };
 const isInfo = (r: Room) => r.kind === "channel" && r.name === "Informatie";
 const ASKED = "hibe.chat.notifyAsked";
 
-function Avatar({ m, size = 32 }: { m?: Member; size?: number }) {
-  if (m?.id === HIBBY_ID) return <HibbyAvatar size={size} />;
+function Avatar({ m, size = 32, thinking = false }: { m?: Member; size?: number; thinking?: boolean }) {
+  if (m?.id === HIBBY_ID) return <HibbyAvatar size={size} thinking={thinking} />;
   return <UserAvatar userId={m?.id} name={m?.name ?? "?"} url={m?.avatar_url ?? null} size={size} />;
 }
 const Count = ({ n }: { n?: number }) => (n ? <span className="ml-auto min-w-5 rounded-full bg-lime px-1.5 text-center text-[11px] font-bold leading-5 text-lime-foreground tabular" aria-label={`${n} ongelezen`}>{n}</span> : null);
@@ -211,7 +211,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         })}
         {isInfo(room) && msgs.length === 0 && <p className="px-2 py-6 text-center text-sm text-muted-foreground">Stel Hibby een vraag over draaidagen, edits of video's. Elke maandag om 08:00 zet Hibby hier het weekoverzicht neer.</p>}
         {room.kind === "hibby" && msgs.length === 0 && <p className="px-2 py-6 text-center text-sm text-muted-foreground">Vraag Hibby iets of laat hem iets regelen. Bijvoorbeeld: "Wanneer kan ik met Jeroen een overleg plannen?", "Plan een draaidag in voor Jebroer op vrijdag om 10:00" of "Maak een taak voor mij: offerte sturen, morgen".</p>}
-        {hibbyBusy && <div className="flex items-center gap-3 px-2 py-1.5 text-sm text-muted-foreground"><Avatar m={HIBBY} size={34} /><span className="animate-pulse">Hibby denkt na…</span></div>}
+        {hibbyBusy && <div className="flex items-center gap-3 px-2 py-1.5 text-sm text-muted-foreground"><Avatar m={HIBBY} size={34} thinking /><span className="animate-pulse">Hibby denkt na…</span></div>}
         <div ref={endRef} />
       </div>
       <div className="relative shrink-0 border-t border-border p-3">
