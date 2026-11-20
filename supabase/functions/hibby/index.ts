@@ -102,6 +102,7 @@ async function agendaContext(db: any) {
 }
 
 const TOOLS = [
+  { type: 'function', name: 'delete_task', description: 'Verwijder een taak definitief. Alleen als de gebruiker expliciet om verwijderen vraagt.', parameters: { type: 'object', additionalProperties: false, required: ['task_id'], properties: { task_id: { type: 'string', description: 'id uit OPEN TAKEN' } } } },
   { type: 'function', name: 'complete_task', description: 'Vink een open taak af (zet op afgerond), of zet hem weer open.', parameters: { type: 'object', additionalProperties: false, required: ['task_id', 'done'], properties: { task_id: { type: 'string', description: 'id uit OPEN TAKEN' }, done: { type: 'boolean' } } } },
   { type: 'function', name: 'create_task', description: 'Maak een taak aan in de takenlijst.', parameters: { type: 'object', additionalProperties: false, required: ['title', 'assignee_id', 'due_date', 'due_time', 'client_id', 'notes'], properties: { title: { type: 'string' }, assignee_id: { type: 'string', description: 'id van teamlid; standaard de vrager' }, due_date: { type: ['string', 'null'], description: 'YYYY-MM-DD' }, due_time: { type: ['string', 'null'], description: 'HH:MM' }, client_id: { type: ['string', 'null'] }, notes: { type: ['string', 'null'] } } } },
   { type: 'function', name: 'create_calendar_event', description: 'Zet een afspraak (meeting) of vakantie in de HIBE-agenda.', parameters: { type: 'object', additionalProperties: false, required: ['kind', 'title', 'start_date', 'end_date', 'start_time', 'end_time', 'location', 'attendee_ids'], properties: { kind: { type: 'string', enum: ['meeting', 'vacation'] }, title: { type: 'string' }, start_date: { type: 'string' }, end_date: { type: 'string' }, start_time: { type: ['string', 'null'] }, end_time: { type: ['string', 'null'] }, location: { type: ['string', 'null'] }, attendee_ids: { type: 'array', items: { type: 'string' } } } } },
@@ -110,6 +111,11 @@ const TOOLS = [
 
 async function runTool(udb: any, me: string, name: string, a: any) {
   const nz = (v: any) => (v === '' || v === undefined ? null : v)
+  if (name === 'delete_task') {
+    const { data, error } = await udb.from('tasks').delete().eq('id', a.task_id).select('id')
+    if (error) return { ok: false, error: error.message }
+    return data?.length ? { ok: true } : { ok: false, error: 'taak niet gevonden of geen rechten' }
+  }
   if (name === 'complete_task') {
     const { data, error } = await udb.from('tasks').update({ done_at: a.done === false ? null : new Date().toISOString() }).eq('id', a.task_id).select('id')
     if (error) return { ok: false, error: error.message }
@@ -135,7 +141,7 @@ async function runTool(udb: any, me: string, name: string, a: any) {
   return { ok: false, error: 'onbekende actie' }
 }
 
-const AGENT = `Je bent nu de persoonlijke assistent van deze ene persoon (een privégesprek). Je kunt ook echt dingen regelen met je acties: taken aanmaken en afvinken, afspraken of vakanties in de agenda zetten en draaidagen inplannen. Doe dat meteen als de vraag duidelijk is; vraag alleen door als iets essentieels ontbreekt (bijv. welke klant of welke datum). Vragen als "wanneer kan ik ..." beantwoord je door de agenda, vakanties, draaidagen en taken te bekijken en 2-3 concrete vrije momenten voor te stellen. Gebruik altijd de id's uit de lijsten. Bevestig na een actie kort wat je hebt vastgelegd (wat, wanneer, voor wie). Zeg nooit dat iets is gelukt als de actie een fout gaf.`
+const AGENT = `Je bent nu de persoonlijke assistent van deze ene persoon (een privégesprek). Je kunt ook echt dingen regelen met je acties: taken aanmaken, afvinken en verwijderen, afspraken of vakanties in de agenda zetten en draaidagen inplannen. Doe dat meteen als de vraag duidelijk is; vraag alleen door als iets essentieels ontbreekt (bijv. welke klant of welke datum). Vragen als "wanneer kan ik ..." beantwoord je door de agenda, vakanties, draaidagen en taken te bekijken en 2-3 concrete vrije momenten voor te stellen. Gebruik altijd de id's uit de lijsten. Bevestig na een actie kort wat je hebt vastgelegd (wat, wanneer, voor wie). Zeg nooit dat iets is gelukt als de actie een fout gaf.`
 
 async function agent(input: any[], data: string, udb: any, me: string) {
   for (let i = 0; i < 6; i++) {
