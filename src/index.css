@@ -489,3 +489,6 @@ html { scroll-behavior: smooth; }
 @keyframes hibby-shadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.8);opacity:.6}}
 @keyframes hibby-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 @media (prefers-reduced-motion:reduce){.hibby-mascot .hibby-bob,.hibby-mascot .hibby-shadow{animation:none}}
+.hibby-genie{transform-origin:calc(100% - 2rem) calc(100% + 3rem);animation:hibby-genie .45s cubic-bezier(.2,.9,.25,1.05) both}
+@keyframes hibby-genie{0%{opacity:0;transform:translateY(2.5rem) scale(.08,.02);clip-path:polygon(35% 0,65% 0,100% 100%,0 100%);filter:blur(4px)}45%{opacity:1;transform:translateY(.5rem) scale(.55,.7);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);filter:blur(1px)}100%{opacity:1;transform:none;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);filter:none}}
+@media (prefers-reduced-motion:reduce){.hibby-genie{animation:none}}

@@ -76,7 +76,7 @@ export function HibbyFloat() {
   return (
     <>
       {open && room && (
-        <section aria-label="Gesprek met Hibby" className="fixed bottom-20 right-4 z-[70] flex h-[30rem] max-h-[70dvh] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+        <section aria-label="Gesprek met Hibby" className="hibby-genie fixed bottom-20 right-4 z-[70] flex h-[30rem] max-h-[70dvh] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg">
           <header className="flex h-12 shrink-0 items-center gap-2.5 border-b border-border px-3">
             <UserAvatar userId={HIBBY_ID} name="Hibby" url={null} size={26} />
             <div className="min-w-0 flex-1">
