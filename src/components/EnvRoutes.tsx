@@ -9,6 +9,7 @@ import { useClient } from "@/context/ClientContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { FrameTopBar, ClientScopeBar } from "@/components/TopBar";
 import { PageHeaderProvider } from "@/components/PageHeader";
+import { HibbyFloat } from "@/components/HibbyFloat";
 import { useBase } from "@/lib/paths";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -42,6 +43,7 @@ export function HibeEnv() {
             <AppSidebar variant="hibe" />
             <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0"><FrameTopBar variant="hibe" /><div className="app-page-content"><Outlet /></div></main>
           </div>
+          <HibbyFloat />
         </PageHeaderProvider>
       )}
     </ProtectedRoute>
