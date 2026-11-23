@@ -145,7 +145,7 @@ export default function HibeReview() {
             })}
           </div>
           {prev.length > 0 && <p className="border-b border-border px-4 py-2 text-xs"><b>{prev.filter((c) => c.resolved).length} van {prev.length}</b> opmerkingen uit de vorige versie verwerkt</p>}
-          <ol className="flex-1 space-y-2 overflow-y-auto p-3">
+          <ol className="min-h-0 space-y-2 overflow-y-auto p-3">
             {list.length === 0 && <li className="text-sm text-muted-foreground">{tab === "internal" ? "Nog geen interne opmerkingen. Begin te typen; de video pauzeert." : "Nog geen opmerkingen van de klant."}</li>}
             {list.map((c) => (
               <li key={c.id} className={cn("rounded-md border border-border bg-background p-2.5", c.resolved && "opacity-60")}>
