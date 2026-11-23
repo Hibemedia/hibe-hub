@@ -27,37 +27,46 @@ export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: M
   }, [keyboard, dur]);
   const pct = (t: number) => `${dur ? Math.min(100, (t / dur) * 100) : 0}%`;
   const toggle = () => { const el = v.current; if (el) el.paused ? el.play() : el.pause(); };
+  const seekAt = (e: React.PointerEvent<HTMLDivElement>) => { const r = e.currentTarget.getBoundingClientRect(); if (v.current && dur) v.current.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur; };
+  const [drag, setDrag] = useState(false);
+  const ctl = "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-background transition-colors hover:bg-background/20";
   return (
-    <div ref={box} className="flex w-full flex-col items-center gap-2 bg-background [&:fullscreen]:justify-center [&:fullscreen]:bg-foreground">
-      <div className="flex w-full justify-center">
+    <div ref={box} className="flex w-full justify-center bg-background [&:fullscreen]:items-center [&:fullscreen]:bg-foreground">
+      <div className={cn("group relative overflow-hidden rounded-lg bg-foreground", portrait ? "w-auto" : "w-full")} style={{ maxWidth: "100%" }}>
         {url ? (
           <video ref={v} src={url} playsInline preload="metadata" onClick={toggle} x-webkit-airplay="allow"
             onLoadedMetadata={(e) => { const el = e.currentTarget; setDur(el.duration || 0); setPortrait(el.videoHeight >= el.videoWidth); el.playbackRate = rate; }}
             onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
-            className={cn("h-auto shrink-0 rounded-lg bg-foreground", portrait ? "w-auto" : "w-full")} style={{ maxHeight: maxH, maxWidth: "100%" }} />
-        ) : <div className="flex aspect-[9/16] items-center justify-center rounded-lg bg-foreground text-sm text-background/70" style={{ maxHeight: maxH, maxWidth: "100%" }}>Video laden…</div>}
-      </div>
-      <div className="flex w-full max-w-2xl items-center gap-2 px-1">
-        <button onClick={toggle} aria-label={playing ? "Pauzeren" : "Afspelen"} className="round-btn h-9 w-9 shrink-0">{playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}</button>
-        <span className="w-20 shrink-0 text-xs tabular text-muted-foreground">{fmtTime(now)} / {fmtTime(dur)}</span>
-        <div className="relative h-6 flex-1 cursor-pointer" aria-label="Tijdlijn" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); if (v.current && dur) v.current.currentTime = ((e.clientX - r.left) / r.width) * dur; }}>
-          <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-muted" />
-          <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-foreground" style={{ width: pct(now) }} />
-          {markers.map((mk) => (
-            <button key={mk.id} onClick={(e) => { e.stopPropagation(); if (v.current) { v.current.currentTime = mk.t; v.current.pause(); } }} title={`${mk.label} · ${fmtTime(mk.t)}`} aria-label={`Opmerking ${mk.label} op ${fmtTime(mk.t)}`}
-              className={cn("absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background", mk.muted ? "bg-muted-foreground/50" : "bg-lime")} style={{ left: pct(mk.t) }} />
-          ))}
+            className={cn("block h-auto", portrait ? "w-auto" : "w-full")} style={{ maxHeight: maxH, maxWidth: "100%" }} />
+        ) : <div className="flex aspect-[9/16] items-center justify-center text-sm text-background/70" style={{ maxHeight: maxH, maxWidth: "100%" }}>Video laden…</div>}
+        <div className={cn("absolute inset-x-0 bottom-0 bg-foreground/55 px-2 pb-1.5 pt-1 backdrop-blur-sm transition-opacity duration-200", playing && !drag ? "opacity-0 group-hover:opacity-100 focus-within:opacity-100" : "opacity-100")}>
+          <div className="group/tl relative h-4 cursor-pointer touch-none" aria-label="Tijdlijn"
+            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setDrag(true); seekAt(e); }}
+            onPointerMove={(e) => { if (drag) seekAt(e); }}
+            onPointerUp={() => setDrag(false)} onPointerCancel={() => setDrag(false)}>
+            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-background/30 transition-all group-hover/tl:h-1.5" />
+            <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-lime transition-all group-hover/tl:h-1.5" style={{ width: pct(now) }} />
+            <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime opacity-0 transition-opacity group-hover/tl:opacity-100" style={{ left: pct(now) }} />
+            {markers.map((mk) => (
+              <button key={mk.id} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); if (v.current) { v.current.currentTime = mk.t; v.current.pause(); } }} title={`${mk.label} · ${fmtTime(mk.t)}`} aria-label={`Opmerking ${mk.label} op ${fmtTime(mk.t)}`}
+                className={cn("absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-foreground/60", mk.muted ? "bg-background/60" : "bg-background")} style={{ left: pct(mk.t) }} />
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={toggle} aria-label={playing ? "Pauzeren" : "Afspelen"} className={ctl}>{playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}</button>
+            <span className="flex-1 truncate text-xs tabular text-background/90">{fmtTime(now)} / {fmtTime(dur)}</span>
+            <select aria-label="Snelheid" value={rate} onChange={(e) => { const r = Number(e.target.value); setRate(r); if (v.current) v.current.playbackRate = r; }} className="h-7 rounded-md border-0 bg-transparent px-1 text-xs text-background hover:bg-background/20 [&>option]:text-foreground">
+              {[0.5, 1, 1.5, 2].map((r) => <option key={r} value={r}>{String(r).replace(".", ",")}x</option>)}
+            </select>
+            {airOk && <button aria-label="AirPlay" title="Afspelen op Apple TV" onClick={airplay} className={ctl}><Airplay className="h-4 w-4" /></button>}
+            <button aria-label="Volledig scherm" onClick={() => {
+              if (document.fullscreenElement) { document.exitFullscreen(); return; }
+              const video = v.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+              if (box.current?.requestFullscreen) box.current.requestFullscreen().catch(() => video?.webkitEnterFullscreen?.());
+              else video?.webkitEnterFullscreen?.(); // iPhone-Safari kent alleen fullscreen op de video zelf
+            }} className={ctl}><Maximize className="h-4 w-4" /></button>
+          </div>
         </div>
-        <select aria-label="Snelheid" value={rate} onChange={(e) => { const r = Number(e.target.value); setRate(r); if (v.current) v.current.playbackRate = r; }} className="h-8 rounded-md border border-border bg-popover px-1 text-xs">
-          {[0.5, 1, 1.5, 2].map((r) => <option key={r} value={r}>{String(r).replace(".", ",")}x</option>)}
-        </select>
-        {airOk && <button aria-label="AirPlay" title="Afspelen op Apple TV" onClick={airplay} className="round-btn h-9 w-9 shrink-0"><Airplay className="h-4 w-4" /></button>}
-        <button aria-label="Volledig scherm" onClick={() => {
-          if (document.fullscreenElement) { document.exitFullscreen(); return; }
-          const video = v.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
-          if (box.current?.requestFullscreen) box.current.requestFullscreen().catch(() => video?.webkitEnterFullscreen?.());
-          else video?.webkitEnterFullscreen?.(); // iPhone-Safari kent alleen fullscreen op de video zelf
-        }} className="round-btn h-9 w-9 shrink-0"><Maximize className="h-4 w-4" /></button>
       </div>
     </div>
   );
