@@ -43,6 +43,9 @@
 ## Beoordelingscherm (video's)
 - [x] Typvak voor opmerkingen staat direct onder de laatste feedback; de rest van de kolom blijft eronder leeg. De kolom is eigen hoog gemaakt zodat de pagina zelf niet meer scrollt en het typvak altijd in beeld blijft. Video zonder zwarte balken, lijst scrolt intern, typvak wijkt voor de zwevende Hibby-knop. Opmerking plaatsen getest (4 → 5, teruggelezen, testopmerking weer verwijderd), build OK.
 
+## CapCut-stap
+- [x] Klikken op een video in de CapCut-stap opent de video zelf (zoals in de andere stappen) in plaats van meteen te downloaden; downloaden blijft via de knop Download of het ···-menu.
+
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
 - [x] Klantvideoarchief zichtbaar bij Video's en Branding & Archief, met zoeken en downloads van bestaande R2-video's.
