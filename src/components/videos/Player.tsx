@@ -59,8 +59,8 @@ export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: M
             onPointerDown={startDrag}
             onPointerMove={(e) => { if (drag) seekAt(e); }}
             onPointerUp={endDrag} onPointerCancel={endDrag}>
-            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-background/30 transition-all group-hover/tl:h-1.5" />
-            <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-lime transition-all group-hover/tl:h-1.5" style={{ width: pct(now) }} />
+            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-background/30 transition-[height] group-hover/tl:h-1.5" />
+            <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-lime transition-[height] group-hover/tl:h-1.5" style={{ width: pct(now) }} />
             <div className={cn("absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime transition-opacity", drag ? "opacity-100" : "opacity-0 group-hover/tl:opacity-100")} style={{ left: pct(now) }} />
             {markers.map((mk) => (
               <button key={mk.id} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); if (v.current) { v.current.currentTime = mk.t; v.current.pause(); } }} title={`${mk.label} · ${fmtTime(mk.t)}`} aria-label={`Opmerking ${mk.label} op ${fmtTime(mk.t)}`}
