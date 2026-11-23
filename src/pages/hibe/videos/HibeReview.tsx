@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Lock, PanelLeftClose, PanelLeftOpen, Download, Upload } from "lucide-react";
+import { ArrowLeft, Lock, PanelLeftClose, PanelLeftOpen, Download, Upload, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { useMedia } from "@/components/videos/useMedia";
@@ -101,7 +101,7 @@ export default function HibeReview() {
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
           <FeedbackEditor key={item.id} itemId={item.id} title={item.title} editorId={item.editor_id} disabled={busy} onSavingChange={setEditorSaving} />
-          <Button variant="outline" className="max-w-full" disabled={busy || editorSaving || !item.editor_id || openCount === 0} title={!item.editor_id ? "Kies eerst een editor" : openCount === 0 ? "Plaats eerst minstens één opmerking" : undefined} onClick={() => decide("feedback")}><span className="truncate">{editorName ? `Terug naar ${editorName}` : "Terug naar editor"}</span></Button>
+          <Button variant="outline" className="max-w-full border-destructive/40 bg-destructive/10 font-semibold text-destructive hover:bg-destructive/15 hover:text-destructive" disabled={busy || editorSaving || !item.editor_id || openCount === 0} title={!item.editor_id ? "Kies eerst een editor" : openCount === 0 ? "Plaats eerst minstens één opmerking" : undefined} onClick={() => decide("feedback")}><Undo2 /><span className="truncate">{editorName ? `Afkeuren naar ${editorName}` : "Afkeuren naar editor"}</span></Button>
           <Button disabled={busy || editorSaving} onClick={() => decide("approved_internal")}>Goedkeuren</Button>
         </div>
       </header>
