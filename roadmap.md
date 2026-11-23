@@ -44,7 +44,9 @@
 - [x] Typvak voor opmerkingen staat direct onder de laatste feedback; de rest van de kolom blijft eronder leeg. De kolom is eigen hoog gemaakt zodat de pagina zelf niet meer scrollt en het typvak altijd in beeld blijft. Video zonder zwarte balken, lijst scrolt intern, typvak wijkt voor de zwevende Hibby-knop. Opmerking plaatsen getest (4 → 5, teruggelezen, testopmerking weer verwijderd), build OK.
 
 ## CapCut-stap
-- [x] Klikken op een video in de CapCut-stap opent de video zelf (zoals in de andere stappen) in plaats van meteen te downloaden; downloaden blijft via de knop Download of het ···-menu.
+- [x] Klikken op een video in de CapCut-stap opent de video zelf (zoals in de andere stappen) in plaats van meteen te downloaden.
+- [x] Downloaden kan alleen nog via de knop Download; die knop staat nu in elke stap en het ···-menu heeft geen Download meer. Rij-klik en ···-menu gecontroleerd in de preview (geen download, downloadknop start wél).
+- [x] Een video uit de CapCut-stap opent zonder beoordelingsknoppen en zonder opmerkingenkolom (intern al goedgekeurd): alleen de speler, versie, Download, Nieuwe versie en de CapCut-stijl van de klant. Video in een andere stap toont die knoppen en kolom nog wél (gecontroleerd bij interne controle).
 
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).

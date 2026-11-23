@@ -57,6 +57,8 @@ export default function HibeReview() {
   const prev = all.filter((c) => verOf(c) < (version?.version ?? 0) && verOf(c) === (version?.version ?? 0) - 1);
   const list = shown.filter((c) => (tab === "internal" ? c.internal : !c.internal)).sort((a, b) => Number(a.resolved) - Number(b.resolved) || verOf(a) - verOf(b) || a.time_seconds - b.time_seconds);
   const openCount = all.filter((c) => !c.resolved).length;
+  // CapCut-final: intern al goedgekeurd, dus hier alleen kijken — geen beoordelingsknoppen en geen opmerkingenpaneel.
+  const quiet = item?.status === "approved_internal";
 
   const reload = () => { qc.invalidateQueries({ queryKey: ["video-item", id] }); qc.invalidateQueries({ queryKey: ["video-items"] }); qc.invalidateQueries({ queryKey: ["video-comments"] }); };
   const typing = (v: string) => {
@@ -91,7 +93,7 @@ export default function HibeReview() {
 
   return (
     <div className="flex min-h-[calc(100vh-56px)] flex-col md:h-[calc(100vh-104px)] md:min-h-0">
-      <PageHeader title="Beoordelen" />
+      <PageHeader title={quiet ? "Video" : "Beoordelen"} />
       <header className="sticky top-14 z-20 flex flex-wrap items-center gap-3 border-b border-border bg-background px-4 py-3">
         <Link to={back} aria-label="Terug naar de stap" className="round-btn h-9 w-9"><ArrowLeft className="h-4 w-4" /></Link>
         {m.mark(item.client_id, 28)}
@@ -100,11 +102,13 @@ export default function HibeReview() {
           <p className="flex min-w-0 items-center gap-2"><span className="truncate font-semibold">{item.title}</span><span className="text-sm text-muted-foreground">V{version?.version ?? item.current_version}</span>
             <StatusLabel status={item.status} label={VIDEO_STATUS_LABEL[item.status]} /></p>
         </div>
+        {!quiet && (
         <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
           <FeedbackEditor key={item.id} itemId={item.id} title={item.title} editorId={item.editor_id} disabled={busy} onSavingChange={setEditorSaving} />
           <Button variant="outline" className="max-w-full border-destructive/40 bg-destructive/10 font-semibold text-destructive hover:bg-destructive/15 hover:text-destructive" disabled={busy || editorSaving || !item.editor_id || openCount === 0} title={!item.editor_id ? "Kies eerst een editor" : openCount === 0 ? "Plaats eerst minstens één opmerking" : undefined} onClick={() => decide("feedback")}><Undo2 /><span className="truncate">{editorName ? `Afkeuren naar ${editorName}` : "Afkeuren naar editor"}</span></Button>
           <Button disabled={busy || editorSaving} onClick={() => decide("approved_internal")}>Goedkeuren</Button>
         </div>
+        )}
       </header>
 
       <div className="flex min-h-0 flex-1">
@@ -137,6 +141,7 @@ export default function HibeReview() {
           <CapcutStyle clientId={item.client_id} />
         </main>
 
+        {!quiet && (
         <aside className="hidden min-h-0 w-[360px] shrink-0 flex-col border-l border-border bg-card md:flex">
           <div className="grid grid-cols-2 border-b border-border" role="tablist">
             {(["internal", "client"] as const).map((t) => {
@@ -172,6 +177,7 @@ export default function HibeReview() {
             </form>
           )}
         </aside>
+        )}
       </div>
     </div>
   );
