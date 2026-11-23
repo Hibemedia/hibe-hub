@@ -41,7 +41,7 @@
 - [x] Lange klantnamen passen nu: naam mag over twee regels lopen, een toevoeging als "(niet inplannen)" staat klein en grijs, en de tabel loopt niet meer buiten beeld op een breed scherm (0px overflow, namen volledig leesbaar gecontroleerd op 1440/768/390px).
 
 ## Beoordelingscherm (video's)
-- [x] Typvak voor opmerkingen staat onder de opmerkingenlijst, vast onderaan de rechterkolom; de kolom is eigen hoog gemaakt zodat de pagina zelf niet meer scrollt en het typvak altijd in beeld blijft. Video zonder zwarte balken, lijst scrolt intern, typvak wijkt voor de zwevende Hibby-knop. Opmerking plaatsen getest (4 → 5, teruggelezen, testopmerking weer verwijderd), build OK.
+- [x] Typvak voor opmerkingen staat direct onder de laatste feedback; de rest van de kolom blijft eronder leeg. De kolom is eigen hoog gemaakt zodat de pagina zelf niet meer scrollt en het typvak altijd in beeld blijft. Video zonder zwarte balken, lijst scrolt intern, typvak wijkt voor de zwevende Hibby-knop. Opmerking plaatsen getest (4 → 5, teruggelezen, testopmerking weer verwijderd), build OK.
 
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
