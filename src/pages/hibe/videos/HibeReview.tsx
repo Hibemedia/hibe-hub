@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Lock, PanelLeftClose, PanelLeftOpen, Download, Upload, Undo2 } from "lucide-react";
+import { ArrowLeft, Lock, PanelLeftClose, PanelLeftOpen, Download, Upload, Undo2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { useMedia } from "@/components/videos/useMedia";
@@ -71,6 +71,7 @@ export default function HibeReview() {
     setText(""); setStamp(null); reload();
   };
   const resolve = async (c: VideoComment, v: boolean) => { const { error } = await db.from("video_comments").update({ resolved: v }).eq("id", c.id); if (error) toast.error(error.message); else reload(); };
+  const remove = async (c: VideoComment) => { const { error } = await db.from("video_comments").delete().eq("id", c.id); if (error) toast.error(error.message); else { toast.success("Opmerking verwijderd"); reload(); } };
   const decide = async (to: VideoStatus) => {
     if (!item || editorSaving) return;
     if (to === "feedback" && missingFeedbackEditors([item]).length) return toast.error("Kies eerst een editor bij deze video");
@@ -155,7 +156,10 @@ export default function HibeReview() {
                     <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"><b className="text-foreground">{m.names[c.user_id] ?? (c.internal ? "HIBE" : m.clientName(item.client_id))}</b><Tag className=" tabular">{fmtTime(c.time_seconds)}</Tag>{verOf(c) !== version?.version && <Tag className="">V{verOf(c)}</Tag>}<span className="tabular">{fmtStamp(c.created_at)}</span></span>
                     <p className={cn("mt-1 whitespace-pre-wrap break-words text-sm", c.resolved && "line-through")}>{c.text}</p>
                   </button>
-                  <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"><Checkbox checked={c.resolved} onCheckedChange={(v) => resolve(c, !!v)} aria-label={`Opmerking ${c.number} verwerkt`} />verwerkt</label>
+                  <span className="flex shrink-0 flex-col items-end gap-1">
+                    <label className="flex items-center gap-1 text-xs text-muted-foreground"><Checkbox checked={c.resolved} onCheckedChange={(v) => resolve(c, !!v)} aria-label={`Opmerking ${c.number} verwerkt`} />verwerkt</label>
+                    <button onClick={() => remove(c)} aria-label={`Opmerking ${c.number} verwijderen`} title="Verwijderen" className="round-btn h-7 w-7 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </span>
                 </div>
               </li>
             ))}
