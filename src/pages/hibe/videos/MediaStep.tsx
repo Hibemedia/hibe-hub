@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload, MessageSquare, MoreHorizontal, Search, Send, Trash2, RotateCcw } from "lucide-react";
+import { Upload, MessageSquare, MoreHorizontal, Search, Send, Trash2, RotateCcw, Download } from "lucide-react";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useMedia";
 import { VideoThumb } from "@/components/videos/parts";
@@ -149,14 +149,15 @@ export default function MediaStep() {
                   <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>
                   <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
                     {!trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
-                    {trashView ? <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>
-                      : <>{status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}{status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</Button>}{a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}</>}
+                    {trashView && <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>}
+                    {!trashView && status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}
+                    <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}><Download />Download</Button>
+                    {!trashView && a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><button aria-label="Meer acties" className="round-btn h-8 w-8"><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {!trashView && <DropdownMenuSub><DropdownMenuSubTrigger>Verplaats naar</DropdownMenuSubTrigger>
                           <DropdownMenuSubContent>{ALL.filter((s) => s !== i.status).map((s) => <DropdownMenuItem key={s} disabled={savingEditors.has(i.id)} onClick={() => move([i.id], s)}>{s === "feedback" ? i.editor_id ? `Terug naar ${m.names[i.editor_id] ?? "editor"}` : "Editor kiezen voor feedback…" : s === "archived" ? "Archief" : VIDEO_STATUS_LABEL[s]}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>}
-                        <DropdownMenuItem onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}>Download</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => rename(i)}>Hernoem</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {trashView ? <DropdownMenuItem className="text-destructive" onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</DropdownMenuItem>
