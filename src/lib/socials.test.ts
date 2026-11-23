@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { mondayOf, weekDates, ymd, statusOf, socialPreviewRows, type SClient, type Post, type Week, type SocialVideoLink } from "./socials";
+import { mondayOf, weekDates, ymd, statusOf, socialPreviewRows, filterPickableVideos, type SClient, type Post, type Week, type SocialVideoLink } from "./socials";
 describe("socials", () => {
   it("monday of a sunday is the previous monday", () => expect(ymd(mondayOf(new Date(2026, 10, 15)))).toBe("2026-11-09"));
   it("monday of a monday is itself", () => expect(ymd(mondayOf(new Date(2026, 10, 9)))).toBe("2026-11-09"));
@@ -59,5 +59,25 @@ describe("socials", () => {
     expect(r.rows[0].done).toBe(2);
     expect(r.rows[0].target).toBe(2);
     expect(r.rows[0].open).toBe(false);
+  });
+
+  const vid = (id: string, client_id: string, title: string, status = "approved_client") =>
+    ({ id, client_id, title, status });
+  const names = (id: string) => ({ a: "Appelboom", b: "Banaan" } as Record<string, string>)[id] ?? "Klant";
+
+  it("video picker hides archived videos", () => {
+    const list = filterPickableVideos([vid("v1", "a", "Reel"), vid("v2", "a", "Oude take", "archived")], "", names);
+    expect(list.map((v) => v.id)).toEqual(["v1"]);
+  });
+  it("video picker searches title and client name", () => {
+    const all = [vid("v1", "a", "Behind the scenes"), vid("v2", "b", "Kitchen loop"), vid("v3", "b", "Interview")];
+    expect(filterPickableVideos(all, "kitch", names).map((v) => v.id)).toEqual(["v2"]);
+    expect(filterPickableVideos(all, "bana", names).map((v) => v.id)).toEqual(["v2", "v3"]);
+  });
+  it("video picker can limit to one client", () => {
+    const all = [vid("v1", "a", "Reel"), vid("v2", "b", "Loop")];
+    expect(filterPickableVideos(all, "", names, "Banaan").map((v) => v.id)).toEqual(["v2"]);
+    expect(filterPickableVideos(all, "reel", names, "Banaan")).toEqual([]);
+    expect(filterPickableVideos(all, "", names, "banaan ").map((v) => v.id)).toEqual(["v2"]);
   });
 });

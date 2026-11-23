@@ -3,14 +3,11 @@ import { FilterChip } from "@/components/ui/filter-chip";
 import { Tag } from "@/components/ui/tag";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Link2, Plus, Trash2, Unlink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Link2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { EmptyState } from "@/components/StatsOverview";
+import { PostFields, SocialsCellPanel, statusBarCls, type SocialsCell } from "@/components/SocialsCellPanel";
 import { useClient } from "@/context/ClientContext";
 import { useVideoItems } from "@/hooks/useVideos";
 import { VIDEO_STATUS_LABEL } from "@/lib/videos";
@@ -25,36 +22,6 @@ const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 const DOW_LETTERS = ["m", "d", "w", "d", "v", "z", "z"];
 const dow = (d: string) => (new Date(d + "T00:00:00").getDay() + 6) % 7; // 0 = maandag
 
-/** Colored left strip per status in the status picker popup, matching the legend. */
-const statusBarCls = (s: PostStatus) =>
-  s === "scheduled" ? "border-l-[hsl(var(--social-green-fg))]"
-  : s === "none" ? "border-l-border"
-  : s === "to_post" ? "border-l-[hsl(var(--social-amber-fg))]"
-  : s === "internal_check" ? "border-l-[hsl(var(--social-orange-fg))]"
-  : s === "client_check" ? "border-l-[hsl(var(--social-cyan-fg))]"
-  : s === "in_progress" ? "border-l-[hsl(var(--social-blue-fg))]"
-  : "border-l-[hsl(var(--social-purple-fg))]"; // to_schedule
-
-/** Name + link fields of a checklist cell, saved together with one explicit button. */
-function PostFields({ title, note, onSave }: { title: string; note: string; onSave: (title: string, note: string) => void }) {
-  const [t, setT] = useState(title);
-  const [n, setN] = useState(note);
-  const dirty = t !== title || n !== note;
-  return (
-    <div className="space-y-2">
-      <div className="space-y-1">
-        <Label className="text-xs">Naam van de video</Label>
-        <Input value={t} onChange={(e) => setT(e.target.value)} placeholder="Bijv. Behind the scenes" />
-      </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Link van de video</Label>
-        <Input value={n} onChange={(e) => setN(e.target.value)} placeholder="https://…" />
-      </div>
-      <Button size="sm" className="w-full" disabled={!dirty} onClick={() => onSave(t, n)}>Opslaan</Button>
-    </div>
-  );
-}
-
 /** Week- of maandtabel van de Review Hub-checklist: zelfde layout als het origineel, plus voortgang en videokoppelingen. */
 export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {}) {
   const qc = useQueryClient();
@@ -63,6 +30,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
   const [offset, setOffset] = useState(0);
   const [openOnly, setOpenOnly] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
+  const [cell, setCell] = useState<SocialsCell | null>(null);
 
   const today = ymd(new Date());
   const { dates, from, to, weekFrom, label } = useMemo(() => {
@@ -190,58 +158,15 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
     const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [st.label, p?.title, p?.note].filter(Boolean).join(" — ");
     return (
       <td key={d} className={cn("border border-border p-0", d === today && "ring-2 ring-inset ring-foreground")}>
-        <Popover open={menu === k} onOpenChange={(o) => { if (!o && menu === k) setMenu(null); }}>
-          <PopoverTrigger asChild>
-            <button
-              aria-label={`${c.name} ${d}: ${st.label}`}
-              title={hover}
-              onClick={() => setMenu(k)}
-              className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
-              {st.symbol}
-              {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-control bg-current opacity-70" />}
-              {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-72 space-y-3">
-            <p className="text-sm font-semibold">{c.name} · {new Date(d + "T00:00:00").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" })}</p>
-            {l ? (
-              <div className="space-y-2 rounded-md bg-background p-2.5">
-                <p className="flex items-center gap-1.5 text-xs font-medium"><Link2 className="h-3.5 w-3.5" />Volgt de status van de video</p>
-                <p className="truncate text-sm font-semibold">{video?.title ?? "Video niet gevonden"}</p>
-                {video && <p className="text-xs text-muted-foreground">{hibeName(video.client_id)} · {VIDEO_STATUS_LABEL[video.status]}</p>}
-                <button onClick={() => { unlink(l.id); setMenu(null); }} className="inline-flex items-center gap-1 text-xs text-destructive"><Unlink className="h-3 w-3" />Koppeling verwijderen</button>
-              </div>
-            ) : (
-              <>
-                <div className="overflow-hidden rounded-md border border-border">
-                  {STATUSES.map((s) => (
-                    <button key={s.key} onClick={() => savePost(c.id, d, { status: s.key })}
-                      className={cn("flex w-full items-center gap-2 border-l-4 px-3 py-2 text-left text-sm transition hover:bg-muted/60", statusBarCls(s.key), eff === s.key ? "bg-muted font-semibold" : "bg-card")}>
-                      <b className="w-4 text-center">{s.symbol || "–"}</b>{s.label}
-                    </button>
-                  ))}
-                </div>
-                <PostFields title={p?.title ?? ""} note={p?.note ?? ""} onSave={(t, n) => savePost(c.id, d, { title: t || null, note: n || null })} />
-                <div className="space-y-1">
-                  <Label className="text-xs">Koppel een video uit Video's</Label>
-                  <Command className="rounded-md border border-border">
-                    <CommandInput placeholder="Zoek een video…" className="h-9" />
-                    <CommandList className="max-h-56 overflow-y-auto">
-                      <CommandEmpty>Geen video gevonden.</CommandEmpty>
-                      <CommandGroup>
-                        {videos.filter((v) => v.status !== "archived").map((v) => (
-                          <CommandItem key={v.id} value={`${v.title} ${hibeName(v.client_id)} ${v.id}`} onSelect={() => { link(c.id, d, v.id); setMenu(null); }}>
-                            <span className="truncate">{v.title} · {hibeName(v.client_id)}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </div>
-              </>
-            )}
-          </PopoverContent>
-        </Popover>
+        <button
+          aria-label={`${c.name} ${d}: ${st.label}`}
+          title={hover}
+          onClick={() => setCell({ clientId: c.id, date: d })}
+          className={cn("relative flex w-full items-center justify-center font-bold transition hover:brightness-95", view === "week" ? "h-9" : "aspect-square text-[11px]", eff === "none" && weekend ? "bg-muted" : cellCls(eff))}>
+          {st.symbol}
+          {(p?.note || p?.title) && !l && <span className="absolute bottom-0.5 right-0.5 h-1 w-1 rounded-control bg-current opacity-70" />}
+          {l && <Link2 className="absolute right-0.5 top-0.5 h-2.5 w-2.5" aria-hidden />}
+        </button>
       </td>
     );
   };
@@ -317,6 +242,13 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
 
   const periodWord = view === "week" ? "deze week" : "deze maand";
 
+  /** Everything the right-hand sidebar needs to know about the open cell. */
+  const cellPost = cell ? posts.get(`${cell.clientId}_${cell.date}`) ?? null : null;
+  const cellLink = cell ? linkFor(cell.clientId, cell.date) ?? null : null;
+  const cellVideo = cellLink ? videos.find((v) => v.id === cellLink.video_item_id) ?? null : null;
+  const cellEff: PostStatus = cell ? effStatus(cell.clientId, cell.date) : "none";
+  const cellLabel = cell ? (data?.clients ?? []).find((c) => c.id === cell.clientId)?.name ?? hibeName(cell.clientId) : "";
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -371,7 +303,21 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-muted-foreground">Klik op een vakje voor de volgende status · rechtsklik of houd ingedrukt voor titel, notitie en koppeling.</p>
+      <p className="text-xs text-muted-foreground">Klik op een vakje voor status, titel en het koppelen van een video.</p>
+      <SocialsCellPanel
+        cell={cell}
+        cellLabel={cellLabel}
+        eff={cellEff}
+        post={cellPost}
+        link={cellLink}
+        video={cellVideo}
+        videos={videos}
+        clientName={hibeName}
+        onSave={(patch) => { if (cell) savePost(cell.clientId, cell.date, patch); }}
+        onLink={(videoId) => { if (cell) { link(cell.clientId, cell.date, videoId); setCell(null); } }}
+        onUnlink={() => { if (cellLink) unlink(cellLink.id); }}
+        onClose={() => setCell(null)}
+      />
     </div>
   );
 }

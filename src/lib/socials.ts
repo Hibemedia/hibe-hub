@@ -51,6 +51,27 @@ export const videoToPostStatus = (s: string): PostStatus =>
 
 export type SocialVideoLink = { id: string; social_client_id: string; post_date: string; video_item_id: string };
 
+/**
+ * Videos that can be linked to a checklist cell: everything outside the archive,
+ * narrowed by a free-text search (title or client name) and optionally by client name.
+ * The checklist and Video's keep their own client ids, so the name is the only thing
+ * both sides agree on.
+ */
+export function filterPickableVideos<T extends { id: string; client_id: string; title: string; status: string }>(
+  videos: T[],
+  query: string,
+  clientName: (id: string) => string,
+  onlyClientName?: string | null,
+): T[] {
+  const q = query.trim().toLowerCase();
+  const only = onlyClientName?.trim().toLowerCase();
+  return videos.filter((v) =>
+    v.status !== "archived"
+    && (!only || clientName(v.client_id).trim().toLowerCase() === only)
+    && (!q || v.title.toLowerCase().includes(q) || clientName(v.client_id).toLowerCase().includes(q)),
+  );
+}
+
 /** Links between checklist cells and Video's items, stored in HIBE Hub itself. */
 export function useSocialVideoLinks() {
   return useQuery({
