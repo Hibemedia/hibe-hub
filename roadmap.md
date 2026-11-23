@@ -40,6 +40,9 @@
 - [x] Videokeuze is een zijpaneel rechts dat bij een vakje opent: status, titel/link en de volledige videelijst met zoekvak en filter op eigen klant, altijd in beeld; koppelen, loskoppelen, status en titel gecontroleerd in de preview en weer hersteld, 123 tests slagen, build OK.
 - [x] Lange klantnamen passen nu: naam mag over twee regels lopen, een toevoeging als "(niet inplannen)" staat klein en grijs, en de tabel loopt niet meer buiten beeld op een breed scherm (0px overflow, namen volledig leesbaar gecontroleerd op 1440/768/390px).
 
+## Beoordelingscherm (video's)
+- [x] Typvak voor opmerkingen staat onder de opmerkingenlijst, vast onderaan de rechterkolom; de kolom is eigen hoog gemaakt zodat de pagina zelf niet meer scrollt en het typvak altijd in beeld blijft. Video zonder zwarte balken, lijst scrolt intern, typvak wijkt voor de zwevende Hibby-knop. Opmerking plaatsen getest (4 → 5, teruggelezen, testopmerking weer verwijderd), build OK.
+
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
 - [x] Klantvideoarchief zichtbaar bij Video's en Branding & Archief, met zoeken en downloads van bestaande R2-video's.

@@ -89,7 +89,7 @@ export default function HibeReview() {
   if (!item) return <div className="mx-auto max-w-3xl p-8"><section className="rounded-lg border border-border bg-card"><EmptyState text="Deze video is niet (meer) beschikbaar." /></section></div>;
 
   return (
-    <div className="flex min-h-[calc(100vh-56px)] flex-col">
+    <div className="flex min-h-[calc(100vh-56px)] flex-col md:h-[calc(100vh-104px)] md:min-h-0">
       <PageHeader title="Beoordelen" />
       <header className="sticky top-14 z-20 flex flex-wrap items-center gap-3 border-b border-border bg-background px-4 py-3">
         <Link to={back} aria-label="Terug naar de stap" className="round-btn h-9 w-9"><ArrowLeft className="h-4 w-4" /></Link>
@@ -107,13 +107,13 @@ export default function HibeReview() {
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className={cn("hidden shrink-0 border-r border-border bg-card lg:block", side ? "w-60" : "w-12")}>
+        <aside className={cn("hidden shrink-0 overflow-hidden border-r border-border bg-card lg:flex lg:flex-col", side ? "w-60" : "w-12")}>
           <div className="flex items-center justify-between p-2">
             {side && <span className="px-1 text-xs font-medium text-muted-foreground">Ook in deze stap ({siblings.length})</span>}
             <button aria-label={side ? "Lijst inklappen" : "Lijst uitklappen"} onClick={() => setSide((s) => { localStorage.setItem("hibe.review.side", s ? "0" : "1"); return !s; })} className="round-btn h-8 w-8">{side ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}</button>
           </div>
           {side && (siblings.length === 0 ? <p className="px-3 text-xs text-muted-foreground">Geen andere video's in deze stap.</p> : (
-            <ul className="space-y-1 overflow-y-auto px-2 pb-4">
+            <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-4">
               {siblings.map((s) => (
                 <li key={s.id}><Link to={`/hibe/videos/${s.id}`} className="flex items-center gap-2 rounded-md p-1.5 hover:bg-muted">
                   <VideoThumb versionId={s.versionId} className="h-12 w-[27px]" logo={m.mark(s.client_id, 16)} />
@@ -124,7 +124,7 @@ export default function HibeReview() {
           ))}
         </aside>
 
-        <main className="min-w-0 flex-1 space-y-3 p-4">
+        <main className="min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto p-4">
           <Player ref={player} url={url} maxH="calc(100vh - 300px)" markers={shown.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number), muted: c.resolved }))} />
           <div className="flex flex-wrap items-center justify-center gap-2">
             {versions.map((v) => <FilterChip key={v.id} aria-pressed={v.id === version?.id} onClick={() => setVerNo(v.version)} className=" h-8">V{v.version}</FilterChip>)}
@@ -136,7 +136,7 @@ export default function HibeReview() {
           <CapcutStyle clientId={item.client_id} />
         </main>
 
-        <aside className="hidden w-[360px] shrink-0 flex-col border-l border-border bg-card md:flex">
+        <aside className="hidden min-h-0 w-[360px] shrink-0 flex-col border-l border-border bg-card md:flex">
           <div className="grid grid-cols-2 border-b border-border" role="tablist">
             {(["internal", "client"] as const).map((t) => {
               const n = shown.filter((c) => (t === "internal" ? c.internal : !c.internal) && !c.resolved).length;
@@ -145,13 +145,6 @@ export default function HibeReview() {
             })}
           </div>
           {prev.length > 0 && <p className="border-b border-border px-4 py-2 text-xs"><b>{prev.filter((c) => c.resolved).length} van {prev.length}</b> opmerkingen uit de vorige versie verwerkt</p>}
-          {version && (
-            <form className="space-y-2 border-b border-border p-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
-              <Tag className=" tabular">{stamp === null ? "Tijdcode bij typen" : fmtTime(stamp)}</Tag>
-              <Textarea value={text} onChange={(e) => typing(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }} maxLength={4000} placeholder={tab === "internal" ? "Interne opmerking…" : "Opmerking voor de klant…"} aria-label="Opmerking" className="min-h-20" />
-              <Button type="submit" className="w-full" disabled={!text.trim()}>Plaatsen{tab === "internal" ? " (intern)" : ""}</Button>
-            </form>
-          )}
           <ol className="flex-1 space-y-2 overflow-y-auto p-3">
             {list.length === 0 && <li className="text-sm text-muted-foreground">{tab === "internal" ? "Nog geen interne opmerkingen. Begin te typen; de video pauzeert." : "Nog geen opmerkingen van de klant."}</li>}
             {list.map((c) => (
@@ -167,6 +160,13 @@ export default function HibeReview() {
               </li>
             ))}
           </ol>
+          {version && (
+            <form className="shrink-0 space-y-2 border-t border-border bg-card p-3 md:pb-20" onSubmit={(e) => { e.preventDefault(); send(); }}>
+              <Tag className=" tabular">{stamp === null ? "Tijdcode bij typen" : fmtTime(stamp)}</Tag>
+              <Textarea value={text} onChange={(e) => typing(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }} maxLength={4000} placeholder={tab === "internal" ? "Interne opmerking…" : "Opmerking voor de klant…"} aria-label="Opmerking" className="min-h-20" />
+              <Button type="submit" className="w-full" disabled={!text.trim()}>Plaatsen{tab === "internal" ? " (intern)" : ""}</Button>
+            </form>
+          )}
         </aside>
       </div>
     </div>
