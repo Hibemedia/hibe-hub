@@ -48,6 +48,7 @@
 - [x] Downloaden kan alleen nog via de knop Download; die knop staat nu in elke stap en het ···-menu heeft geen Download meer. Rij-klik en ···-menu gecontroleerd in de preview (geen download, downloadknop start wél).
 - [x] Een video uit de CapCut-stap opent zonder beoordelingsknoppen en zonder opmerkingenkolom (intern al goedgekeurd): alleen de speler, versie, Download, Nieuwe versie en de CapCut-stijl van de klant. Video in een andere stap toont die knoppen en kolom nog wél (gecontroleerd bij interne controle).
 - [x] De CapCut-stijlkaart staat bij een video uit de CapCut-stap in de rechterkolom naast de video; in de andere stappen blijft de kaart onder de video (gecontroleerd: CapCut x=1070 rechts van de speler, interne controle onder de speler).
+- [x] Het opmerkingen-balletje met aantal valt in de CapCut-stap weg uit de lijst (intern al goedgekeurd); in feedback-verwerken (4 balletjes bij 5 rijen) en interne controle (1 bij 2 rijen) blijft het staan.
 
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
