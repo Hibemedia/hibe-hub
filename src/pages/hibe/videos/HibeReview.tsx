@@ -138,8 +138,10 @@ export default function HibeReview() {
             <input ref={file} type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) startUpload({ file: f, itemId: item.id, onDone: () => { reload(); toast.success(`V${item.current_version + 1} staat klaar`); } }); }} />
           </div>
           <UploadProgress />
-          <CapcutStyle clientId={item.client_id} />
+          {!quiet && <CapcutStyle clientId={item.client_id} />}
         </main>
+
+        {quiet && <CapcutStyleAside clientId={item.client_id} />}
 
         {!quiet && (
         <aside className="hidden min-h-0 w-[360px] shrink-0 flex-col border-l border-border bg-card md:flex">
@@ -183,14 +185,33 @@ export default function HibeReview() {
   );
 }
 
-function CapcutStyle({ clientId }: { clientId: string }) {
+function useCapcutStyle(clientId: string) {
   const [style, setStyle] = useState<string | null>(null);
   useEffect(() => { supabase.from("clients").select("capcut_style").eq("id", clientId).maybeSingle().then(({ data }) => setStyle((data as any)?.capcut_style ?? null)); }, [clientId]);
+  return style;
+}
+
+function CapcutStyle({ clientId }: { clientId: string }) {
+  const style = useCapcutStyle(clientId);
   if (!style) return null;
   return (
     <section className="mx-auto max-w-xl rounded-xl border border-border bg-card p-4">
       <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">CapCut-stijl van deze klant</p>
       <p className="whitespace-pre-line text-sm leading-relaxed">{style}</p>
     </section>
+  );
+}
+
+/** CapCut-final: de stijl staat naast de video, zodat je haar tijdens het kijken erbij hebt. */
+function CapcutStyleAside({ clientId }: { clientId: string }) {
+  const style = useCapcutStyle(clientId);
+  if (!style) return null;
+  return (
+    <aside className="hidden min-h-0 w-[380px] shrink-0 overflow-y-auto border-l border-border bg-card p-4 md:flex md:flex-col">
+      <section className="rounded-xl border border-border bg-background p-4">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">CapCut-stijl van deze klant</p>
+        <p className="whitespace-pre-line text-sm leading-relaxed">{style}</p>
+      </section>
+    </aside>
   );
 }

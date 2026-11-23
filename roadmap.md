@@ -47,6 +47,7 @@
 - [x] Klikken op een video in de CapCut-stap opent de video zelf (zoals in de andere stappen) in plaats van meteen te downloaden.
 - [x] Downloaden kan alleen nog via de knop Download; die knop staat nu in elke stap en het ···-menu heeft geen Download meer. Rij-klik en ···-menu gecontroleerd in de preview (geen download, downloadknop start wél).
 - [x] Een video uit de CapCut-stap opent zonder beoordelingsknoppen en zonder opmerkingenkolom (intern al goedgekeurd): alleen de speler, versie, Download, Nieuwe versie en de CapCut-stijl van de klant. Video in een andere stap toont die knoppen en kolom nog wél (gecontroleerd bij interne controle).
+- [x] De CapCut-stijlkaart staat bij een video uit de CapCut-stap in de rechterkolom naast de video; in de andere stappen blijft de kaart onder de video (gecontroleerd: CapCut x=1070 rechts van de speler, interne controle onder de speler).
 
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
