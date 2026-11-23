@@ -34,8 +34,8 @@ export const Player = forwardRef<PlayerHandle, { url?: string | null; markers: M
           <video ref={v} src={url} playsInline preload="metadata" onClick={toggle} x-webkit-airplay="allow"
             onLoadedMetadata={(e) => { const el = e.currentTarget; setDur(el.duration || 0); setPortrait(el.videoHeight >= el.videoWidth); el.playbackRate = rate; }}
             onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
-            className={cn("rounded-lg bg-foreground", portrait ? "w-auto max-w-full" : "w-full")} style={portrait ? { height: maxH, maxHeight: maxH } : { maxHeight: maxH }} />
-        ) : <div className="flex aspect-[9/16] items-center justify-center rounded-lg bg-foreground text-sm text-background/70" style={{ height: maxH }}>Video laden…</div>}
+            className={cn("h-auto shrink-0 rounded-lg bg-foreground", portrait ? "w-auto" : "w-full")} style={{ maxHeight: maxH, maxWidth: "100%" }} />
+        ) : <div className="flex aspect-[9/16] items-center justify-center rounded-lg bg-foreground text-sm text-background/70" style={{ maxHeight: maxH, maxWidth: "100%" }}>Video laden…</div>}
       </div>
       <div className="flex w-full max-w-2xl items-center gap-2 px-1">
         <button onClick={toggle} aria-label={playing ? "Pauzeren" : "Afspelen"} className="round-btn h-9 w-9 shrink-0">{playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}</button>

@@ -125,7 +125,7 @@ export default function HibeReview() {
         </aside>
 
         <main className="min-w-0 flex-1 space-y-3 p-4">
-          <Player ref={player} url={url} markers={shown.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number), muted: c.resolved }))} />
+          <Player ref={player} url={url} maxH="calc(100vh - 300px)" markers={shown.map((c) => ({ id: c.id, t: c.time_seconds, label: String(c.number), muted: c.resolved }))} />
           <div className="flex flex-wrap items-center justify-center gap-2">
             {versions.map((v) => <FilterChip key={v.id} aria-pressed={v.id === version?.id} onClick={() => setVerNo(v.version)} className=" h-8">V{v.version}</FilterChip>)}
             <Button variant="outline" size="sm" onClick={() => downloadVideo(version?.id ?? null, version?.file_name ?? item.title)}><Download />Download</Button>
@@ -145,6 +145,13 @@ export default function HibeReview() {
             })}
           </div>
           {prev.length > 0 && <p className="border-b border-border px-4 py-2 text-xs"><b>{prev.filter((c) => c.resolved).length} van {prev.length}</b> opmerkingen uit de vorige versie verwerkt</p>}
+          {version && (
+            <form className="space-y-2 border-b border-border p-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
+              <Tag className=" tabular">{stamp === null ? "Tijdcode bij typen" : fmtTime(stamp)}</Tag>
+              <Textarea value={text} onChange={(e) => typing(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }} maxLength={4000} placeholder={tab === "internal" ? "Interne opmerking…" : "Opmerking voor de klant…"} aria-label="Opmerking" className="min-h-20" />
+              <Button type="submit" className="w-full" disabled={!text.trim()}>Plaatsen{tab === "internal" ? " (intern)" : ""}</Button>
+            </form>
+          )}
           <ol className="flex-1 space-y-2 overflow-y-auto p-3">
             {list.length === 0 && <li className="text-sm text-muted-foreground">{tab === "internal" ? "Nog geen interne opmerkingen. Begin te typen; de video pauzeert." : "Nog geen opmerkingen van de klant."}</li>}
             {list.map((c) => (
@@ -160,13 +167,6 @@ export default function HibeReview() {
               </li>
             ))}
           </ol>
-          {version && (
-            <form className="space-y-2 border-t border-border p-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
-              <Tag className=" tabular">{stamp === null ? "Tijdcode bij typen" : fmtTime(stamp)}</Tag>
-              <Textarea value={text} onChange={(e) => typing(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }} maxLength={4000} placeholder={tab === "internal" ? "Interne opmerking…" : "Opmerking voor de klant…"} aria-label="Opmerking" className="min-h-20" />
-              <Button type="submit" className="w-full" disabled={!text.trim()}>Plaatsen{tab === "internal" ? " (intern)" : ""}</Button>
-            </form>
-          )}
         </aside>
       </div>
     </div>
