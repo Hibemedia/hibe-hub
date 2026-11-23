@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { EmptyState } from "@/components/StatsOverview";
 import { useClient } from "@/context/ClientContext";
 import { useVideoItems } from "@/hooks/useVideos";
@@ -224,12 +224,19 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
                 <PostFields title={p?.title ?? ""} note={p?.note ?? ""} onSave={(t, n) => savePost(c.id, d, { title: t || null, note: n || null })} />
                 <div className="space-y-1">
                   <Label className="text-xs">Koppel een video uit Video's</Label>
-                  <Select onValueChange={(v) => { link(c.id, d, v); setMenu(null); }}>
-                    <SelectTrigger aria-label="Koppel een video" className="h-9"><SelectValue placeholder="Kies een video…" /></SelectTrigger>
-                    <SelectContent>
-                      {videos.filter((v) => v.status !== "archived").map((v) => <SelectItem key={v.id} value={v.id}>{v.title} · {hibeName(v.client_id)}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Command className="rounded-md border border-border">
+                    <CommandInput placeholder="Zoek een video…" className="h-9" />
+                    <CommandList className="max-h-56 overflow-y-auto">
+                      <CommandEmpty>Geen video gevonden.</CommandEmpty>
+                      <CommandGroup>
+                        {videos.filter((v) => v.status !== "archived").map((v) => (
+                          <CommandItem key={v.id} value={`${v.title} ${hibeName(v.client_id)} ${v.id}`} onSelect={() => { link(c.id, d, v.id); setMenu(null); }}>
+                            <span className="truncate">{v.title} · {hibeName(v.client_id)}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
                 </div>
               </>
             )}
