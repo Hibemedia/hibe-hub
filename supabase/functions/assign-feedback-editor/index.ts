@@ -47,8 +47,10 @@ Deno.serve(async (req) => {
 
     const [editor, item] = await Promise.all([
       person(a.db, editor_id),
-      a.db.from("video_items").select("title, client_id").eq("id", item_id).maybeSingle().then((r: any) => r.data),
+      a.db.from("video_items").select("title, client_id, status").eq("id", item_id).maybeSingle().then((r: any) => r.data),
     ]);
+    // Only a video already in feedback needs this mail; moving to feedback later mails via notify-feedback.
+    if (item?.status !== "feedback") return json({ sent: false, reason: "nog_geen_feedback" });
     if (!editor?.email) return json({ sent: false, reason: "geen_adres" });
 
     const clientName = item?.client_id
