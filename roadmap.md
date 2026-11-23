@@ -38,6 +38,7 @@
 
 ## Socials-checklist: video kiezen
 - [x] Videokeuze is een zijpaneel rechts dat bij een vakje opent: status, titel/link en de volledige videelijst met zoekvak en filter op eigen klant, altijd in beeld; koppelen, loskoppelen, status en titel gecontroleerd in de preview en weer hersteld, 123 tests slagen, build OK.
+- [x] Lange klantnamen passen nu: naam mag over twee regels lopen, een toevoeging als "(niet inplannen)" staat klein en grijs, en de tabel loopt niet meer buiten beeld op een breed scherm (0px overflow, namen volledig leesbaar gecontroleerd op 1440/768/390px).
 
 ## Klaar
 - [x] Contentmomenten: een moment waarvan de datum voorbij is, leest als "Afgerond" in HIBE en bij de klant; opgeslagen status blijft onaangeroerd (6 tests geslaagd, build OK, HIBE- en klantpagina gecontroleerd).
