@@ -52,3 +52,12 @@ describe("SLA per maand", () => {
     expect(slaTone(2, null, now)).toBe("none");
   });
 });
+
+describe("linked shoots", () => {
+  it("drops a shoot from Draaidag once an edit is linked to it", () => {
+    const m = { id: "s1", title: "Draaidag", client_id: "c", type: "shoot", status: "bevestigd", date: "2026-12-01", created_at: "2026-11-01T00:00:00Z" };
+    const base = { tasks: [], moments: [m], edits: [], videos: [] };
+    expect(buildCards(base, "2026-11-20").some((c) => c.id === "ms1")).toBe(true);
+    expect(buildCards({ ...base, linkedMoments: ["s1"] }, "2026-11-20").some((c) => c.id === "ms1")).toBe(false);
+  });
+});

@@ -197,12 +197,17 @@ function NewEdits({ open, onOpenChange, defaultClient, onDone }: { open: boolean
   const [text, setText] = useState("");
   const [drive, setDrive] = useState("");
   const [shoot, setShoot] = useState("");
+  const [moment, setMoment] = useState("none");
+  const { data: shoots = [] } = useQuery({ queryKey: ["edit-shoots", client], enabled: open && !!client, queryFn: async () => {
+    const { data, error } = await db.from("content_moments").select("id,title,date").eq("client_id", client).eq("type", "shoot").order("date", { ascending: false }).limit(50);
+    if (error) throw error; return (data ?? []) as { id: string; title: string; date: string | null }[];
+  } });
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (open) { setClient(defaultClient); setText(""); setDrive(""); setShoot(""); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open) { setClient(defaultClient); setText(""); setDrive(""); setShoot(""); setMoment("none"); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   const titles = parseTitles(text);
   const save = async () => {
     setBusy(true);
-    const { error } = await db.from("edits").insert(titles.map((title) => ({ client_id: client, title, status: "assign", drive_link: drive.trim() || null, shoot_date: shoot || null })));
+    const { error } = await db.from("edits").insert(titles.map((title) => ({ client_id: client, title, status: "assign", drive_link: drive.trim() || null, shoot_date: shoot || null, moment_id: moment === "none" ? null : moment })));
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`${titles.length} edit${titles.length === 1 ? "" : "s"} toegevoegd`);
@@ -214,14 +219,20 @@ function NewEdits({ open, onOpenChange, defaultClient, onDone }: { open: boolean
         <DialogHeader><DialogTitle>Nieuwe edit</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5"><Label>Klant</Label>
-            <Select value={client} onValueChange={setClient}><SelectTrigger aria-label="Klant"><SelectValue placeholder="Kies een klant" /></SelectTrigger>
+            <Select value={client} onValueChange={(v) => { setClient(v); setMoment("none"); setShoot(""); }}><SelectTrigger aria-label="Klant"><SelectValue placeholder="Kies een klant" /></SelectTrigger>
               <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
           <div className="space-y-1.5"><Label htmlFor="titles">Titels, één per regel</Label>
             <Textarea id="titles" rows={7} value={text} onChange={(e) => setText(e.target.value)} placeholder={"Reel lancering\nBehind the scenes\nInterview deel 1"} /></div>
           <div className="space-y-1.5"><Label htmlFor="drive">Google Drive-link (materiaal voor de editor)</Label>
             <Input id="drive" type="url" value={drive} onChange={(e) => setDrive(e.target.value)} placeholder="https://drive.google.com/…" /></div>
-          <div className="space-y-1.5"><Label htmlFor="shoot">Draaidag</Label>
-            <Input id="shoot" type="date" value={shoot} onChange={(e) => setShoot(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Draaidag</Label>
+            <Select value={moment} onValueChange={(v) => { setMoment(v); setShoot(shoots.find((s) => s.id === v)?.date ?? ""); }} disabled={!client}>
+              <SelectTrigger aria-label="Draaidag"><SelectValue placeholder={client ? "Kies een draaidag" : "Kies eerst een klant"} /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="none">Geen draaidag</SelectItem>
+                {shoots.map((s) => <SelectItem key={s.id} value={s.id}>{s.date ? `${fmtDeadline(s.date)} · ` : ""}{s.title}</SelectItem>)}
+              </SelectContent></Select>
+            {client && !shoots.length && <p className="text-xs text-muted-foreground">Deze klant heeft nog geen draaidagen.</p>}</div>
         </div>
         <DialogFooter><Button disabled={!client || !titles.length || busy} onClick={save}>{titles.length > 1 ? `${titles.length} edits toevoegen` : "Edit toevoegen"}</Button></DialogFooter>
       </DialogContent>

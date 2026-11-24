@@ -455,6 +455,7 @@ export type Database = {
           drive_link: string | null
           editor_id: string | null
           id: string
+          moment_id: string | null
           notes: string | null
           planned_date: string | null
           shoot_date: string | null
@@ -471,6 +472,7 @@ export type Database = {
           drive_link?: string | null
           editor_id?: string | null
           id?: string
+          moment_id?: string | null
           notes?: string | null
           planned_date?: string | null
           shoot_date?: string | null
@@ -487,6 +489,7 @@ export type Database = {
           drive_link?: string | null
           editor_id?: string | null
           id?: string
+          moment_id?: string | null
           notes?: string | null
           planned_date?: string | null
           shoot_date?: string | null
@@ -501,6 +504,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edits_moment_id_fkey"
+            columns: ["moment_id"]
+            isOneToOne: false
+            referencedRelation: "content_moments"
             referencedColumns: ["id"]
           },
           {

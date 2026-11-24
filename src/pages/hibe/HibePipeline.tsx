@@ -17,14 +17,15 @@ import { cn } from "@/lib/utils";
 const db = supabase as any;
 function usePipelineData() {
   return useQuery({ queryKey: ["pipeline"], refetchInterval: 60_000, queryFn: async () => {
-    const [t, m, e, v] = await Promise.all([
+    const [t, m, e, v, l] = await Promise.all([
       db.from("tasks").select("id,title,client_id,assignee_id,done_at,created_at").is("done_at", null),
       db.from("content_moments").select("id,title,client_id,type,status,date,created_at"),
       db.from("edits").select("id,title,client_id,editor_id,status,created_at,updated_at").neq("status", "delivered"),
       db.from("video_items").select("id,title,client_id,status,current_version,archived_at,status_changed_at").is("archived_at", null),
+      db.from("edits").select("moment_id").not("moment_id", "is", null),
     ]);
-    for (const r of [t, m, e, v]) if (r.error) throw r.error;
-    return { tasks: t.data ?? [], moments: m.data ?? [], edits: e.data ?? [], videos: v.data ?? [] };
+    for (const r of [t, m, e, v, l]) if (r.error) throw r.error;
+    return { tasks: t.data ?? [], moments: m.data ?? [], edits: e.data ?? [], videos: v.data ?? [], linkedMoments: (l.data ?? []).map((x: { moment_id: string }) => x.moment_id) };
   } });
 }
 const TONE = { ok: "bg-muted text-muted-foreground", warn: "bg-tag-warning text-foreground", late: "bg-tag-danger text-foreground" } as const;

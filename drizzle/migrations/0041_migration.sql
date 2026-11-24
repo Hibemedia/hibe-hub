@@ -1,0 +1,1 @@
+ALTER TABLE public.edits ADD COLUMN IF NOT EXISTS moment_id uuid REFERENCES public.content_moments(id) ON DELETE SET NULL;

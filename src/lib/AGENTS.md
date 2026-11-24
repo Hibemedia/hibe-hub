@@ -1,3 +1,3 @@
 - Keep client shoot photos in content-moment-photos.ts so Dashboard and Contentmomenten reuse the same uploaded artwork.
 - Normalize legacy moment statuses in content-moment-list.ts instead of rewriting stored records, preserving compatibility across filters and display surfaces.
-- Task handoff authorization uses the existing row's assignee/creator or beheerder in RLS USING; WITH CHECK keeps the HIBE-only gate without requiring the new assignee to be the caller.
+- Task handoff authorization uses the existing row's assignee/creator or beheerder in RLS USING; WITH CHECK keeps the HIBE-only gate without requiring the new assignee to be the caller.- An edit links to its shoot via edits.moment_id (shoot_date copied from the moment); the Productieboard hides shoots that have a linked edit — derived, never stored on the moment.

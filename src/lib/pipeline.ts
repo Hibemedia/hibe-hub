@@ -25,11 +25,13 @@ type V = { id: string; title: string; client_id: string; status: string; current
 
 /** Scheduled videos stay visible as "done" for this many days. */
 export const DONE_DAYS = 7;
-export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[] }, today: string, now: Date = new Date()): Card[] {
+/** A shoot linked to at least one edit (edits.moment_id) is done: it leaves the Draaidag column. */
+export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[]; linkedMoments?: string[] }, today: string, now: Date = new Date()): Card[] {
   const out: Card[] = [];
+  const linked = new Set(d.linkedMoments ?? []);
   for (const t of d.tasks) if (!t.done_at && isScriptTask(t.title))
     out.push({ id: "t" + t.id, phase: "script", title: t.title, client_id: t.client_id, since: t.created_at, turn: "Redactie", href: "/hibe/taken", person: t.assignee_id });
-  for (const m of d.moments) if (m.type === "shoot" && !["cancelled", "geannuleerd"].includes(m.status) && (!m.date || m.date >= today))
+  for (const m of d.moments) if (m.type === "shoot" && !["cancelled", "geannuleerd"].includes(m.status) && (!m.date || m.date >= today) && !linked.has(m.id))
     out.push({ id: "m" + m.id, phase: "shoot", title: m.title, client_id: m.client_id, since: m.created_at, turn: "Crew", href: "/hibe/contentmomenten" });
   for (const e of d.edits) {
     const since = e.updated_at ?? e.created_at;
