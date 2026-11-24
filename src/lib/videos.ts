@@ -29,6 +29,11 @@ export const versionSource = (s: string | null | undefined): VersionSource => (s
 /** Shown to the client next to the CapCut final so they know what they are looking at. */
 export const CAPCUT_FINAL_NOTE = "Dit is de definitieve versie: gemonteerd door HIBE en afgewerkt in CapCut met ondertiteling.";
 
+/** Who finished the video in CapCut: the saved pick, else whoever uploaded the CapCut final. */
+export function capcutEditorOf(i: { capcut_editor_id: string | null; source: string | null; uploader: string | null }): string | null {
+  return i.capcut_editor_id ?? (versionSource(i.source) === "capcut" ? i.uploader : null);
+}
+
 /** Archive status is client-visible even when archiving also stamps archived_at. */
 export function clientArchive<T extends { client_id: string; status: VideoStatus; current_version: number }>(items: T[], clientId: string | null) {
   return items.filter((item) => item.client_id === clientId && item.status === "archived" && item.current_version > 0);

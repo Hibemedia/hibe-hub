@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/StatsOverview";
 import { BoardItem, setVideoStatus, renameVideo, trashVideo } from "@/hooks/useVideos";
 import { invokeVideo, forgetResume } from "@/lib/r2Upload";
 import { startUpload } from "@/lib/uploadStore";
-import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize, fmtStamp, missingFeedbackEditors } from "@/lib/videos";
+import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusFromSlug, ageTone, fmtSize, fmtStamp, missingFeedbackEditors, capcutEditorOf } from "@/lib/videos";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,7 @@ export default function MediaStep() {
   const [styleFor, setStyleFor] = useState<BoardItem | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["video-items"] });
   const capcutOf = (cid: string) => m.clients.find((c) => c.id === cid)?.capcut_style ?? null;
+  const capcutBy = (i: BoardItem) => capcutEditorOf(i);
 
   const base = trashView ? m.trash : m.live.filter((i) => i.status === status);
   const uploaders = useMemo(() => [...new Set(base.map((i) => i.uploader).filter(Boolean) as string[])], [base]);
@@ -144,12 +145,12 @@ export default function MediaStep() {
                   <VideoThumb versionId={i.versionId} className="h-12 w-[27px]" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{i.title} <span className="text-muted-foreground">V{i.current_version}</span></p>
-                    <p className="truncate text-xs text-muted-foreground">{m.clientName(i.client_id)}{i.file_name ? ` · ${typeOf(i.mime_type, i.file_name)}` : ""}{i.size_bytes ? ` · ${fmtSize(i.size_bytes)}` : ""}{status === "client_review" && i.capcut_editor_id ? ` · CapCut door ${m.names[i.capcut_editor_id] ?? "collega"}` : ""}{status === "approved_internal" && (i.uploader ?? i.editor_id) ? ` · Edit door ${m.names[(i.uploader ?? i.editor_id)!] ?? "collega"}` : ""}</p>
+                    <p className="truncate text-xs text-muted-foreground">{m.clientName(i.client_id)}{i.file_name ? ` · ${typeOf(i.mime_type, i.file_name)}` : ""}{i.size_bytes ? ` · ${fmtSize(i.size_bytes)}` : ""}{status === "client_review" && capcutBy(i) ? ` · CapCut door ${m.names[capcutBy(i)!] ?? "collega"}` : ""}{status === "approved_internal" && (i.uploader ?? i.editor_id) ? ` · Edit door ${m.names[(i.uploader ?? i.editor_id)!] ?? "collega"}` : ""}</p>
                   </div>
                   {status !== "approved_internal" && <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>}
                   <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>
                   <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
-                    {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={i.capcut_editor_id} />}
+                    {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={capcutBy(i)} />}
                     {!trashView && status !== "approved_internal" && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
                     {trashView && <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>}
                     {!trashView && status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}

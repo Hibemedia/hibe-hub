@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, fmtStamp, clientArchive, missingFeedbackEditors } from "./videos";
+import { VIDEO_STATUSES, VIDEO_STATUS_LABEL, clientsReadyToSend, isClientVisible, hibeNext, fmtTime, fmtStamp, clientArchive, missingFeedbackEditors, capcutEditorOf } from "./videos";
 
 describe("feedback recipient", () => {
   it("requires a selected editor for each video returned, not its uploader", () => {
@@ -112,5 +112,20 @@ describe("feedback date and time", () => {
   it("missing or broken dates stay empty", () => {
     expect(fmtStamp(null, now)).toBe("");
     expect(fmtStamp("niet een datum", now)).toBe("");
+  });
+});
+
+describe("who did the CapCut", () => {
+  const item = (over: Partial<{ capcut_editor_id: string | null; source: string | null; uploader: string | null }>) =>
+    ({ capcut_editor_id: null, source: null, uploader: null, ...over });
+  it("uses the saved pick when there is one", () => {
+    expect(capcutEditorOf(item({ capcut_editor_id: "tom", source: "capcut", uploader: "bram" }))).toBe("tom");
+  });
+  it("falls back to whoever uploaded the CapCut final", () => {
+    expect(capcutEditorOf(item({ source: "capcut", uploader: "bram" }))).toBe("bram");
+  });
+  it("a plain montage upload names nobody", () => {
+    expect(capcutEditorOf(item({ source: "upload", uploader: "merlijn" }))).toBeNull();
+    expect(capcutEditorOf(item({ uploader: "merlijn" }))).toBeNull();
   });
 });
