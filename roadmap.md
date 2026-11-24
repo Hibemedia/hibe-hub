@@ -1,5 +1,8 @@
 # Roadmap
 
+## CapCut-stijlen bij Branding & Archief
+- [x] Bestaande klantstijl direct tonen en aanpassen bij Branding & Archief; bij Nancy Faas opgeslagen, na verversen teruggelezen en oorspronkelijke stijl hersteld. Desktop en mobiel gecontroleerd, geen horizontale overflow; build OK.
+
 ## Feedbackeditor
 - [x] Bij feedback editor met foto tonen en kiezen; opslaan, teruglezen en verwijderen getest met echte video, oorspronkelijke keuze hersteld; desktop/mobiel zonder overflow, 27 bestaande tests slagen.
 - [x] Editor met foto en wisselkiezer in elke staplijst en beoordelingsheader; terugstuuracties noemen de ontvanger en wachten op een opgeslagen editor. Ingelogd opgeslagen/teruggelezen en naar Feedback verwerken verplaatst met tijdelijke video (verwijderd); desktop/mobiel zonder overflow of runtimefouten, 26 videotests slagen en build OK.

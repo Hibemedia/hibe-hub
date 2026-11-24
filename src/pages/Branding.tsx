@@ -3,7 +3,7 @@ import { Tag } from "@/components/ui/tag";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Download, Trash2 } from "lucide-react";
+import { Plus, Download, Trash2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { UserAuth } from "@/context/AuthContext.jsx";
@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/components/StatsOverview";
 import { toast } from "sonner";
 import { ClientVideoArchive } from "@/components/videos/ClientVideoArchive";
+import { Textarea } from "@/components/ui/textarea";
+import { useViewAs } from "@/context/ViewAs";
 
 const CATS = { logos: "Logo's", brandbook: "Brandbook", fotos: "Foto's", videos: "Video's", overig: "Overig" } as const;
 type Cat = keyof typeof CATS;
@@ -25,7 +27,8 @@ const isImg = (f: LibFile) => (f.mime_type ?? "").startsWith("image/");
 const isPdf = (f: LibFile) => f.mime_type === "application/pdf";
 
 export default function Branding() {
-  const { clientId, isAdmin, ready } = useClient();
+  const { clientId, isAdmin, ready, client, refreshClients } = useClient();
+  const viewAs = useViewAs();
   const [cat, setCat] = useState<Cat | "all">("all");
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<{ f: LibFile; url: string } | null>(null);
@@ -69,6 +72,8 @@ export default function Branding() {
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <PageHeader title="Branding & Archief" action={isAdmin && clientId ? <PrimaryAction icon={Plus} onClick={() => setUploading(true)}>Bestand uploaden</PrimaryAction> : null} />
+
+      {isAdmin && !viewAs && client && <CapcutStyleEditor key={client.id} clientId={client.id} initialStyle={client.capcut_style ?? ""} onSaved={refreshClients} />}
 
       {clientId && <ClientVideoArchive />}
 
@@ -120,6 +125,39 @@ export default function Branding() {
       )}
       {uploading && clientId && <UploadDialog clientId={clientId} existing={files} onClose={() => setUploading(false)} />}
     </div>
+  );
+}
+
+function CapcutStyleEditor({ clientId, initialStyle, onSaved }: { clientId: string; initialStyle: string; onSaved: () => Promise<void> }) {
+  const [style, setStyle] = useState(initialStyle);
+  const [savedStyle, setSavedStyle] = useState(initialStyle);
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      const value = style.trim();
+      const { error } = await supabase.from("clients").update({ capcut_style: value || null }).eq("id", clientId);
+      if (error) throw error;
+      setStyle(value);
+      setSavedStyle(value);
+      await onSaved();
+      toast.success("CapCut-stijl opgeslagen");
+    } catch {
+      toast.error("CapCut-stijl opslaan mislukt");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="space-y-3 border-b border-border pb-5" aria-label="CapCut-stijl">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Label htmlFor="branding-capcut-style" className="text-base font-semibold">CapCut-stijl</Label>
+        <Button size="sm" onClick={save} disabled={busy || style.trim() === savedStyle.trim()}><Save className="h-4 w-4" />{busy ? "Opslaan…" : "Stijl opslaan"}</Button>
+      </div>
+      <Textarea id="branding-capcut-style" value={style} onChange={(e) => setStyle(e.target.value)} rows={8} maxLength={3000} disabled={busy} placeholder="Lettertype, grootte, kleur, positie, streek en schaduw…" />
+    </section>
   );
 }
 
