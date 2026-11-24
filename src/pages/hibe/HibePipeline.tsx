@@ -8,7 +8,7 @@ import { useClient } from "@/context/ClientContext";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { PageHeader } from "@/components/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PHASES, ageTone, avgDays, buildCards, daysIn, deliveredThisMonth, slaTone, type Card } from "@/lib/pipeline";
+import { PHASES, ageTone, avgDays, buildCards, daysIn, deliveredThisMonth, slaTone, groupByClient, type Card, type ClientRow } from "@/lib/pipeline";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ymd } from "@/lib/agenda";
@@ -36,9 +36,11 @@ export default function HibePipeline() {
   const logos = useLogoUrls(clients.map((c) => c.logo_url));
   const [client, setClient] = useState("all");
   const [lateOnly, setLateOnly] = useState(false);
+  const [sort, setSort] = useState<"wait" | "client">("wait");
   const now = new Date();
   const cards = useMemo(() => (data ? buildCards(data, ymd(new Date()), new Date()) : []), [data]);
   const shown = cards.filter((c) => (client === "all" || c.client_id === client) && (!lateOnly || (c.phase !== "done" && ageTone(daysIn(c.since, now)) !== "ok")));
+  const rows = groupByClient(shown, now, sort);
   const byId = new Map(clients.map((c) => [c.id, c]));
 
   return (
@@ -52,26 +54,14 @@ export default function HibePipeline() {
         <FilterChip active={lateOnly} onClick={() => setLateOnly((x) => !x)} className="px-4">Toon vertraagd</FilterChip>
         <span className="text-xs text-muted-foreground">Tijd in fase: tot 3 dagen op schema, 3–5 aandacht, meer dan 5 vertraagd</span>
       </div>
-      <div className="overflow-x-auto pb-2">
-        <div className="grid min-w-[1600px] grid-cols-8 gap-3">
-          {PHASES.map((p, i) => {
-            const col = shown.filter((c) => c.phase === p.key);
-            const avg = avgDays(col, now);
-            if (p.key === "done") return <DoneColumn key={p.key} n={i + 1} cards={col} now={now} byId={byId} logo={(u) => (u ? logos[u] : null)} />;
-            return (
-              <section key={p.key} className="min-w-0 rounded-[20px] bg-card p-3">
-                <header className="mb-3 min-w-0">
-                  <div className="flex items-center justify-between gap-2"><h2 className="truncate font-bold">{i + 1}. {p.label}</h2><Tag className="rounded-tag bg-background px-2 text-xs font-semibold">{col.length}</Tag></div>
-                  <p className="truncate text-xs text-muted-foreground">{p.owner}{avg !== null && ` · gem. ${avg}d`}</p>
-                </header>
-                <div className="space-y-2">
-                  {col.length === 0 && <p className="text-xs text-muted-foreground">Niets in deze fase</p>}
-                  {col.map((c) => <PipeCard key={c.id} c={c} days={daysIn(c.since, now)} client={c.client_id ? byId.get(c.client_id) : undefined} logo={(u) => (u ? logos[u] : null)} />)}
-                </div>
-              </section>
-            );
-          })}
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold text-muted-foreground">Sorteer op</span>
+        <FilterChip active={sort === "wait"} onClick={() => setSort("wait")} className="px-4">Langst wachtend</FilterChip>
+        <FilterChip active={sort === "client"} onClick={() => setSort("client")} className="px-4">Langst bij klant</FilterChip>
+      </div>
+      <div className="space-y-2">
+        {rows.length === 0 && <p className="rounded-[20px] bg-card p-4 text-sm text-muted-foreground">Niets in productie</p>}
+        {rows.map((r) => <ClientProgress key={r.client_id} r={r} now={now} client={byId.get(r.client_id)} logo={(u) => (u ? logos[u] : null)} />)}
       </div>
       <SlaBlock clients={clients.filter((c) => client === "all" || c.id === client)} logo={(u) => (u ? logos[u] : null)} />
     </div>
@@ -168,6 +158,43 @@ function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; n
           );
         })}
       </div>
+    </section>
+  );
+}
+
+const SEG = { ok: "bg-lime text-lime-foreground", warn: "bg-tag-warning text-foreground", late: "bg-tag-danger text-foreground" } as const;
+function ClientProgress({ r, now, client, logo }: { r: ClientRow; now: Date; client?: { name: string; logo_url: string | null }; logo: (u: string | null) => string | null | undefined }) {
+  const [open, setOpen] = useState(false);
+  const tone = ageTone(r.maxWait);
+  return (
+    <section className="rounded-[20px] bg-card p-3">
+      <button type="button" onClick={() => setOpen((x) => !x)} className="flex w-full min-w-0 flex-col gap-3 text-left lg:flex-row lg:items-center">
+        <div className="flex min-w-0 items-center gap-2 lg:w-56 lg:shrink-0">
+          <ClientLogo url={logo(client?.logo_url ?? null) ?? null} name={client?.name ?? "?"} size={26} />
+          <div className="min-w-0"><p className="truncate text-sm font-bold">{client?.name ?? "Onbekend"}</p>
+            <p className="text-xs text-muted-foreground">{r.cards.filter((c) => c.phase !== "done").length} open · {r.phases.client.n ? `${r.phases.client.n} bij klant · ${r.clientWait}d` : "niets bij klant"}</p></div>
+        </div>
+        <div className="grid min-w-0 flex-1 grid-cols-4 gap-1 sm:grid-cols-8">
+          {PHASES.map((p) => {
+            const ph = r.phases[p.key];
+            const t = p.key === "done" ? "ok" : ageTone(ph.maxDays);
+            return (
+              <div key={p.key} title={`${p.label} · ${p.owner}`} className={cn("min-w-0 rounded-tag px-2 py-1.5", ph.n ? SEG[t] : "bg-muted text-muted-foreground")}>
+                <p className="truncate text-[11px] font-semibold">{p.label}</p>
+                <p className="text-xs">{ph.n ? <><b>{ph.n}</b>{p.key !== "done" && ` · ${ph.maxDays}d`}</> : "–"}</p>
+              </div>
+            );
+          })}
+        </div>
+        <Tag className={cn("shrink-0 self-start rounded-tag px-2 py-0.5 text-[11px] font-semibold lg:self-center", TONE[tone])}>Wacht {r.maxWait}d</Tag>
+      </button>
+      {open && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {r.cards.filter((c) => c.phase !== "done").sort((a, b) => daysIn(b.since, now) - daysIn(a.since, now)).map((c) => (
+            <div key={c.id} className="min-w-0"><p className="mb-1 text-[11px] font-semibold text-muted-foreground">{PHASES.find((p) => p.key === c.phase)?.label}</p><PipeCard c={c} days={daysIn(c.since, now)} logo={logo} /></div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

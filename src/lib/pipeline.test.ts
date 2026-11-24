@@ -1,6 +1,6 @@
 // @ts-ignore
 import { describe, it, expect } from "bun:test";
-import { ageTone, buildCards, daysIn } from "./pipeline";
+import { ageTone, buildCards, daysIn, groupByClient } from "./pipeline";
 
 describe("pipeline", () => {
   it("tones: under 3 days ok, 3-5 warn, over 5 late", () => {
@@ -67,5 +67,21 @@ describe("linked shoots", () => {
     expect(buildCards({ ...base, linkedMoments: ["s1"] }, "2026-11-20").some((c) => c.id === "tt1")).toBe(false);
     // Unlinked script tasks stay visible.
     expect(buildCards({ ...base, tasks: [{ ...t, moment_id: null }], linkedMoments: ["s1"] }, "2026-11-20").some((c) => c.id === "tt1")).toBe(true);
+  });
+});
+
+
+describe("groupByClient", () => {
+  const now = new Date("2026-11-24T12:00:00Z");
+  const mk = (id: string, client: string, phase: any, since: string) => ({ id, client_id: client, phase, title: id, since, turn: "", href: "" });
+  const cards = [mk("1", "a", "edit", "2026-11-22T12:00:00Z"), mk("2", "b", "client", "2026-11-14T12:00:00Z"), mk("3", "a", "edit", "2026-11-10T12:00:00Z"), mk("4", "c", "done", "2026-11-01T12:00:00Z")];
+  it("sorts by longest open wait and ignores done", () => {
+    const rows = groupByClient(cards as any, now);
+    expect(rows.map((r) => r.client_id)).toEqual(["a", "b", "c"]);
+    expect(rows[0].phases.edit).toEqual({ n: 2, maxDays: 14 });
+    expect(rows[2].maxWait).toBe(0);
+  });
+  it("client sort uses wait in Klant review", () => {
+    expect(groupByClient(cards as any, now, "client")[0].client_id).toBe("b");
   });
 });

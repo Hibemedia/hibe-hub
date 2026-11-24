@@ -72,3 +72,24 @@ export function slaTone(done: number, target: number | null, now: Date = new Dat
   const short = Math.round((target * weeks) / 4) - done;
   return short <= 0 ? "ok" : short === 1 ? "attention" : "behind";
 }
+
+export type ClientRow = { client_id: string; cards: Card[]; phases: Record<PhaseKey, { n: number; maxDays: number }>; maxWait: number; clientWait: number };
+/** One row per client: per-phase count + oldest wait; sorted by longest open wait (done excluded). sort="client" sorts by wait in Klant review. */
+export function groupByClient(cards: Card[], now: Date, sort: "wait" | "client" = "wait"): ClientRow[] {
+  const map = new Map<string, ClientRow>();
+  for (const c of cards) {
+    if (!c.client_id) continue;
+    let r = map.get(c.client_id);
+    if (!r) {
+      r = { client_id: c.client_id, cards: [], phases: Object.fromEntries(PHASES.map((p) => [p.key, { n: 0, maxDays: 0 }])) as ClientRow["phases"], maxWait: 0, clientWait: 0 };
+      map.set(c.client_id, r);
+    }
+    const d = daysIn(c.since, now);
+    r.cards.push(c);
+    const ph = r.phases[c.phase]; ph.n++; ph.maxDays = Math.max(ph.maxDays, d);
+    if (c.phase !== "done") r.maxWait = Math.max(r.maxWait, d);
+    if (c.phase === "client") r.clientWait = Math.max(r.clientWait, d);
+  }
+  const key = (r: ClientRow) => (sort === "client" ? r.clientWait : r.maxWait);
+  return [...map.values()].sort((a, b) => key(b) - key(a) || b.maxWait - a.maxWait);
+}
