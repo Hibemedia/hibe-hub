@@ -18,7 +18,7 @@ export const daysIn = (since: string, now: Date) => Math.max(0, Math.floor((now.
 export const ageTone = (d: number): "ok" | "warn" | "late" => (d > 5 ? "late" : d >= 3 ? "warn" : "ok");
 export const isScriptTask = (title: string) => /script|redactie/i.test(title);
 
-type T = { id: string; title: string; client_id: string | null; assignee_id: string; done_at: string | null; created_at: string };
+type T = { id: string; title: string; client_id: string | null; assignee_id: string; done_at: string | null; created_at: string; moment_id?: string | null };
 type M = { id: string; title: string; client_id: string; type: string; status: string; date: string | null; created_at: string };
 type E = { id: string; title: string; client_id: string; editor_id: string | null; status: string; created_at: string; updated_at?: string | null };
 type V = { id: string; title: string; client_id: string; status: string; current_version: number; archived_at: string | null; status_changed_at: string };
@@ -29,7 +29,8 @@ export const DONE_DAYS = 7;
 export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[]; linkedMoments?: string[] }, today: string, now: Date = new Date()): Card[] {
   const out: Card[] = [];
   const linked = new Set(d.linkedMoments ?? []);
-  for (const t of d.tasks) if (!t.done_at && isScriptTask(t.title))
+  // A script task linked to a shoot leaves the Script column once that shoot has an edit.
+  for (const t of d.tasks) if (!t.done_at && isScriptTask(t.title) && !(t.moment_id && linked.has(t.moment_id)))
     out.push({ id: "t" + t.id, phase: "script", title: t.title, client_id: t.client_id, since: t.created_at, turn: "Redactie", href: "/hibe/taken", person: t.assignee_id });
   for (const m of d.moments) if (m.type === "shoot" && !["cancelled", "geannuleerd"].includes(m.status) && (!m.date || m.date >= today) && !linked.has(m.id))
     out.push({ id: "m" + m.id, phase: "shoot", title: m.title, client_id: m.client_id, since: m.created_at, turn: "Crew", href: "/hibe/contentmomenten" });

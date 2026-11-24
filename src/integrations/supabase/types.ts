@@ -888,6 +888,7 @@ export type Database = {
           due_date: string | null
           due_time: string | null
           id: string
+          moment_id: string | null
           notes: string | null
           title: string
         }
@@ -900,6 +901,7 @@ export type Database = {
           due_date?: string | null
           due_time?: string | null
           id?: string
+          moment_id?: string | null
           notes?: string | null
           title: string
         }
@@ -912,6 +914,7 @@ export type Database = {
           due_date?: string | null
           due_time?: string | null
           id?: string
+          moment_id?: string | null
           notes?: string | null
           title?: string
         }
@@ -921,6 +924,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_moment_id_fkey"
+            columns: ["moment_id"]
+            isOneToOne: false
+            referencedRelation: "content_moments"
             referencedColumns: ["id"]
           },
         ]

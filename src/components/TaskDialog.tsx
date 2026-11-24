@@ -1,6 +1,6 @@
 import { FilterChip } from "@/components/ui/filter-chip";
 import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
@@ -20,9 +20,9 @@ import { toast } from "sonner";
 import { canAssignTo, type Task } from "@/lib/tasks";
 
 const db = supabase as any;
-export type TaskForm = { id?: string; title: string; notes: string; client_id: string; assignee_id: string; due_date: string; due_time: string };
-export const blankTask = (me: string, day = ""): TaskForm => ({ title: "", notes: "", client_id: "", assignee_id: me, due_date: day, due_time: "" });
-export const taskToForm = (t: Task): TaskForm => ({ id: t.id, title: t.title, notes: t.notes ?? "", client_id: t.client_id ?? "", assignee_id: t.assignee_id, due_date: t.due_date ?? "", due_time: t.due_time?.slice(0, 5) ?? "" });
+export type TaskForm = { id?: string; title: string; notes: string; client_id: string; assignee_id: string; due_date: string; due_time: string; moment_id: string };
+export const blankTask = (me: string, day = ""): TaskForm => ({ title: "", notes: "", client_id: "", assignee_id: me, due_date: day, due_time: "", moment_id: "" });
+export const taskToForm = (t: Task): TaskForm => ({ id: t.id, title: t.title, notes: t.notes ?? "", client_id: t.client_id ?? "", assignee_id: t.assignee_id, due_date: t.due_date ?? "", due_time: t.due_time?.slice(0, 5) ?? "", moment_id: t.moment_id ?? "" });
 
 /** Fields only — reused inside the agenda's "Nieuw" dialog. */
 export function TaskFields({ form, setForm }: { form: TaskForm; setForm: (f: TaskForm) => void }) {
@@ -38,11 +38,12 @@ export function TaskFields({ form, setForm }: { form: TaskForm; setForm: (f: Tas
     </div>
     <div className="space-y-1.5">
       <Label>Klant (optioneel)</Label>
-      <Select value={form.client_id || "none"} onValueChange={(v) => setForm({ ...form, client_id: v === "none" ? "" : v })}>
+      <Select value={form.client_id || "none"} onValueChange={(v) => setForm({ ...form, client_id: v === "none" ? "" : v, moment_id: "" })}>
         <SelectTrigger aria-label="Kies klant"><SelectValue /></SelectTrigger>
         <SelectContent><SelectItem value="none">Geen klant</SelectItem>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
       </Select>
     </div>
+    {form.client_id && <ShootPick clientId={form.client_id} value={form.moment_id} onChange={(v) => setForm({ ...form, moment_id: v })} />}
     <div className="space-y-1.5">
       <Label>Voor wie?</Label>
       <div className="flex flex-wrap gap-2">
@@ -51,6 +52,28 @@ export function TaskFields({ form, setForm }: { form: TaskForm; setForm: (f: Tas
     </div>
     <div className="space-y-1.5"><Label htmlFor="tk-notes">Notities</Label><Textarea id="tk-notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
   </>;
+}
+
+/** Draaidag-keuze voor een taak: koppelt bijv. een script aan een shoot zodat het productieboard het meeneemt. */
+function ShootPick({ clientId, value, onChange }: { clientId: string; value: string; onChange: (v: string) => void }) {
+  const { data: shoots = [] } = useQuery({ queryKey: ["task-shoots", clientId], queryFn: async () => {
+    const { data, error } = await db.from("content_moments").select("id,title,date").eq("client_id", clientId).eq("type", "shoot").order("date", { ascending: false }).limit(50);
+    if (error) throw error; return (data ?? []) as { id: string; title: string; date: string | null }[];
+  } });
+  if (!shoots.length) return null;
+  const fmtD = (d: string) => new Date(d + "T00:00").toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+  return (
+    <div className="space-y-1.5">
+      <Label>Draaidag (optioneel)</Label>
+      <Select value={value || "none"} onValueChange={(v) => onChange(v === "none" ? "" : v)}>
+        <SelectTrigger aria-label="Kies draaidag"><SelectValue /></SelectTrigger>
+        <SelectContent className="max-h-72">
+          <SelectItem value="none">Geen draaidag</SelectItem>
+          {shoots.map((s) => <SelectItem key={s.id} value={s.id}>{s.date ? `${fmtD(s.date)} · ` : ""}{s.title}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 export async function saveTask(form: TaskForm, me: string) {
@@ -65,6 +88,7 @@ export async function saveTask(form: TaskForm, me: string) {
       assignee_id: form.assignee_id || me,
       due_date: form.due_date || null,
       due_time: form.due_time || null,
+      moment_id: form.moment_id || null,
     },
   });
   if (error) throw new Error(await errorMessage(error));

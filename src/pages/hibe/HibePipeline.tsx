@@ -18,7 +18,7 @@ const db = supabase as any;
 function usePipelineData() {
   return useQuery({ queryKey: ["pipeline"], refetchInterval: 60_000, queryFn: async () => {
     const [t, m, e, v, l] = await Promise.all([
-      db.from("tasks").select("id,title,client_id,assignee_id,done_at,created_at").is("done_at", null),
+      db.from("tasks").select("id,title,client_id,assignee_id,done_at,created_at,moment_id").is("done_at", null),
       db.from("content_moments").select("id,title,client_id,type,status,date,created_at"),
       db.from("edits").select("id,title,client_id,editor_id,status,created_at,updated_at").neq("status", "delivered"),
       db.from("video_items").select("id,title,client_id,status,current_version,archived_at,status_changed_at").is("archived_at", null),

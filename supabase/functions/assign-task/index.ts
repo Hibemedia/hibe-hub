@@ -16,6 +16,7 @@ const Body = z.object({
   assignee_id: z.string().uuid(),
   due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   due_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),
+  moment_id: z.string().uuid().nullable().optional(),
 });
 
 async function actor(req: Request) {
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
     if (a.error) return a.error;
     const p = Body.safeParse(await req.json().catch(() => ({})));
     if (!p.success) return json({ error: p.success ? "" : (p.error.issues[0]?.message ?? "Ongeldig verzoek") }, 400);
-    const { id, title, notes, client_id, assignee_id, due_date, due_time } = p.data;
+    const { id, title, notes, client_id, assignee_id, due_date, due_time, moment_id } = p.data;
 
     const row = {
       title: title.trim(),
@@ -57,6 +58,7 @@ Deno.serve(async (req) => {
       assignee_id,
       due_date: due_date || null,
       due_time: due_time || null,
+      moment_id: moment_id || null,
     };
 
     // RLS decides who may create or hand over a task, exactly as before.

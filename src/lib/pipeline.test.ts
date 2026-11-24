@@ -60,4 +60,12 @@ describe("linked shoots", () => {
     expect(buildCards(base, "2026-11-20").some((c) => c.id === "ms1")).toBe(true);
     expect(buildCards({ ...base, linkedMoments: ["s1"] }, "2026-11-20").some((c) => c.id === "ms1")).toBe(false);
   });
+  it("drops a script task from Script once its linked shoot has an edit", () => {
+    const t = { id: "t1", title: "Script draaidag", client_id: "c", assignee_id: "a", done_at: null, created_at: "x", moment_id: "s1" };
+    const base = { tasks: [t], moments: [], edits: [], videos: [] };
+    expect(buildCards(base, "2026-11-20").some((c) => c.id === "tt1")).toBe(true);
+    expect(buildCards({ ...base, linkedMoments: ["s1"] }, "2026-11-20").some((c) => c.id === "tt1")).toBe(false);
+    // Unlinked script tasks stay visible.
+    expect(buildCards({ ...base, tasks: [{ ...t, moment_id: null }], linkedMoments: ["s1"] }, "2026-11-20").some((c) => c.id === "tt1")).toBe(true);
+  });
 });
