@@ -164,34 +164,36 @@ function DoneColumn({ n, cards, now, byId, logo }: { n: number; cards: Card[]; n
 
 const SEG = { ok: "bg-lime text-lime-foreground", warn: "bg-tag-warning text-foreground", late: "bg-tag-danger text-foreground" } as const;
 function ClientProgress({ r, now, client, logo }: { r: ClientRow; now: Date; client?: { name: string; logo_url: string | null }; logo: (u: string | null) => string | null | undefined }) {
-  const [open, setOpen] = useState(false);
+  const [sel, setSel] = useState<string | null>(null);
+  const pick = (k: string) => setSel((x) => (x === k ? null : k));
+  const list = r.cards.filter((c) => (sel === "all" ? c.phase !== "done" : c.phase === sel)).sort((a, b) => daysIn(b.since, now) - daysIn(a.since, now));
   const tone = ageTone(r.maxWait);
   return (
     <section className="rounded-[20px] bg-card p-3">
-      <button type="button" onClick={() => setOpen((x) => !x)} className="flex w-full min-w-0 flex-col gap-3 text-left lg:flex-row lg:items-center">
-        <div className="flex min-w-0 items-center gap-2 lg:w-56 lg:shrink-0">
+      <div className="flex w-full min-w-0 flex-col gap-3 text-left lg:flex-row lg:items-center">
+        <button type="button" onClick={() => pick("all")} className="flex min-w-0 items-center gap-2 text-left lg:w-56 lg:shrink-0">
           <ClientLogo url={logo(client?.logo_url ?? null) ?? null} name={client?.name ?? "?"} size={26} />
           <div className="min-w-0"><p className="truncate text-sm font-bold">{client?.name ?? "Onbekend"}</p>
             <p className="text-xs text-muted-foreground">{r.cards.filter((c) => c.phase !== "done").length} open · {r.phases.client.n ? `${r.phases.client.n} bij klant · ${r.clientWait}d` : "niets bij klant"}</p></div>
-        </div>
+        </button>
         <div className="grid min-w-0 flex-1 grid-cols-4 gap-1 sm:grid-cols-8">
           {PHASES.map((p) => {
             const ph = r.phases[p.key];
             const t = p.key === "done" ? "ok" : ageTone(ph.maxDays);
             return (
-              <div key={p.key} title={`${p.label} · ${p.owner}`} className={cn("min-w-0 rounded-tag px-2 py-1.5", ph.n ? SEG[t] : "bg-muted text-muted-foreground")}>
+              <button type="button" key={p.key} disabled={!ph.n} onClick={() => pick(p.key)} title={`${p.label} · ${p.owner}`} className={cn("min-w-0 rounded-tag px-2 py-1.5 text-left", ph.n ? SEG[t] : "bg-muted text-muted-foreground", sel === p.key && "ring-2 ring-foreground")}>
                 <p className="truncate text-[11px] font-semibold">{p.label}</p>
                 <p className="text-xs">{ph.n ? <><b>{ph.n}</b>{p.key !== "done" && ` · ${ph.maxDays}d`}</> : "–"}</p>
-              </div>
+              </button>
             );
           })}
         </div>
         <Tag className={cn("shrink-0 self-start rounded-tag px-2 py-0.5 text-[11px] font-semibold lg:self-center", TONE[tone])}>Wacht {r.maxWait}d</Tag>
-      </button>
-      {open && (
+      </div>
+      {sel && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {r.cards.filter((c) => c.phase !== "done").sort((a, b) => daysIn(b.since, now) - daysIn(a.since, now)).map((c) => (
-            <div key={c.id} className="min-w-0"><p className="mb-1 text-[11px] font-semibold text-muted-foreground">{PHASES.find((p) => p.key === c.phase)?.label}</p><PipeCard c={c} days={daysIn(c.since, now)} logo={logo} /></div>
+          {list.map((c) => (
+            <div key={c.id} className="min-w-0">{sel === "all" && <p className="mb-1 text-[11px] font-semibold text-muted-foreground">{PHASES.find((p) => p.key === c.phase)?.label}</p>}<PipeCard c={c} days={daysIn(c.since, now)} logo={logo} /></div>
           ))}
         </div>
       )}
