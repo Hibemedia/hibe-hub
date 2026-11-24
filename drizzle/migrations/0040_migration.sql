@@ -1,0 +1,1 @@
+ALTER TABLE public.video_items ADD COLUMN IF NOT EXISTS capcut_editor_id uuid;

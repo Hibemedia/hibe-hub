@@ -6,6 +6,7 @@ import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useMedia";
 import { VideoThumb } from "@/components/videos/parts";
 import { FeedbackEditor } from "@/components/videos/FeedbackEditor";
+import { CapcutEditor } from "@/components/videos/CapcutEditor";
 import { useSendToClient, copyText, portalLink } from "@/components/videos/SendDialog";
 import { UploadProgress } from "@/components/UploadProgress";
 import { EmptyState } from "@/components/StatsOverview";
@@ -148,7 +149,8 @@ export default function MediaStep() {
                   {status !== "approved_internal" && <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>}
                   <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>
                   <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
-                    {!trashView && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
+                    {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={i.capcut_editor_id} />}
+                    {!trashView && status !== "approved_internal" && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
                     {trashView && <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>}
                     {!trashView && status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}
                     <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}><Download />Download</Button>
