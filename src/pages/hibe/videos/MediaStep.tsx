@@ -85,7 +85,7 @@ export default function MediaStep() {
 
   if (!status && !trashView) return <div className="p-8"><EmptyState text="Deze stap bestaat niet." /></div>;
   const title = trashView ? "Prullenbak" : status === "archived" ? "Archief" : VIDEO_STATUS_LABEL[status!];
-  const hint = trashView ? "Verwijderde video's. Zet ze terug of verwijder ze definitief." : STEP_HINT[status!];
+  const hint = trashView ? "Video's worden na één maand in de prullenbak automatisch definitief verwijderd." : STEP_HINT[status!];
   const all = list.length > 0 && list.every((i) => sel.has(i.id));
 
   return (
