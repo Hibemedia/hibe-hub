@@ -119,13 +119,15 @@ function useHibeWaitingCount(enabled: boolean) {
   });
 }
 
-/** HIBE: open tasks (not yet marked done). */
+/** HIBE: open tasks assigned to the signed-in user. */
 function useOpenTaskCount(enabled: boolean) {
   return useQuery({
     queryKey: ["tasks", "open-count"],
     enabled,
     queryFn: async () => {
-      const { count, error } = await supabase.from("tasks" as any).select("id", { count: "exact", head: true }).is("done_at", null);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      const { count, error } = await supabase.from("tasks" as any).select("id", { count: "exact", head: true }).is("done_at", null).eq("assignee_id", user.id);
       if (error) throw error;
       return count ?? 0;
     },
