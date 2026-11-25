@@ -18,3 +18,6 @@ verify_jwt = true
 
 [functions.notify-feedback]
 verify_jwt = false
+
+[functions.script-ideas]
+verify_jwt = true

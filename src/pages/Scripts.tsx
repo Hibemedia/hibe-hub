@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Trash2, Upload, Copy, ExternalLink, Eye, EyeOff, FileText } from "lucide-react";
+import { Plus, Search, Trash2, Upload, Copy, ExternalLink, Eye, EyeOff, FileText, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useViewAs } from "@/context/ViewAs";
@@ -14,6 +14,7 @@ import { Tag } from "@/components/ui/tag";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { ScriptIdeas } from "@/components/ScriptIdeas";
 import { filterScripts, type Script } from "@/lib/scripts";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
@@ -28,6 +29,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const [q, setQ] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [selId, setSelId] = useState<string | null>(null);
+  const [ideas, setIdeas] = useState(false);
   const [edit, setEdit] = useState<Partial<Script> | null>(null);
 
   const { data: scripts = [] } = useQuery({
@@ -96,6 +98,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Zoek in titels en tekst voor inspiratie…" className="pl-9" />
         </div>
+        {canEdit && <Button variant="outline" onClick={() => setIdeas(true)}><Sparkles className="h-4 w-4" />Ideeën genereren</Button>}
         {scope === "hibe" && (
           <Select value={clientFilter} onValueChange={setClientFilter}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
@@ -154,6 +157,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
         </div>
       )}
 
+      {canEdit && <ScriptIdeas open={ideas} onOpenChange={setIdeas} initialClient={scope === "client" ? clientId : clientFilter !== "all" ? clientFilter : null} />}
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>{edit?.id ? "Script bewerken" : "Nieuw script"}</DialogTitle></DialogHeader>
