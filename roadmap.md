@@ -1,5 +1,11 @@
 # Roadmap
 
+## Media-overzicht
+- [x] Titel Media, Overzicht/Board-tabs en duidelijke productieboardknop.
+- [x] Zes brede fasekaarten, klikbare klantbadges en bestandslijst met zoek-, klant-, fase- en uploaderfilters.
+- [x] Compacte acties, concrete wachttijden en klikbare activiteit zonder onderstreepte namen.
+- [x] Ingelogd fase + uploader (8 video's van Bram), klantbadge, zoeken, bestand openen, lopend totaal (Nancy: 3 zonder ingepland), activiteit en tabs gecontroleerd. Mobiel zonder overflow; 45 tests slagen, build OK.
+
 ## CapCut-stijlen bij Branding & Archief
 - [x] Bestaande klantstijl direct tonen en aanpassen bij Branding & Archief; bij Nancy Faas opgeslagen, na verversen teruggelezen en oorspronkelijke stijl hersteld. Desktop en mobiel gecontroleerd, geen horizontale overflow; build OK.
 

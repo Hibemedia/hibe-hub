@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useLogoUrls, ClientLogo } from "@/hooks/useLogoUrl";
 import { PageHeader } from "@/components/PageHeader";
+import { MediaTabs } from "@/components/videos/MediaTabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PHASES, ageTone, avgDays, buildCards, daysIn, deliveredThisMonth, slaTone, groupByClient, type Card, type ClientRow } from "@/lib/pipeline";
 import { useQueryClient } from "@tanstack/react-query";
@@ -46,6 +47,7 @@ export default function HibePipeline() {
   return (
     <div className="space-y-4 min-w-0">
       <PageHeader title="Productieboard" />
+      <MediaTabs value="board" />
       <div className="flex flex-wrap items-center gap-2">
         <Select value={client} onValueChange={setClient}>
           <SelectTrigger className="h-9 w-52 rounded-tag"><SelectValue /></SelectTrigger>
