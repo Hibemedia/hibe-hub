@@ -1,5 +1,9 @@
 # Roadmap
 
+## Automatische SLA-koppeling
+- [x] SLA blijft gekoppeld aan Media: Ingepland en het maanddoel bij Klanten; ververst elke minuut zolang het bord zichtbaar is en bij terugkeer naar het scherm, inclusief automatische maandwisseling.
+- [x] 11 productieboard/SLA-tests slagen; ingelogd opgeslagen telling gecontroleerd en doelwijziging vanuit een tweede scherm automatisch ontvangen zonder herladen; oorspronkelijk doel hersteld.
+
 ## Platform opschonen en stroomlijnen
 - [x] Prullenbak: zichtbare definitieve verwijdering, legen, resterende dagen; testdata/dubbelen blijven op verzoek staan tot de maandtermijn verstreken is.
 - [x] Feer- en Jebroer-kanalen visueel groeperen zonder gegevens of toegangsrechten samen te voegen; tabtitel HIBE Hub.

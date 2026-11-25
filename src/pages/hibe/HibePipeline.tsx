@@ -1,6 +1,6 @@
 import { FilterChip } from "@/components/ui/filter-chip";
 import { Tag } from "@/components/ui/tag";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,9 +76,13 @@ const SLA_TONE = { none: "bg-muted text-muted-foreground", met: "bg-lime text-li
 const SLA_LABEL = { none: "Geen SLA", met: "Gehaald", ok: "Op schema", attention: "Aandacht", behind: "Loopt achter" } as const;
 function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo_url: string | null }[]; logo: (u: string | null) => string | null | undefined }) {
   const qc = useQueryClient();
-  const now = new Date();
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const { data } = useQuery({ queryKey: ["sla", start], queryFn: async () => {
+  const { data, isError } = useQuery({ queryKey: ["sla", start], refetchInterval: 60_000, refetchOnWindowFocus: "always", queryFn: async () => {
     const [v, c] = await Promise.all([
       db.from("video_items").select("client_id,status,status_changed_at").eq("status", "scheduled").gte("status_changed_at", start),
       db.from("clients").select("id,monthly_video_target"),
@@ -97,6 +101,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
   return (
     <section className="rounded-[20px] bg-card p-4">
       <header className="mb-3"><h2 className="truncate font-bold">Opgeleverd in {month}</h2><p className="text-xs text-muted-foreground">Ingepland = opgeleverd. Vul per klant de SLA in (video's per maand).</p></header>
+      {isError && <p role="alert" className="mb-3 text-sm text-destructive">SLA bijwerken mislukt. De laatst opgehaalde voortgang blijft staan.</p>}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {clients.map((c) => {
           const done = data?.counts[c.id] ?? 0; const target = data?.targets[c.id] ?? null; const tone = slaTone(done, target, now);
