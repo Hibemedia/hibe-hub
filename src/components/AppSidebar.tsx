@@ -50,8 +50,7 @@ export const MEDIA_SUB: { title: string; url: string; status?: VideoStatus | "tr
   { title: "Overzicht", url: "/hibe/videos" },
   { title: "Productieboard", url: "/hibe/pipeline" },
   ...STEPS.map((s) => ({ title: VIDEO_STATUS_LABEL[s], url: `/hibe/videos/stap/${STEP_SLUG[s]}`, status: s as VideoStatus })),
-  { title: "Archief", url: "/hibe/videos/stap/archief", status: "archived" as VideoStatus },
-  { title: "Prullenbak", url: "/hibe/videos/stap/prullenbak", status: "trash" as const },
+  { title: "Prullenbak & Archief", url: "/hibe/videos/stap/prullenbak", status: "trash" as const },
 ];
 /** Counts per step for the Media Management submenu. */
 export function useMediaCounts(enabled: boolean) {
@@ -74,7 +73,7 @@ function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   const active = path.startsWith("/hibe/videos") || path.startsWith("/hibe/pipeline");
   const [open, setOpen] = useState(() => localStorage.getItem(MEDIA_OPEN_KEY) !== "0");
   const toggle = () => setOpen((o) => { localStorage.setItem(MEDIA_OPEN_KEY, o ? "0" : "1"); return !o; });
-  const n = (s?: string) => (s ? counts[s] : undefined);
+  const n = (s?: string) => (s ? (s === "trash" ? (counts["trash"] ?? 0) + (counts["archived"] ?? 0) : counts[s]) : undefined);
   if (collapsed) return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild onPointerEnter={(e) => (e.currentTarget as HTMLElement).click()}>

@@ -35,6 +35,12 @@ export function sortTrash<T extends { archived_at: string | null }>(items: T[]):
   return [...items].sort((a, b) => new Date(b.archived_at ?? 0).getTime() - new Date(a.archived_at ?? 0).getTime());
 }
 
+/** Combined trash + archive list: newest first by trash date, falling back to the archive stamp. */
+export function sortTrashArchive<T extends { archived_at: string | null; status_changed_at: string }>(items: T[]): T[] {
+  const stamp = (i: T) => new Date(i.archived_at ?? i.status_changed_at).getTime();
+  return [...items].sort((a, b) => stamp(b) - stamp(a));
+}
+
 export function trashDaysLeft(archivedAt: string | null, now = Date.now()): number {
   if (!archivedAt) return 0;
   const archived = new Date(archivedAt);
