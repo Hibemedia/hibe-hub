@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, test } from "bun:test";
-import { extractMentions, imageError, isSendKey, roomTitle } from "./chat";
+import { extractMentions, fileError, fileNameOf, isImagePath, isSendKey, roomTitle } from "./chat";
 
 const team = [{ id: "j", name: "Jeroen Beijer", avatar_url: null }, { id: "n", name: "nick", avatar_url: null }];
 describe("chat", () => {
@@ -10,9 +10,11 @@ describe("chat", () => {
     expect(extractMentions("mail nick@hibe.nl", team)).toEqual([]);
   });
   test("images up to 10 MB are allowed", () => {
-    expect(imageError({ type: "image/png", size: 10 * 1024 * 1024 })).toBeNull();
-    expect(imageError({ type: "image/png", size: 10 * 1024 * 1024 + 1 })).not.toBeNull();
-    expect(imageError({ type: "application/pdf", size: 10 })).not.toBeNull();
+    expect(fileError({ type: "application/pdf", size: 50 * 1024 * 1024 })).toBeNull();
+    expect(fileError({ type: "application/pdf", size: 50 * 1024 * 1024 + 1 })).not.toBeNull();
+    expect(isImagePath("r/x-foto.JPG")).toBe(true);
+    expect(isImagePath("r/x-offerte.pdf")).toBe(false);
+    expect(fileNameOf("room/123e4567-e89b-12d3-a456-426614174000-offerte.pdf")).toBe("offerte.pdf");
   });
   test("Enter sends, Shift+Enter does not", () => {
     expect(isSendKey({ key: "Enter", shiftKey: false })).toBe(true);

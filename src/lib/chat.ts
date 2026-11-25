@@ -9,13 +9,15 @@ export function extractMentions(body: string, team: Member[]) {
   return team.filter((m) => words.has(handleOf(m.name))).map((m) => m.id);
 }
 
-/** Chat images: images only, at most 10 MB. */
-export const MAX_IMAGE = 10 * 1024 * 1024;
-export function imageError(f: { type: string; size: number }) {
-  if (!f.type.startsWith("image/")) return "Alleen afbeeldingen kunnen worden meegestuurd";
-  if (f.size > MAX_IMAGE) return "Afbeelding is groter dan 10 MB";
+/** Chat attachments: any file, at most 50 MB. */
+export const MAX_FILE = 50 * 1024 * 1024;
+export function fileError(f: { type: string; size: number }) {
+  if (f.size > MAX_FILE) return "Bestand is groter dan 50 MB";
   return null;
 }
+/** Stored path looks like room/uuid-name.ext; images render inline. */
+export const isImagePath = (path: string) => /\.(png|jpe?g|gif|webp|avif|heic)$/i.test(path);
+export const fileNameOf = (path: string) => path.split("/").pop()!.replace(/^[0-9a-f-]{36}-/i, "");
 
 /** Enter sends, Shift+Enter makes a new line. */
 export const isSendKey = (e: { key: string; shiftKey: boolean; isComposing?: boolean }) => e.key === "Enter" && !e.shiftKey && !e.isComposing;

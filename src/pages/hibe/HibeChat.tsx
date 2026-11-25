@@ -3,12 +3,12 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { HibbyAvatar } from "@/components/HibbyAvatar";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Bell, Hash, ImagePlus, MoreHorizontal, Plus, Send, Settings2, Users, X } from "lucide-react";
+import { ArrowLeft, Bell, Hash, ImagePlus, MoreHorizontal, Paperclip, FileText, Download, Plus, Send, Settings2, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { PageHeader } from "@/components/PageHeader";
 import { Room, Message, useRooms, useUnread, useMessages, useTeamMembers, markRoomRead } from "@/hooks/useChat";
-import { Member, extractMentions, handleOf, imageError, isSendKey, roomTitle } from "@/lib/chat";
+import { Member, extractMentions, handleOf, fileError, fileNameOf, isImagePath, isSendKey, roomTitle } from "@/lib/chat";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -117,6 +117,11 @@ function Section({ title, onAdd, addLabel, children }: { title: string; onAdd: (
 
 function ChatImage({ path }: { path: string }) {
   const { data: url } = useQuery({ queryKey: ["chat-image", path], staleTime: 50 * 60_000, queryFn: async () => (await supabase.storage.from("chat-images").createSignedUrl(path, 3600)).data?.signedUrl ?? null });
+  if (!isImagePath(path)) return (
+    <a href={url ?? undefined} download={fileNameOf(path)} target="_blank" rel="noreferrer" className="mt-1 flex max-w-sm items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-sm hover:bg-muted">
+      <FileText className="h-5 w-5 shrink-0 text-muted-foreground" /><span className="min-w-0 flex-1 truncate font-medium">{fileNameOf(path)}</span><Download className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </a>
+  );
   if (!url) return <div className="h-40 w-56 animate-pulse rounded-md bg-muted" />;
   return <a href={url} target="_blank" rel="noreferrer"><img src={url} alt="Afbeelding" className="mt-1 max-h-72 max-w-full rounded-md border border-border object-contain" /></a>;
 }
@@ -151,7 +156,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
       let image_path: string | null = null;
       if (img) {
         image_path = `${room.id}/${crypto.randomUUID()}-${img.name.replace(/[^\w.\-]+/g, "_").slice(-80)}`;
-        const { error } = await supabase.storage.from("chat-images").upload(image_path, img, { contentType: img.type });
+        const { error } = await supabase.storage.from("chat-images").upload(image_path, img, { contentType: img.type || "application/octet-stream" });
         if (error) throw error;
       }
       const { error } = await db.from("chat_messages").insert({ room_id: room.id, user_id: me, body, image_path, mentions: extractMentions(body, roomTeam) });
@@ -165,7 +170,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
     } catch (e: any) { toast.error(e.message ?? "Versturen lukte niet"); }
     setSending(false);
   };
-  const pickImage = (f?: File | null) => { if (!f) return; const err = imageError(f); if (err) return toast.error(err); setImg(f); };
+  const pickImage = (f?: File | null) => { if (!f) return; const err = fileError(f); if (err) return toast.error(err); setImg(f); };
   const remove = async (m: Message) => { const { error } = await db.from("chat_messages").delete().eq("id", m.id); if (error) toast.error(error.message); qc.invalidateQueries({ queryKey: ["chat-messages", room.id] }); };
 
   let lastDay = "";
@@ -220,10 +225,10 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
             {suggestions.map((s) => <li key={s.id}><button onMouseDown={(e) => { e.preventDefault(); pickMention(s); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"><Avatar m={s} size={20} />{s.name}</button></li>)}
           </ul>
         )}
-        {img && <div className="mb-2 flex items-center gap-2 text-xs"><ImagePlus className="h-4 w-4" /><span className="truncate">{img.name}</span><button aria-label="Afbeelding weghalen" onClick={() => setImg(null)}><X className="h-3.5 w-3.5" /></button></div>}
+        {img && <div className="mb-2 flex items-center gap-2 text-xs">{img.type.startsWith("image/") ? <ImagePlus className="h-4 w-4" /> : <Paperclip className="h-4 w-4" />}<span className="truncate">{img.name}</span><button aria-label="Bijlage weghalen" onClick={() => setImg(null)}><X className="h-3.5 w-3.5" /></button></div>}
         <div className="flex items-end gap-2">
-          <label className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md hover:bg-muted" aria-label="Afbeelding toevoegen">
-            <ImagePlus className="h-5 w-5" /><input type="file" accept="image/*" className="hidden" onChange={(e) => { pickImage(e.target.files?.[0]); e.target.value = ""; }} />
+          <label className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md hover:bg-muted" aria-label="Bestand toevoegen" title="Bestand of afbeelding toevoegen">
+            <Paperclip className="h-5 w-5" /><input type="file" className="hidden" onChange={(e) => { pickImage(e.target.files?.[0]); e.target.value = ""; }} />
           </label>
           <Textarea ref={taRef} rows={1} value={text} onChange={(e) => setText(e.target.value)} aria-label="Bericht"
             onKeyDown={(e) => { if (isSendKey(e.nativeEvent as any)) { e.preventDefault(); if (suggestions.length && q && handleOf(suggestions[0].name) !== q) pickMention(suggestions[0]); else send(); } }}
