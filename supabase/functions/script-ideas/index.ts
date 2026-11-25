@@ -26,13 +26,17 @@ Deno.serve(async (req) => {
   const { client_id, focus } = await req.json().catch(() => ({}))
   const { data: c } = await db.from('clients').select('name,brief,video_only').eq('id', client_id ?? '').maybeSingle()
   if (!c) return json({ error: 'Klant niet gevonden' }, 404)
-  const { data: scripts } = await db.from('scripts').select('title').eq('client_id', client_id).order('created_at', { ascending: false }).limit(25)
+  const { data: scripts } = await db.from('scripts').select('title,body,moment_id').eq('client_id', client_id).order('created_at', { ascending: false }).limit(25)
   const { data: vids } = await db.from('videos').select('title,views').eq('client_id', client_id).order('views', { ascending: false }).limit(8)
 
+  const { data: made } = await db.from('video_items').select('title').eq('client_id', client_id).is('trashed_at', null).in('status', ['client_review', 'approved_client', 'scheduled', 'archived']).order('created_at', { ascending: false }).limit(30)
+  const used = (scripts ?? []).filter((s) => s.moment_id && s.body).slice(0, 4)
   const prompt = `Klant: ${c.name}
 Over de klant: ${c.brief || '(niet ingevuld — leid het af uit de naam en zoek online wat dit bedrijf doet)'}
 ${focus ? `Extra focus van het team: ${focus}\n` : ''}Eerdere scripts (niet herhalen): ${(scripts ?? []).map((s) => s.title).join('; ') || 'geen'}
-Best bekeken video's: ${(vids ?? []).map((v) => `${v.title ?? 'zonder titel'} (${v.views ?? 0})`).join('; ') || 'onbekend'}`
+Best bekeken video's: ${(vids ?? []).map((v) => `${v.title ?? 'zonder titel'} (${v.views ?? 0})`).join('; ') || 'onbekend'}
+Eerder gemaakte video's voor deze klant (stijl, toon en formats om op voort te bouwen): ${(made ?? []).map((v) => v.title).join('; ') || 'nog geen'}
+${used.length ? `Voorbeelden van gebruikte scripts (neem stijl en toon over):\n${used.map((s) => `- ${s.title}: ${s.body.slice(0, 500)}`).join('\n')}` : ''}`
 
   const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
     method: 'POST',
@@ -40,7 +44,7 @@ Best bekeken video's: ${(vids ?? []).map((v) => `${v.title ?? 'zonder titel'} ($
     body: JSON.stringify({
       model: 'openai/gpt-6-astra', stream: true, store: false, reasoning: { effort: 'low' },
       tools: [{ type: 'web_search' }],
-      instructions: 'Je bent contentstrateeg bij HIBE, een Nederlands social-media bureau. Zoek op het web naar actuele trends (producten, stijlen, formats, geluiden) in de branche van de klant, zoals een interieurbedrijf met banken die nu populair zijn. Geef 3-5 korte trends en 5 concrete video-ideeën voor TikTok/Instagram Reels, in het Nederlands, zonder emoji. Elk script: korte scènes en voice-over/tekst op beeld, max 120 woorden.',
+      instructions: 'Je bent contentstrateeg bij HIBE, een Nederlands social-media bureau. Zoek op het web naar actuele trends (producten, stijlen, formats, geluiden) in de branche van de klant, zoals een interieurbedrijf met banken die nu populair zijn. Geef 3-5 korte trends en 5 concrete video-ideeën voor TikTok/Instagram Reels, in het Nederlands, zonder emoji. Elk script: korte scènes en voice-over/tekst op beeld, max 120 woorden. Sluit aan bij de stijl, toon en formats van de eerder gemaakte video\'s en scripts van deze klant, maar herhaal ze niet.',
       input: prompt,
       text: { format: { type: 'json_schema', name: 'ideas', strict: true, schema: SCHEMA } },
     }),
