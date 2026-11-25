@@ -1,7 +1,7 @@
 import hibeLogoUrl from "@/assets/hibe-logo.png";
 const hibeLogo = { url: hibeLogoUrl };
 import { useState } from "react";
-import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, ListChecks, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, ListTodo, PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, Share2, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, ListTodo, PanelLeftClose, PanelLeftOpen, Clapperboard, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -26,19 +26,19 @@ export const CLIENT_MENU: Item[] = [
   { title: "Planning", url: "/planning", icon: Calendar },
   { title: "Resultaten", url: "/performance", icon: BarChart3 },
   { title: "Medailles", url: "/medals", icon: Award },
-  { title: "Contentmomenten", url: "/content-moments", icon: CalendarDays },
+  { title: "Contentmomenten", url: "/content-moments", icon: Clapperboard },
   { title: "Branding & Archief", url: "/branding", icon: Archive },
 ];
 /** Klanten waarvoor HIBE niet post: alleen video's goedkeuren/downloaden, geen cijfers. */
 export const VIDEO_ONLY_URLS = ["/videos", "/content-moments", "/branding"];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
-  { title: "Media Management", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
+  { title: "Media", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
   { title: "Edits", url: "/hibe/edits", icon: Scissors },
-  { title: "Socials-checklist", url: "/hibe/socials", icon: ListChecks },
+  { title: "Socials-checklist", url: "/hibe/socials", icon: Share2 },
   { title: "Agenda", url: "/hibe/agenda", icon: CalendarDays },
   { title: "Taken", url: "/hibe/taken", icon: ListTodo },
-  { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Calendar },
+  { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Clapperboard },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
   { title: "Chat", url: "/hibe/chat", icon: MessagesSquare },
   { title: "Team", url: "/hibe/gebruikers", icon: Users },
@@ -76,7 +76,7 @@ function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   if (collapsed) return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild onPointerEnter={(e) => (e.currentTarget as HTMLElement).click()}>
-        <button aria-label={item.title} className={cn("relative flex h-10 items-center justify-center rounded-md px-3", active ? "bg-foreground text-background" : "hover:bg-muted")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></button>
+        <button aria-label={item.title} className={cn("relative flex h-10 items-center justify-center rounded-md px-3", active ? "bg-lime/25 text-lime-strong" : "hover:bg-muted")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-56">
         {MEDIA_SUB.map((s) => <DropdownMenuItem key={s.url} asChild><NavLink to={s.url} end className="flex justify-between">{s.title}<span className="tabular text-muted-foreground">{n(s.status) || ""}</span></NavLink></DropdownMenuItem>)}
@@ -86,15 +86,15 @@ function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   return (
     <div>
       <div className={cn("flex h-10 items-center rounded-md text-sm font-medium", active && path === "/hibe/videos" ? "" : "")}>
-        <NavLink to={item.url} end className={cn("flex h-10 min-w-0 flex-1 items-center gap-3 rounded-md px-3 transition-colors", active ? "font-semibold" : "hover:bg-muted")}>
-          <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} /><span className="truncate">{item.title}</span>
+        <NavLink to={item.url} end className={cn("flex h-10 min-w-0 flex-1 items-center gap-3 rounded-md px-3 transition-colors", active ? "bg-lime/25 font-semibold" : "hover:bg-muted")}>
+          <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-lime-strong")} strokeWidth={1.8} /><span className="truncate">{item.title}</span>
         </NavLink>
-        <button onClick={toggle} aria-label={open ? "Stappen inklappen" : "Stappen uitklappen"} aria-expanded={open} className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"><ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} /></button>
+        <button onClick={toggle} aria-label={open ? "Stappen inklappen" : "Stappen uitklappen"} aria-expanded={open} className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none"><ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} /></button>
       </div>
       {open && (
         <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-border pl-2">
           {MEDIA_SUB.map((s) => (
-            <NavLink key={s.url} to={s.url} end className={({ isActive }) => cn("flex h-8 items-center gap-2 rounded-md px-2 text-[13px]", isActive ? "bg-foreground text-background" : "text-foreground hover:bg-muted")}>
+            <NavLink key={s.url} to={s.url} end className={({ isActive }) => cn("flex h-8 items-center gap-2 rounded-md px-2 text-[13px]", isActive ? "bg-lime/25 font-semibold text-foreground" : "text-foreground hover:bg-muted")}>
               <span className="min-w-0 flex-1 truncate">{s.title}</span>{!!n(s.status) && <span className="text-[11px] tabular opacity-70">{n(s.status)}</span>}
             </NavLink>
           ))}
@@ -134,8 +134,8 @@ function SideLink({ item, collapsed, badge }: { item: Item; collapsed: boolean; 
   const link = (
     <NavLink to={item.url} end aria-label={collapsed ? item.title : undefined}
       className={cn("relative flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
-        active ? "bg-foreground text-background" : "text-foreground hover:bg-muted")}>
-      <item.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+        active ? "bg-lime/25 font-semibold text-foreground" : "text-foreground hover:bg-muted")}>
+      <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-lime-strong")} strokeWidth={1.8} />
       {!collapsed && <span className="truncate">{item.title}</span>}
       {!collapsed ? <Badge n={badge} /> : !!badge && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" aria-label={`${badge} wachtend`} />}
     </NavLink>
@@ -204,7 +204,7 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
           {!collapsed && <Brand variant={variant} collapsed={false} />}
           <Tooltip>
             <TooltipTrigger asChild>
-              <button onClick={toggle} aria-label={collapsed ? "Menu uitklappen" : "Menu inklappen"} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+              <button onClick={toggle} aria-label={collapsed ? "Menu uitklappen" : "Menu inklappen"} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none">
                 {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               </button>
             </TooltipTrigger>
@@ -245,10 +245,10 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
 
 function BottomLink({ item, badge }: { item: Item; badge?: number }) {
   const active = useActive(item);
-  const short = item.title.replace("-checklist", "").replace(" & Archief", "").replace("Contentmomenten", "Momenten").replace("Media Management", "Media");
+  const short = item.title.replace("-checklist", "").replace(" & Archief", "").replace("Contentmomenten", "Momenten");
   return (
     <NavLink to={item.url} end className={cn("relative flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium", active ? "text-foreground" : "text-muted-foreground")}>
-      <span className={cn("flex h-7 w-11 items-center justify-center rounded-md", active && "bg-foreground text-background")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
+      <span className={cn("flex h-7 w-11 items-center justify-center rounded-md", active && "bg-lime/25 text-lime-strong")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
       <span className="max-w-full truncate">{short}</span>
       {!!badge && <span className="absolute right-[calc(50%-24px)] top-2 min-w-4 rounded-full bg-lime px-1 text-center text-[10px] font-bold leading-4 text-lime-foreground tabular">{badge}</span>}
     </NavLink>

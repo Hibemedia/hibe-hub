@@ -54,7 +54,8 @@ export default {
 				},
 				lime: {
 					DEFAULT: 'hsl(var(--lime))',
-					foreground: 'hsl(var(--lime-foreground))'
+					foreground: 'hsl(var(--lime-foreground))',
+					strong: 'hsl(var(--lime-strong))'
 				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',

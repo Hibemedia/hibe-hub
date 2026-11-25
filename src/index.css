@@ -18,6 +18,7 @@
     --primary-dark: 0 0% 0%;
     --lime: 76 87% 58%;             /* #C8F135 */
     --lime-foreground: 0 0% 7%;
+    --lime-strong: 76 80% 32%;      /* leesbaar lime op licht, bv. actief icoon */
     --agenda-shoot-fill: 76 75% 90%; --agenda-shoot-line: 76 65% 48%;
     --agenda-edit-fill: 210 65% 94%; --agenda-edit-line: 210 50% 65%;
     --agenda-meeting-fill: 60 5% 93%; --agenda-meeting-line: 60 3% 65%;
@@ -122,6 +123,7 @@
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 22 100% 50%;
+    --lime-strong: 76 87% 58%;
     --agenda-shoot-fill: 76 22% 18%;
     --agenda-edit-fill: 210 25% 18%;
     --agenda-meeting-fill: 60 3% 18%;
