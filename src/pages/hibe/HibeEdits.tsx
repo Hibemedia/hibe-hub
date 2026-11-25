@@ -165,7 +165,7 @@ export default function HibeEdits() {
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant="outline" onClick={() => setSelection(new Set(visible.map(e => e.id)))} disabled={!visible.length}>Selecteer zichtbare edits</Button>
         <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.map(g => [g.id, true])))}>Alles inklappen</Button>
-        <Button size="sm" variant="ghost" onClick={() => setClosed({})}>Alles uitklappen</Button>
+        <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.map(g => [g.id, false])))}>Alles uitklappen</Button>
       </div>
       {selection.size > 0 && <div className="flex flex-wrap items-center gap-2 border-y border-border py-3">
         <span className="text-sm font-medium">{visible.filter(e => selection.has(e.id)).length} geselecteerd</span>
@@ -182,13 +182,13 @@ export default function HibeEdits() {
         </div>
       ) : groups.map((g) => (
         <section key={g.id} className="rounded-lg border border-border bg-card overflow-hidden p-0">
-          <button onClick={() => setClosed((c) => ({ ...c, [g.id]: !c[g.id] }))} aria-expanded={!closed[g.id]} className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-muted/50">
-            <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", closed[g.id] && "-rotate-90")} />
+          <button onClick={() => setClosed((c) => ({ ...c, [g.id]: c[g.id] === false }))} aria-expanded={closed[g.id] === false} className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-muted/50">
+            <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", closed[g.id] !== false && "-rotate-90")} />
             <ClientMark id={g.id} name={g.name} url={logos[g.id]} size={28} />
             <span className="min-w-0 flex-1 truncate font-semibold">{g.name}</span>
             <span className="shrink-0 text-xs tabular text-muted-foreground">{progressLabel(g.all)}</span>
           </button>
-          {!closed[g.id] && (
+          {closed[g.id] === false && (
             <ul className="divide-y divide-border border-t border-border">
               {g.rows.map((e) => (
                 <li key={e.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 lg:grid-cols-[minmax(0,1fr)_190px_160px_90px_130px]">
