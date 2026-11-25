@@ -21,7 +21,7 @@ Deno.serve(async (request) => {
     let deleted = 0, failed = 0, scanned = 0;
     let after: string | null = null;
     while (Date.now() - started < 45000) {
-      let query = db.from("video_items").select("id,archived_at").lt("archived_at", cutoff).order("id").limit(100);
+      let query = db.from("video_items").select("id,trashed_at").lt("trashed_at", cutoff).order("id").limit(100);
       if (after) query = query.gt("id", after);
       const { data: items, error } = await query;
       if (error) throw error;
@@ -32,9 +32,9 @@ Deno.serve(async (request) => {
         scanned++;
         try {
           // Re-read to exclude anything restored since the batch was fetched.
-          const { data: current, error: currentError } = await db.from("video_items").select("archived_at").eq("id", item.id).maybeSingle();
+          const { data: current, error: currentError } = await db.from("video_items").select("trashed_at").eq("id", item.id).maybeSingle();
           if (currentError) throw currentError;
-          if (!current || !trashExpired(current.archived_at, cutoff)) continue;
+          if (!current || !trashExpired(current.trashed_at, cutoff)) continue;
           const { data: versions, error: versionsError } = await db.from("video_versions").select("r2_key,upload_id,upload_status").eq("item_id", item.id);
           if (versionsError) throw versionsError;
           await purgeFilesBeforeItem(versions ?? [], async (version) => {
@@ -50,7 +50,7 @@ Deno.serve(async (request) => {
             await response.text();
             if (!response.ok && response.status !== 404) throw new Error(`Object deletion failed: ${response.status}`);
           }, async () => {
-            const { data: removed, error: deleteError } = await db.from("video_items").delete().eq("id", item.id).eq("archived_at", current.archived_at).lt("archived_at", cutoff).select("id");
+            const { data: removed, error: deleteError } = await db.from("video_items").delete().eq("id", item.id).eq("trashed_at", current.trashed_at).lt("trashed_at", cutoff).select("id");
             if (deleteError) throw deleteError;
             deleted += removed?.length ?? 0;
           });

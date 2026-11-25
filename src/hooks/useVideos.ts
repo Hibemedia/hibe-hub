@@ -61,12 +61,12 @@ export const setVideoStatus = async (id: string, status: VideoStatus) => {
 };
 
 /** Overview rows: items + uploader + latest ready version + open comment count. */
-export type BoardItem = VideoItem & { editor_id: string | null; capcut_editor_id: string | null; uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null; source: string | null };
+export type BoardItem = VideoItem & { editor_id: string | null; capcut_editor_id: string | null; uploader: string | null; versionId: string | null; openComments: number; archived_at: string | null; trashed_at: string | null; file_name: string | null; size_bytes: number | null; mime_type: string | null; source: string | null };
 export function useVideoBoard(opts: { includeDone?: boolean } = {}) {
   return useQuery({
     queryKey: ["video-items", "board", !!opts.includeDone],
     queryFn: async () => {
-      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at,created_by,archived_at,editor_id,capcut_editor_id").order("created_at", { ascending: false });
+      let q = db.from("video_items").select("id,client_id,title,status,current_version,drive_link,created_at,status_changed_at,created_by,archived_at,trashed_at,editor_id,capcut_editor_id").order("created_at", { ascending: false });
       if (!opts.includeDone) q = q.neq("status", "archived");
       const { data: items, error } = await q;
       if (error) throw error;
@@ -151,5 +151,10 @@ export function useOpenClientFeedback() {
   });
 }
 export const renameVideo = async (id: string, title: string) => { const { error } = await db.from("video_items").update({ title }).eq("id", id); if (error) throw error; };
-export const trashVideo = async (id: string, trash: boolean) => { const { error } = await db.from("video_items").update({ archived_at: trash ? new Date().toISOString() : null }).eq("id", id); if (error) throw error; };
+/** Trash (auto-deleted after a month) is trashed_at; archive is status 'archived' and is never auto-deleted. */
+export const trashVideo = async (id: string, trash: boolean) => {
+  if (trash) { const now = new Date().toISOString(); const { error } = await db.from("video_items").update({ trashed_at: now, archived_at: now }).eq("id", id); if (error) throw error; return; }
+  const { error } = await db.from("video_items").update({ trashed_at: null }).eq("id", id); if (error) throw error;
+  const { error: e2 } = await db.from("video_items").update({ archived_at: null }).eq("id", id).neq("status", "archived"); if (e2) throw e2;
+};
 export const setCapcutEditor = async (id: string, userId: string | null) => { const { error } = await db.from("video_items").update({ capcut_editor_id: userId }).eq("id", id); if (error) throw error; };

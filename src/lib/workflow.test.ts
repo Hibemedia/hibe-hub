@@ -1,6 +1,6 @@
 // @ts-ignore project tests run with Bun
 import { describe, it, expect } from "bun:test";
-import { waitTone, waitDays, trashDaysLeft, clientGroupName, sortTrash, sortTrashArchive, sortNewestFirst } from "./workflow";
+import { waitTone, waitDays, trashDaysLeft, clientGroupName, sortTrash, sortNewestFirst } from "./workflow";
 describe("platform rules", () => {
   it("wait is green below 3, orange at 3 through 5, red after 5", () => {
     expect([2,3,5,6].map(waitTone)).toEqual(["ok","warn","warn","late"]);
@@ -17,22 +17,13 @@ describe("platform rules", () => {
   });
   it("puts the newest trashed video on top and the oldest at the bottom", () => {
     const items = [
-      { id: "oud", archived_at: "2026-10-16T10:00:00Z" },
-      { id: "nieuw", archived_at: "2026-11-25T10:00:00Z" },
-      { id: "midden", archived_at: "2026-11-20T10:00:00Z" },
+      { id: "oud", trashed_at: "2026-10-16T10:00:00Z" },
+      { id: "nieuw", trashed_at: "2026-11-25T10:00:00Z" },
+      { id: "midden", trashed_at: "2026-11-20T10:00:00Z" },
     ];
     expect(sortTrash(items).map((i) => i.id)).toEqual(["nieuw", "midden", "oud"]);
     expect(items.map((i) => i.id)).toEqual(["oud", "nieuw", "midden"]);
-    expect(sortTrash([{ id: "geen", archived_at: null }]).map((i) => i.id)).toEqual(["geen"]);
-  });
-  it("mixes trash and archive newest-first by trash date or archive stamp", () => {
-    const items = [
-      { id: "archief-oud", archived_at: null, status_changed_at: "2026-11-10T10:00:00Z" },
-      { id: "prullenbak", archived_at: "2026-11-24T10:00:00Z", status_changed_at: "2026-11-01T10:00:00Z" },
-      { id: "archief-nieuw", archived_at: null, status_changed_at: "2026-11-20T10:00:00Z" },
-    ];
-    expect(sortTrashArchive(items).map((i) => i.id)).toEqual(["prullenbak", "archief-nieuw", "archief-oud"]);
-    expect(items.map((i) => i.id)).toEqual(["archief-oud", "prullenbak", "archief-nieuw"]);
+    expect(sortTrash([{ id: "geen", trashed_at: null }]).map((i) => i.id)).toEqual(["geen"]);
   });
   it("puts the newest scheduled video on top and the oldest at the bottom", () => {
     const items = [

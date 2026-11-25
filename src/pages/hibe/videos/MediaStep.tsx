@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload, MessageSquare, MoreHorizontal, Search, Send, Trash2, RotateCcw, Download } from "lucide-react";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tag } from "@/components/ui/tag";
-import { WORKFLOW, WAIT_CLS, waitDays, waitTone, trashDaysLeft, sortNewestFirst, sortTrashArchive } from "@/lib/workflow";
+import { WORKFLOW, WAIT_CLS, waitDays, waitTone, trashDaysLeft, sortNewestFirst } from "@/lib/workflow";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -62,7 +62,7 @@ export default function MediaStep() {
   const capcutBy = (i: BoardItem) => capcutEditorOf(i);
 
   const stepItems = m.live.filter((i) => i.status === status);
-  const base = trashView ? sortTrashArchive([...m.trash, ...m.live.filter((i) => i.status === "archived")]) : status === "scheduled" ? sortNewestFirst(stepItems) : stepItems;
+  const base = trashView ? m.trash : status === "scheduled" ? sortNewestFirst(stepItems) : stepItems;
   const uploaders = useMemo(() => [...new Set(base.map((i) => i.uploader).filter(Boolean) as string[])], [base]);
   const list = base.filter((i) => (f.client === "all" || i.client_id === f.client) && (f.uploader === "all" || i.uploader === f.uploader) && (!f.q || i.title.toLowerCase().includes(f.q.toLowerCase())));
   const ready = status === "ready_for_client" ? [...new Set(m.live.filter((i) => i.status === "ready_for_client").map((i) => i.client_id))] : [];
@@ -98,10 +98,9 @@ export default function MediaStep() {
     finally { setClearing(false); refresh(); }
   };
 
-  if (status === "archived") return <Navigate to="/hibe/videos/stap/prullenbak" replace />;
   if (!status && !trashView) return <div className="p-8"><EmptyState text="Deze stap bestaat niet." /></div>;
-  const title = trashView ? "Prullenbak & Archief" : VIDEO_STATUS_LABEL[status!];
-  const hint = trashView ? "Weggegooide video's worden na één maand automatisch definitief verwijderd. Gearchiveerde video's blijven bewaard." : STEP_HINT[status!];
+  const title = trashView ? "Prullenbak" : status === "archived" ? "Archief" : VIDEO_STATUS_LABEL[status!];
+  const hint = trashView ? "Video's worden na één maand in de prullenbak automatisch definitief verwijderd." : STEP_HINT[status!];
   const all = list.length > 0 && list.every((i) => sel.has(i.id));
 
   return (
@@ -147,7 +146,7 @@ export default function MediaStep() {
       <section className="overflow-hidden rounded-lg border border-border bg-card">
         {m.isLoading ? <EmptyState text="Laden…" /> : list.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
-            {status === "internal_review" ? "Niets te beoordelen. Zodra er een video is geüpload, verschijnt hij hier." : trashView ? "Prullenbak en archief zijn leeg." : "Geen video's in deze stap."}
+            {status === "internal_review" ? "Niets te beoordelen. Zodra er een video is geüpload, verschijnt hij hier." : trashView ? "De prullenbak is leeg." : "Geen video's in deze stap."}
             {status === "internal_review" && <Button onClick={up.openPicker}><Upload />Video uploaden</Button>}
             {status !== "internal_review" && <Button variant="outline" onClick={() => nav("/hibe/videos")}>Open Media</Button>}
           </div>
@@ -156,11 +155,10 @@ export default function MediaStep() {
             <li className="flex items-center gap-3 px-4 py-2 text-xs text-muted-foreground">
               <Checkbox checked={all} onCheckedChange={(v) => setSel(v ? new Set(list.map((i) => i.id)) : new Set())} aria-label="Alles selecteren" />
               {status && !trashView && <Tag className={WORKFLOW[status].cls}>{VIDEO_STATUS_LABEL[status]}</Tag>}
-              <span>{list.length} video{list.length === 1 ? "" : "'s"} · {trashView ? "nieuwste bovenaan" : status === "scheduled" ? "nieuwst ingepland bovenaan" : "nieuwste bovenaan"}</span>
+              <span>{list.length} video{list.length === 1 ? "" : "'s"} · {trashView ? "nieuwst weggegooid bovenaan" : status === "scheduled" ? "nieuwst ingepland bovenaan" : "nieuwste bovenaan"}</span>
             </li>
             {list.map((i) => {
               const a = status && !trashView ? STEP_ACTION[status] : undefined;
-              const inTrash = !!i.archived_at;
               return (
                 <li key={i.id} onClick={() => nav(`/hibe/videos/${i.id}`)} className="flex cursor-pointer flex-wrap items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
                   <span onClick={(e) => e.stopPropagation()}><Checkbox checked={sel.has(i.id)} onCheckedChange={(v) => setSel((s) => { const n = new Set(s); v ? n.add(i.id) : n.delete(i.id); return n; })} aria-label={`Selecteer ${i.title}`} /></span>
@@ -170,23 +168,23 @@ export default function MediaStep() {
                     <p className="truncate text-sm font-medium">{i.title} <span className="text-muted-foreground">V{i.current_version}</span></p>
                     <p className="truncate text-xs text-muted-foreground">{m.clientName(i.client_id)}{i.file_name ? ` · ${typeOf(i.mime_type, i.file_name)}` : ""}{i.size_bytes ? ` · ${fmtSize(i.size_bytes)}` : ""}{status === "client_review" && capcutBy(i) ? ` · CapCut door ${m.names[capcutBy(i)!] ?? "collega"}` : ""}{status === "approved_internal" && (i.uploader ?? i.editor_id) ? ` · Edit door ${m.names[(i.uploader ?? i.editor_id)!] ?? "collega"}` : ""}</p>
                   </div>
-                  {!trashView && status !== "approved_internal" && <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>}
-                  {inTrash ? <Tag variant="neutral">nog {trashDaysLeft(i.archived_at)} dagen</Tag> : trashView ? <Tag className={WORKFLOW.archived.cls}>Archief</Tag> : status === "client_review" ? <Tag className={WAIT_CLS[waitTone(waitDays(i.status_changed_at))]}>wacht {waitDays(i.status_changed_at)} dagen</Tag> : <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>}
-                  <div className={cn("flex flex-wrap items-center gap-2", !inTrash && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
+                  {status !== "approved_internal" && <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>}
+                  {trashView ? <Tag variant="neutral">nog {trashDaysLeft(i.trashed_at)} dagen</Tag> : status === "client_review" ? <Tag className={WAIT_CLS[waitTone(waitDays(i.status_changed_at))]}>wacht {waitDays(i.status_changed_at)} dagen</Tag> : <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>}
+                  <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
                     {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={capcutBy(i)} />}
                     {!trashView && status !== "approved_internal" && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
-                    {inTrash && <><Button size="sm" variant="outline" disabled={clearing} onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button><Button size="sm" variant="outline" className="text-destructive" disabled={clearing} onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</Button></>}
+                    {trashView && <><Button size="sm" variant="outline" disabled={clearing} onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button><Button size="sm" variant="outline" className="text-destructive" disabled={clearing} onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</Button></>}
                     {!trashView && status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}
                     <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}><Download />Download</Button>
                     {!trashView && a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><button aria-label="Meer acties" className="round-btn h-8 w-8"><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {!inTrash && <DropdownMenuSub><DropdownMenuSubTrigger>Verplaats naar</DropdownMenuSubTrigger>
+                        {!trashView && <DropdownMenuSub><DropdownMenuSubTrigger>Verplaats naar</DropdownMenuSubTrigger>
                           <DropdownMenuSubContent>{ALL.filter((s) => s !== i.status).map((s) => <DropdownMenuItem key={s} disabled={savingEditors.has(i.id)} onClick={() => move([i.id], s)}>{s === "feedback" ? i.editor_id ? `Terug naar ${m.names[i.editor_id] ?? "editor"}` : "Editor kiezen voor feedback…" : s === "archived" ? "Archief" : VIDEO_STATUS_LABEL[s]}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>}
                         <DropdownMenuItem onClick={() => rename(i)}>Hernoem</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {inTrash ? <DropdownMenuItem className="text-destructive" onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</DropdownMenuItem>
+                        {trashView ? <DropdownMenuItem className="text-destructive" onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</DropdownMenuItem>
                           : <DropdownMenuItem onClick={() => trash(i, true)}><Trash2 />Naar prullenbak</DropdownMenuItem>}
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -17,7 +17,7 @@ export function useMedia(includeArchive = false) {
   const mark = (id: string, size = 24) => <ClientMark id={id} name={clientName(id)} url={logos[id]} size={size} />;
   return {
     me: (user?.id as string) ?? null, clients, isLoading, names, logos, clientName, mark,
-    live: data.filter((i) => !i.archived_at), trash: sortTrash(data.filter((i) => !!i.archived_at)),
+    live: data.filter((i) => !i.trashed_at), trash: sortTrash(data.filter((i) => !!i.trashed_at)),
   };
 }
 

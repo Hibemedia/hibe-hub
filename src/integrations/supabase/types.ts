@@ -1152,6 +1152,7 @@ export type Database = {
           status: string
           status_changed_at: string
           title: string
+          trashed_at: string | null
         }
         Insert: {
           archived_at?: string | null
@@ -1166,6 +1167,7 @@ export type Database = {
           status?: string
           status_changed_at?: string
           title: string
+          trashed_at?: string | null
         }
         Update: {
           archived_at?: string | null
@@ -1180,6 +1182,7 @@ export type Database = {
           status?: string
           status_changed_at?: string
           title?: string
+          trashed_at?: string | null
         }
         Relationships: [
           {
@@ -1420,6 +1423,7 @@ export type Database = {
           status: string
           status_changed_at: string
           title: string
+          trashed_at: string | null
         }
         SetofOptions: {
           from: "*"
@@ -1445,6 +1449,7 @@ export type Database = {
           status: string
           status_changed_at: string
           title: string
+          trashed_at: string | null
         }
         SetofOptions: {
           from: "*"
