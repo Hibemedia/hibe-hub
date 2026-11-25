@@ -7,3 +7,9 @@ describe("filterScripts", () => {
   test("zoekt in titel én tekst", () => expect(filterScripts(list, "hook", "all").map((x) => x.id)).toEqual(["2", "1"]));
   test("filtert op klant", () => expect(filterScripts(list, "", "a").map((x) => x.id)).toEqual(["1"]));
 });
+import { usedScripts } from "./scripts";
+test("gebruikte scripts: alleen met ingeplande dag, nieuwste dag eerst", () => {
+  const l = [{ ...list[0], moment_id: "m1" }, { ...list[1], moment_id: "m2" }, s("3", "a", "x", "", "2026-03-01")];
+  const r = usedScripts(l, { m1: { title: "A", date: "2026-05-01" }, m2: { title: "B", date: null } });
+  expect(r.map((x) => x.script.id)).toEqual(["1"]);
+});

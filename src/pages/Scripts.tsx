@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Trash2, Upload, Copy, ExternalLink, Eye, EyeOff, FileText, Sparkles } from "lucide-react";
+import { Plus, Search, Trash2, Upload, Copy, ExternalLink, EyeOff, Send, FileText, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useViewAs } from "@/context/ViewAs";
@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Tag } from "@/components/ui/tag";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ScriptIdeas } from "@/components/ScriptIdeas";
-import { filterScripts, type Script } from "@/lib/scripts";
+import { filterScripts, usedScripts, type MomentInfo, type Script } from "@/lib/scripts";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
 const NONE = "__none";
@@ -43,14 +42,16 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
       return data as Script[];
     },
   });
-  const { data: dayNames = {} } = useQuery({
+  const { data: days = {} } = useQuery({
     queryKey: ["script-days", scripts.map((s) => s.moment_id).join()], enabled: scripts.some((s) => s.moment_id),
     queryFn: async () => {
       const ids = [...new Set(scripts.map((s) => s.moment_id).filter(Boolean))] as string[];
       const { data } = await supabase.from("content_moments").select("id,title,date").in("id", ids);
-      return Object.fromEntries((data ?? []).map((m) => [m.id, `${m.title}${m.date ? ` · ${fmt(m.date)}` : ""}`])) as Record<string, string>;
+      return Object.fromEntries((data ?? []).map((m) => [m.id, { title: m.title, date: m.date }])) as Record<string, MomentInfo>;
     },
   });
+  const dayNames: Record<string, string> = Object.fromEntries(Object.entries(days).map(([id, m]) => [id, `${m.title}${m.date ? ` · ${fmt(m.date)}` : ""}`]));
+  const used = scope === "client" && canEdit ? usedScripts(scripts, days) : [];
   const formClient = edit?.client_id ?? null;
   const { data: moments = [] } = useQuery({
     queryKey: ["script-moments", formClient], enabled: !!formClient,
@@ -64,7 +65,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const save = async () => {
     if (!edit?.client_id || !edit.title?.trim()) return toast.error("Kies een klant en vul een titel in");
     const row = { client_id: edit.client_id, title: edit.title.trim(), body: edit.body ?? "", link: edit.link?.trim() || null,
-      moment_id: edit.moment_id || null, shared_with_client: !!edit.shared_with_client, updated_at: new Date().toISOString() };
+      moment_id: edit.moment_id || null, updated_at: new Date().toISOString() };
     const res = edit.id ? await supabase.from("scripts").update(row).eq("id", edit.id).select().single()
       : await supabase.from("scripts").insert(row).select().single();
     if (res.error) return toast.error("Opslaan lukt niet");
@@ -80,6 +81,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const toggleShare = async (s: Script) => {
     const { error } = await supabase.from("scripts").update({ shared_with_client: !s.shared_with_client }).eq("id", s.id);
     if (error) return toast.error("Aanpassen lukt niet");
+    toast.success(s.shared_with_client ? "Script teruggehaald" : "Script naar klant gestuurd");
     qc.invalidateQueries({ queryKey: ["scripts"] });
   };
   const readFile = async (f: File | undefined) => {
@@ -93,6 +95,19 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   return (
     <div className="space-y-4">
       <PageHeader title="Scripts" action={canEdit ? <PrimaryAction icon={Plus} onClick={newScript}>Nieuw script</PrimaryAction> : undefined} />
+      {used.length > 0 && (
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="font-semibold">Kennisbank: al gebruikt op contentdagen</h2>
+          <ul className="mt-2 divide-y divide-border">
+            {used.map(({ script: s, moment }) => (
+              <li key={s.id}><button onClick={() => setSelId(s.id)} className="flex w-full items-center justify-between gap-3 py-2 text-left text-sm hover:text-foreground">
+                <span className="font-medium">{s.title}</span>
+                <span className="shrink-0 text-muted-foreground">{moment.title} · {fmt(moment.date!)}</span>
+              </button></li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="flex flex-wrap gap-2">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -114,7 +129,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
         <div className="rounded-xl border border-border bg-card p-10 text-center">
           <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 font-semibold">{scripts.length ? "Geen scripts gevonden" : "Nog geen scripts"}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{canEdit ? "Plak of upload een script en koppel het aan een klant." : "Zodra HIBE een script met je deelt, staat het hier."}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{canEdit ? "Plak of upload een script en koppel het aan een klant." : "Zodra HIBE een script naar je stuurt, staat het hier."}</p>
           {canEdit && <Button className="mt-4" onClick={newScript}><Plus className="h-4 w-4" />Nieuw script</Button>}
         </div>
       ) : (
@@ -127,7 +142,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     {scope === "hibe" && <Tag>{clientName(s.client_id)}</Tag>}
                     <span>{fmt(s.created_at)}</span>
-                    {canEdit && s.shared_with_client && <span>· gedeeld</span>}
+                    {canEdit && s.shared_with_client && <span>· naar klant gestuurd</span>}
                   </div>
                 </button>
               </li>
@@ -145,7 +160,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                   <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(sel.body); toast.success("Gekopieerd"); }}><Copy className="h-4 w-4" />Kopieer</Button>
                   {sel.link && <Button variant="outline" size="sm" asChild><a href={sel.link} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" />Link</a></Button>}
                   {canEdit && <>
-                    <Button variant="outline" size="sm" onClick={() => toggleShare(sel)}>{sel.shared_with_client ? <><EyeOff className="h-4 w-4" />Verberg voor klant</> : <><Eye className="h-4 w-4" />Deel met klant</>}</Button>
+                    <Button variant="outline" size="sm" onClick={() => toggleShare(sel)}>{sel.shared_with_client ? <><EyeOff className="h-4 w-4" />Terughalen bij klant</> : <><Send className="h-4 w-4" />Stuur naar klant</>}</Button>
                     <Button variant="outline" size="sm" onClick={() => setEdit(sel)}>Bewerken</Button>
                     <Button variant="ghost" size="sm" aria-label="Verwijderen" onClick={() => remove(sel)}><Trash2 className="h-4 w-4" /></Button>
                   </>}
@@ -186,7 +201,6 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                 <Textarea value={edit.body ?? ""} onChange={(e) => setEdit({ ...edit, body: e.target.value })} rows={12} placeholder="Plak hier het script…" />
               </div>
               <div><Label>Link (optioneel, bijv. Google Docs)</Label><Input value={edit.link ?? ""} onChange={(e) => setEdit({ ...edit, link: e.target.value })} placeholder="https://" /></div>
-              <label className="flex items-center gap-2 text-sm"><Switch checked={!!edit.shared_with_client} onCheckedChange={(v) => setEdit({ ...edit, shared_with_client: v })} />Zichtbaar voor de klant</label>
               <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setEdit(null)}>Annuleren</Button><Button onClick={save}>Opslaan</Button></div>
             </div>
           )}
