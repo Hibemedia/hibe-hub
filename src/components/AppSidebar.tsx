@@ -76,7 +76,7 @@ function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   if (collapsed) return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild onPointerEnter={(e) => (e.currentTarget as HTMLElement).click()}>
-        <button aria-label={item.title} className={cn("relative flex h-10 items-center justify-center rounded-md px-3", active ? "bg-lime/25 text-lime-strong" : "hover:bg-muted")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></button>
+        <button aria-label={item.title} className={cn("relative flex h-11 items-center justify-center rounded-md px-3", active ? "bg-lime/25 text-lime-strong" : "hover:bg-muted")}><item.icon className="h-5 w-5" strokeWidth={1.8} /></button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-56">
         {MEDIA_SUB.map((s) => <DropdownMenuItem key={s.url} asChild><NavLink to={s.url} end className="flex justify-between">{s.title}<span className="tabular text-muted-foreground">{n(s.status) || ""}</span></NavLink></DropdownMenuItem>)}
@@ -85,9 +85,9 @@ function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   );
   return (
     <div>
-      <div className={cn("flex h-10 items-center rounded-md text-sm font-medium", active && path === "/hibe/videos" ? "" : "")}>
-        <NavLink to={item.url} end className={cn("flex h-10 min-w-0 flex-1 items-center gap-3 rounded-md px-3 transition-colors", active ? "bg-lime/25 font-semibold" : "hover:bg-muted")}>
-          <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-lime-strong")} strokeWidth={1.8} /><span className="truncate">{item.title}</span>
+      <div className={cn("flex h-11 items-center rounded-md text-sm font-medium", active && path === "/hibe/videos" ? "" : "")}>
+        <NavLink to={item.url} end className={cn("flex h-11 min-w-0 flex-1 items-center gap-3 rounded-md px-3 transition-colors", active ? "bg-lime/25 font-semibold" : "hover:bg-muted")}>
+          <item.icon className={cn("h-5 w-5 shrink-0", active && "text-lime-strong")} strokeWidth={1.8} /><span className="truncate">{item.title}</span>
         </NavLink>
         <button onClick={toggle} aria-label={open ? "Stappen inklappen" : "Stappen uitklappen"} aria-expanded={open} className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none"><ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} /></button>
       </div>
@@ -119,6 +119,19 @@ function useHibeWaitingCount(enabled: boolean) {
   });
 }
 
+/** HIBE: open tasks (not yet marked done). */
+function useOpenTaskCount(enabled: boolean) {
+  return useQuery({
+    queryKey: ["tasks", "open-count"],
+    enabled,
+    queryFn: async () => {
+      const { count, error } = await supabase.from("tasks" as any).select("id", { count: "exact", head: true }).is("done_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 function useActive(item: Item) {
   const path = useLocation().pathname;
   return path === item.url || (!!item.prefix && path.startsWith(item.prefix));
@@ -133,9 +146,9 @@ function SideLink({ item, collapsed, badge }: { item: Item; collapsed: boolean; 
   const active = useActive(item);
   const link = (
     <NavLink to={item.url} end aria-label={collapsed ? item.title : undefined}
-      className={cn("relative flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
+      className={cn("relative flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
         active ? "bg-lime/25 font-semibold text-foreground" : "text-foreground hover:bg-muted")}>
-      <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-lime-strong")} strokeWidth={1.8} />
+      <item.icon className={cn("h-5 w-5 shrink-0", active && "text-lime-strong")} strokeWidth={1.8} />
       {!collapsed && <span className="truncate">{item.title}</span>}
       {!collapsed ? <Badge n={badge} /> : !!badge && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" aria-label={`${badge} wachtend`} />}
     </NavLink>
@@ -148,8 +161,8 @@ const logout = () => supabase.auth.signOut();
 
 function LogoutLink({ collapsed }: { collapsed: boolean }) {
   const btn = (
-    <button onClick={logout} aria-label={collapsed ? "Uitloggen" : undefined} className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted">
-      <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />{!collapsed && "Uitloggen"}
+    <button onClick={logout} aria-label={collapsed ? "Uitloggen" : undefined} className="flex h-11 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+      <LogOut className="h-5 w-5 shrink-0" strokeWidth={1.8} />{!collapsed && "Uitloggen"}
     </button>
   );
   if (!collapsed) return btn;
@@ -179,6 +192,7 @@ function Brand({ variant, collapsed }: { variant: "client" | "hibe"; collapsed: 
 export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const { data: clientPending = 0 } = usePendingReviewCount();
   const { data: hibeWaiting = 0 } = useHibeWaitingCount(variant === "hibe");
+  const { data: openTasks = 0 } = useOpenTaskCount(variant === "hibe");
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1");
   const [more, setMore] = useState(false);
   const toggle = () => setCollapsed((c) => { localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1"); return !c; });
@@ -190,17 +204,17 @@ export function AppSidebar({ variant }: { variant: "client" | "hibe" }) {
   const settings: Item = variant === "hibe" ? { title: "Instellingen", url: "/hibe/instellingen", icon: Settings } : { title: "Mijn account", url: "/settings", icon: User };
   const { data: chatUnread = {} } = useUnread(variant === "hibe");
   const chatCount = Object.values(chatUnread).reduce((a, b) => a + b, 0);
-  const badgeFor = (i: Item) => i.icon === MessagesSquare ? chatCount : (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined);
+  const badgeFor = (i: Item) => i.icon === MessagesSquare ? chatCount : (i.icon === ListTodo ? openTasks : (i.icon === Film ? (variant === "hibe" ? hibeWaiting : clientPending) : undefined));
   const primary = items.slice(0, 5);
   const rest = [...items.slice(5), settings];
   const accountLink = viewAs
-    ? <ReadOnlyTip className="block"><span className={cn("flex h-10 cursor-not-allowed items-center gap-3 rounded-md px-3 text-sm font-medium opacity-50")}><User className="h-[18px] w-[18px]" strokeWidth={1.8} />{!collapsed && "Mijn account"}</span></ReadOnlyTip>
+    ? <ReadOnlyTip className="block"><span className={cn("flex h-11 cursor-not-allowed items-center gap-3 rounded-md px-3 text-sm font-medium opacity-50")}><User className="h-5 w-5" strokeWidth={1.8} />{!collapsed && "Mijn account"}</span></ReadOnlyTip>
     : <SideLink item={settings} collapsed={collapsed} />;
 
   return (
     <>
       <aside className={cn("sticky hidden shrink-0", viewAs ? "top-11 h-[calc(100vh-2.75rem)]" : "top-0 h-screen", " flex-col border-r border-border bg-popover transition-[width] duration-200 md:flex", collapsed ? "w-16" : "w-[220px]")}>
-        <div className={cn("flex h-14 items-center border-b border-border", collapsed ? "justify-center px-2" : "justify-between gap-2 px-3")}>
+        <div className={cn("flex h-14 items-center border-b border-border", collapsed ? "justify-center px-2" : "justify-between gap-2 pl-5 pr-3")}>
           {!collapsed && <Brand variant={variant} collapsed={false} />}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -248,7 +262,7 @@ function BottomLink({ item, badge }: { item: Item; badge?: number }) {
   const short = item.title.replace("-checklist", "").replace(" & Archief", "").replace("Contentmomenten", "Momenten");
   return (
     <NavLink to={item.url} end className={cn("relative flex h-16 min-w-0 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium", active ? "text-foreground" : "text-muted-foreground")}>
-      <span className={cn("flex h-7 w-11 items-center justify-center rounded-md", active && "bg-lime/25 text-lime-strong")}><item.icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
+      <span className={cn("flex h-7 w-11 items-center justify-center rounded-md", active && "bg-lime/25 text-lime-strong")}><item.icon className="h-5 w-5" strokeWidth={1.8} /></span>
       <span className="max-w-full truncate">{short}</span>
       {!!badge && <span className="absolute right-[calc(50%-24px)] top-2 min-w-4 rounded-full bg-lime px-1 text-center text-[10px] font-bold leading-4 text-lime-foreground tabular">{badge}</span>}
     </NavLink>
