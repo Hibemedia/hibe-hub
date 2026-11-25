@@ -154,7 +154,7 @@ export default function MediaStep() {
             <li className="flex items-center gap-3 px-4 py-2 text-xs text-muted-foreground">
               <Checkbox checked={all} onCheckedChange={(v) => setSel(v ? new Set(list.map((i) => i.id)) : new Set())} aria-label="Alles selecteren" />
               {status && !trashView && <Tag className={WORKFLOW[status].cls}>{VIDEO_STATUS_LABEL[status]}</Tag>}
-              <span>{list.length} video{list.length === 1 ? "" : "'s"} · nieuwste bovenaan</span>
+              <span>{list.length} video{list.length === 1 ? "" : "'s"} · {trashView ? "nieuwst weggegooid bovenaan" : "nieuwste bovenaan"}</span>
             </li>
             {list.map((i) => {
               const a = status && !trashView ? STEP_ACTION[status] : undefined;

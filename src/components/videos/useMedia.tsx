@@ -3,6 +3,7 @@ import { useClient } from "@/context/ClientContext";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { useVideoBoard, useUserNames } from "@/hooks/useVideos";
 import { useClientLogos, ClientMark } from "./parts";
+import { sortTrash } from "@/lib/workflow";
 import { UploadDialog, validVideos } from "./UploadDialog";
 
 /** Shared data for all HIBE Media Management pages. Trashed items are split off. */
@@ -16,7 +17,7 @@ export function useMedia(includeArchive = false) {
   const mark = (id: string, size = 24) => <ClientMark id={id} name={clientName(id)} url={logos[id]} size={size} />;
   return {
     me: (user?.id as string) ?? null, clients, isLoading, names, logos, clientName, mark,
-    live: data.filter((i) => !i.archived_at), trash: data.filter((i) => !!i.archived_at),
+    live: data.filter((i) => !i.archived_at), trash: sortTrash(data.filter((i) => !!i.archived_at)),
   };
 }
 

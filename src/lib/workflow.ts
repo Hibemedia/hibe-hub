@@ -25,6 +25,11 @@ export function clientGroupName(name: string): string {
   return name;
 }
 
+/** Newest trashed first, so the items closest to auto-deletion sink to the bottom. */
+export function sortTrash<T extends { archived_at: string | null }>(items: T[]): T[] {
+  return [...items].sort((a, b) => new Date(b.archived_at ?? 0).getTime() - new Date(a.archived_at ?? 0).getTime());
+}
+
 export function trashDaysLeft(archivedAt: string | null, now = Date.now()): number {
   if (!archivedAt) return 0;
   const archived = new Date(archivedAt);
