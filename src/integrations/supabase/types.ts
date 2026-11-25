@@ -799,6 +799,60 @@ export type Database = {
           },
         ]
       }
+      scripts: {
+        Row: {
+          body: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          link: string | null
+          moment_id: string | null
+          shared_with_client: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link?: string | null
+          moment_id?: string | null
+          shared_with_client?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link?: string | null
+          moment_id?: string | null
+          shared_with_client?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scripts_moment_id_fkey"
+            columns: ["moment_id"]
+            isOneToOne: false
+            referencedRelation: "content_moments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_post_video_links: {
         Row: {
           created_at: string

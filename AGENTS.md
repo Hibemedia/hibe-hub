@@ -41,4 +41,5 @@
 - MFA uses the auth provider's TOTP enrollment/challenge APIs; ProtectedRoute requires the second-factor challenge when the account has a verified factor.
 - Team last activity is written via an authenticated RPC using server time; Accountmanager is an internal role with no additional privileges.
 - Bulk edit assignment reuses assign-edit-editor per item so only the assigned editor receives mail.
+- Scripts table: admins full, clients read only own shared rows; one page serves both environments.
 <!-- LOVABLE:END -->

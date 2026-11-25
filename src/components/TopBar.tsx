@@ -9,7 +9,7 @@ import { Eye } from "lucide-react";
 /** Tabs inside /hibe/klant/:id (HIBE management of one client). */
 const HIBE_CLIENT_TABS = [
   { title: "Overzicht", url: "/" }, { title: "Performance", url: "/performance" }, { title: "Video's", url: "/videos" },
-  { title: "Planning", url: "/planning" }, { title: "Contentmomenten", url: "/content-moments" }, { title: "Branding & Archief", url: "/branding" }, { title: "Medailles", url: "/medals" },
+  { title: "Planning", url: "/planning" }, { title: "Contentmomenten", url: "/content-moments" }, { title: "Scripts", url: "/scripts" }, { title: "Branding & Archief", url: "/branding" }, { title: "Medailles", url: "/medals" },
 ];
 import { useHeaderSlots } from "@/components/PageHeader";
 import { GlobalSearch } from "@/components/GlobalSearch";

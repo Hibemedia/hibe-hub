@@ -1,7 +1,7 @@
 import hibeLogoUrl from "@/assets/hibe-logo.png";
 const hibeLogo = { url: hibeLogoUrl };
 import { useState } from "react";
-import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, Share2, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, ListTodo, PanelLeftClose, PanelLeftOpen, Clapperboard, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, Award, Archive, Settings, LogOut, Home, Users, Building2, LayoutGrid, Share2, Film, MoreHorizontal, Scissors, MessagesSquare, CalendarDays, ListTodo, PanelLeftClose, PanelLeftOpen, Clapperboard, FileText, type LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -27,10 +27,11 @@ export const CLIENT_MENU: Item[] = [
   { title: "Resultaten", url: "/performance", icon: BarChart3 },
   { title: "Medailles", url: "/medals", icon: Award },
   { title: "Contentmomenten", url: "/content-moments", icon: Clapperboard },
+  { title: "Scripts", url: "/scripts", icon: FileText },
   { title: "Branding & Archief", url: "/branding", icon: Archive },
 ];
 /** Klanten waarvoor HIBE niet post: alleen video's goedkeuren/downloaden, geen cijfers. */
-export const VIDEO_ONLY_URLS = ["/videos", "/content-moments", "/branding"];
+export const VIDEO_ONLY_URLS = ["/videos", "/content-moments", "/scripts", "/branding"];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },
@@ -39,6 +40,7 @@ const HIBE_MENU: Item[] = [
   { title: "Agenda", url: "/hibe/agenda", icon: CalendarDays },
   { title: "Taken", url: "/hibe/taken", icon: ListTodo },
   { title: "Contentmomenten", url: "/hibe/contentmomenten", icon: Clapperboard },
+  { title: "Scripts", url: "/hibe/scripts", icon: FileText },
   { title: "Klanten", url: "/hibe/klanten", icon: Building2, prefix: "/hibe/klant" },
   { title: "Chat", url: "/hibe/chat", icon: MessagesSquare },
   { title: "Team", url: "/hibe/gebruikers", icon: Users },

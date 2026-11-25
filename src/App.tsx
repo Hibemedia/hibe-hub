@@ -33,6 +33,7 @@ import ClientVideos from "./pages/videos/ClientVideos";
 import { ClientProvider } from "@/context/ClientContext";
 import { ClientEnv, HibeEnv, HibeClientScope, ViewAsEnv, FullClientOnly } from "@/components/EnvRoutes";
 import Planning from "./pages/Planning";
+import Scripts from "./pages/Scripts";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const clientPages = (
     <Route path="planning" element={<FullClientOnly><Planning /></FullClientOnly>} />
     <Route path="video-approval" element={<Navigate to="../videos" relative="path" replace />} />
     <Route path="content-moments" element={<ContentMoments />} />
+    <Route path="scripts" element={<Scripts />} />
     <Route path="branding" element={<Branding />} />
     <Route path="medals" element={<FullClientOnly><Medals /></FullClientOnly>} />
     <Route path="videos" element={<ClientVideos />} />
@@ -76,6 +78,7 @@ const App = () => (
                 <Route path="chat" element={<HibeChat />} />
                 <Route path="agenda" element={<HibeAgenda />} />
                 <Route path="taken" element={<HibeTaken />} />
+                <Route path="scripts" element={<Scripts scope="hibe" />} />
                 <Route path="pipeline" element={<HibePipeline />} />
                 <Route path="videos" element={<MediaOverview />} />
                 <Route path="videos/stap/:step" element={<MediaStep />} />
