@@ -1,5 +1,5 @@
 /** Pure helpers for the HIBE dashboard. */
-export type TeamRole = "beheerder" | "editor";
+export type TeamRole = "beheerder" | "editor" | "accountmanager";
 
 /** Growth above 999% is shown as the label "nieuw" instead of a percentage. */
 export const isNewGrowth = (pct: number | null | undefined) => pct != null && pct > 999;

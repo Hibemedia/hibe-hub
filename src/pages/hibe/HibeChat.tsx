@@ -88,15 +88,15 @@ export default function HibeChat() {
             <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Hibby</span><span className="block truncate text-xs opacity-70">Je persoonlijke assistent</span></span>
             {myHibby && myHibby.id !== roomId && <Count n={unread[myHibby.id]} />}
           </button>
-          <Section title="Kanalen" onAdd={() => setDialog("channel")} addLabel="Kanaal aanmaken">{channels.map((r) => <RoomLink key={r.id} r={r} />)}</Section>
+          <Section title="Kanalen" onAdd={() => setDialog("channel")} addLabel="Kanaal aanmaken">{channels.length ? channels.map((r) => <RoomLink key={r.id} r={r} />) : <div className="space-y-2 px-2.5 py-2 text-xs text-muted-foreground"><p>Nog geen kanalen om met je team te overleggen.</p><Button size="sm" variant="outline" onClick={() => setDialog("channel")}>Kanaal aanmaken</Button></div>}</Section>
           <Section title="Directe berichten" onAdd={() => setDialog("dm")} addLabel="Nieuw gesprek">
-            {convos.length ? convos.map((r) => <RoomLink key={r.id} r={r} />) : <p className="px-2.5 py-2 text-xs text-muted-foreground">Nog geen gesprekken. Start er een met de plusknop.</p>}
+            {convos.length ? convos.map((r) => <RoomLink key={r.id} r={r} />) : <div className="space-y-2 px-2.5 py-2 text-xs text-muted-foreground"><p>Nog geen gesprekken met collega’s.</p><Button size="sm" variant="outline" onClick={() => setDialog("dm")}>Nieuw gesprek</Button></div>}
           </Section>
         </aside>
         {room ? (
           <Conversation key={room.id} room={room} me={me!} team={team} title={roomTitle(room, others(room))} others={others(room)} onBack={() => open(null)} onSettings={() => setDialog("settings")}
             onRead={() => { markRoomRead(room.id, me!).then(() => { qc.invalidateQueries({ queryKey: ["chat-unread"] }); qc.invalidateQueries({ queryKey: ["chat-notes"] }); }); }} />
-        ) : <div className="hidden flex-1 items-center justify-center text-sm text-muted-foreground md:flex">Kies een kanaal of gesprek.</div>}
+        ) : <div className="hidden flex-1 flex-col items-center justify-center gap-3 text-sm text-muted-foreground md:flex"><p>Kies een kanaal of begin een gesprek met een collega.</p><Button variant="outline" onClick={() => setDialog("dm")}>Nieuw gesprek</Button></div>}
       </div>
       {dialog === "channel" && <RoomDialog mode="channel" team={team} me={me!} onClose={() => setDialog(null)} onCreated={(id) => { qc.invalidateQueries({ queryKey: ["chat-rooms"] }); open(id); }} />}
       {dialog === "dm" && <RoomDialog mode="dm" team={team} me={me!} onClose={() => setDialog(null)} onCreated={(id) => { qc.invalidateQueries({ queryKey: ["chat-rooms"] }); open(id); }} />}
@@ -179,7 +179,7 @@ function Conversation({ room, me, team, title, others, onBack, onSettings, onRea
         {room.kind !== "dm" && room.kind !== "hibby" && <button onClick={onSettings} aria-label="Kanaalinstellingen" className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted"><Settings2 className="h-4 w-4" /></button>}
       </header>
       <div className="flex-1 overflow-y-auto px-3 py-3 md:px-5" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); pickImage(e.dataTransfer.files[0]); }}>
-        {msgs.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Nog geen berichten. Stuur het eerste bericht.</p>}
+        {msgs.length === 0 && <div className="space-y-3 py-10 text-center text-sm text-muted-foreground"><p>Nog geen berichten in dit gesprek.</p><Button variant="outline" onClick={() => taRef.current?.focus()}>Schrijf een bericht</Button></div>}
         {msgs.map((m) => {
           const day = new Date(m.created_at).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
           const showDay = day !== lastDay; lastDay = day;

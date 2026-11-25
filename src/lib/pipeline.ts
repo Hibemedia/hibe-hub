@@ -1,13 +1,17 @@
+import { WORKFLOW } from "./workflow";
 /** Pure helpers for the HIBE Productieboard (read-only view over tasks, shoots, edits and videos). */
-export type PhaseKey = "script" | "shoot" | "plan" | "edit" | "check" | "client" | "final" | "done";
+export type PhaseKey = "script" | "shoot" | "plan" | "edit" | "check" | "capcut" | "feedback" | "ready" | "client" | "final" | "done";
 export const PHASES: { key: PhaseKey; label: string; owner: string }[] = [
   { key: "script", label: "Script", owner: "Redactie" },
   { key: "shoot", label: "Draaidag", owner: "Crew" },
-  { key: "plan", label: "Inplannen", owner: "Media management" },
-  { key: "edit", label: "Montage", owner: "Editor" },
-  { key: "check", label: "Check & subs", owner: "Media management" },
-  { key: "client", label: "Klant review", owner: "Klant / editor" },
-  { key: "final", label: "Final inplannen", owner: "Media management" },
+  { key: "plan", label: WORKFLOW.plan.label, owner: "Media management" },
+  { key: "edit", label: WORKFLOW.edit.label, owner: "Editor" },
+  { key: "check", label: WORKFLOW.internal_review.label, owner: "Media management" },
+  { key: "feedback", label: WORKFLOW.feedback.label, owner: "Editor" },
+  { key: "capcut", label: WORKFLOW.approved_internal.label, owner: "Editor" },
+  { key: "ready", label: WORKFLOW.ready_for_client.label, owner: "Media management" },
+  { key: "client", label: WORKFLOW.client_review.label, owner: "Klant / editor" },
+  { key: "final", label: WORKFLOW.approved_client.label, owner: "Media management" },
   { key: "done", label: "Ingepland", owner: "Afgerond, laatste 7 dagen" },
 ];
 export type Card = { id: string; phase: PhaseKey; title: string; client_id: string | null; since: string; turn: string; round?: number; href: string; person?: string | null };
@@ -43,9 +47,10 @@ export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[
     if (v.archived_at) continue;
     const base = { id: "v" + v.id, title: v.title, client_id: v.client_id, since: v.status_changed_at, href: `/hibe/videos/${v.id}` };
     if (v.status === "internal_review") out.push({ ...base, phase: "check", turn: "Media management" });
-    else if (v.status === "approved_internal") out.push({ ...base, phase: "check", turn: "CapCut / subs" });
+    else if (v.status === "approved_internal") out.push({ ...base, phase: "capcut", turn: "CapCut" });
     else if (v.status === "client_review") out.push({ ...base, phase: "client", turn: "Klant", round: Math.max(1, v.current_version - 1) });
-    else if (v.status === "feedback") out.push({ ...base, phase: "client", turn: "Feedback verwerken", round: Math.max(1, v.current_version - 1) });
+    else if (v.status === "feedback") out.push({ ...base, phase: "feedback", turn: "Feedback verwerken", round: Math.max(1, v.current_version - 1) });
+    else if (v.status === "ready_for_client") out.push({ ...base, phase: "ready", turn: "Media management" });
     else if (v.status === "approved_client") out.push({ ...base, phase: "final", turn: "Media management" });
     else if (v.status === "scheduled" && daysIn(v.status_changed_at, now) < DONE_DAYS) out.push({ ...base, phase: "done", turn: "Ingepland" });
   }

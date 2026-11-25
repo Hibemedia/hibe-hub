@@ -24,6 +24,7 @@ describe("dashboard rules", () => {
   test("only beheerders see totals; missing role is editor", () => {
     expect(canSeeTotals("beheerder")).toBe(true);
     expect(canSeeTotals("editor")).toBe(false);
+    expect(canSeeTotals("accountmanager")).toBe(false);
     expect(canSeeTotals(null)).toBe(false);
   });
   test("name matching ignores case and punctuation", () => {

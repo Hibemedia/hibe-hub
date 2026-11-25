@@ -99,7 +99,7 @@ export function useChatLive(me: string | null, nameOf: (id: string | null) => st
         qc.invalidateQueries({ queryKey: ["chat-notes"] });
         const n = p.new as ChatNote;
         const viewing = document.visibilityState === "visible" && location.pathname === "/hibe/chat" && sessionStorage.getItem("hibe.chat.room") === n.room_id;
-        if (!viewing && "Notification" in window && Notification.permission === "granted") {
+        if (!viewing && localStorage.getItem(`hibe.chat.notifications:${me}`) !== "off" && "Notification" in window && Notification.permission === "granted") {
           const title = n.kind === "dm" ? `Bericht van ${nameOf(n.actor_id)}` : `${nameOf(n.actor_id)} noemde je`;
           const notif = new Notification(title, { body: n.preview, tag: n.id });
           notif.onclick = () => { window.focus(); location.assign(`/hibe/chat?room=${n.room_id}`); };

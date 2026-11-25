@@ -1,5 +1,5 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,15 @@ import { User, Bell, Shield, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAuth } from "@/context/AuthContext.jsx";
 import { toast } from "sonner";
+import { TwoFactor } from "@/components/TwoFactor";
 import { MyProfile } from "@/components/MyProfile";
 
 export default function Settings() {
   const { user } = UserAuth();
-  const [fullName, setFullName] = useState("");
+  const profileSave = useRef<(() => Promise<void>) | null>(null);
   const [phone, setPhone] = useState("");
   const [notify, setNotify] = useState(true);
+  const [browserNotify, setBrowserNotify] = useState(() => localStorage.getItem(`hibe.chat.notifications:${user?.id}`) !== "off");
   const [saving, setSaving] = useState(false);
   const [current, setCurrent] = useState("");
   const [pw, setPw] = useState("");
@@ -26,7 +28,7 @@ export default function Settings() {
     if (!user?.id) return;
     supabase.from("profiles_settings").select("full_name,phone,notify_new_video").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
-        if (data) { setFullName(data.full_name ?? ""); setPhone(data.phone ?? ""); setNotify(data.notify_new_video); }
+        if (data) { setPhone(data.phone ?? ""); setNotify(data.notify_new_video); }
       });
   }, [user?.id]);
 
@@ -34,8 +36,9 @@ export default function Settings() {
     if (!user?.id) return;
     if (phone && !/^[+0-9 ()-]{6,20}$/.test(phone)) return toast.error("Telefoonnummer is ongeldig");
     setSaving(true);
+    try { await profileSave.current?.(); } catch { setSaving(false); return; }
     const { error } = await supabase.from("profiles_settings").upsert({
-      user_id: user.id, full_name: fullName.trim() || null, phone: phone.trim() || null,
+      user_id: user.id, phone: phone.trim() || null,
       notify_new_video: notify, updated_at: new Date().toISOString(),
     });
     setSaving(false);
@@ -58,14 +61,13 @@ export default function Settings() {
   return (
     <div className="p-6 space-y-6 max-w-3xl">
       <PageHeader title="Instellingen" action={<PrimaryAction icon={Save} onClick={save} disabled={saving}>Opslaan</PrimaryAction>} />
-      <p className="text-sm text-muted-foreground">Beheer je account en voorkeuren</p>
 
-      <MyProfile />
+
+      <MyProfile saveRef={profileSave} />
 
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Account</CardTitle></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2"><Label htmlFor="name">Naam</Label><Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} /></div>
           <div className="space-y-2"><Label htmlFor="phone">Telefoonnummer</Label><Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={20} /></div>
           <div className="space-y-2 md:col-span-2"><Label>E-mailadres</Label><Input value={user?.email ?? ""} disabled /></div>
         </CardContent>
@@ -77,6 +79,17 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <Label htmlFor="notify">Mail me bij een nieuwe video ter goedkeuring</Label>
             <Switch id="notify" checked={notify} onCheckedChange={setNotify} />
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-4">
+            <Label htmlFor="chat-notify">Browsermeldingen bij chat en vermeldingen</Label>
+            <Switch id="chat-notify" checked={browserNotify} onCheckedChange={async enabled => {
+              if (enabled && "Notification" in window && Notification.permission !== "granted") {
+                const permission = await Notification.requestPermission();
+                if (permission !== "granted") return toast.error("Sta meldingen toe in je browser om ze te ontvangen.");
+              }
+              localStorage.setItem(`hibe.chat.notifications:${user?.id}`, enabled ? "on" : "off");
+              setBrowserNotify(enabled);
+            }} />
           </div>
         </CardContent>
       </Card>
@@ -90,6 +103,7 @@ export default function Settings() {
           <Button variant="outline" onClick={changePassword} disabled={pwBusy}>Wachtwoord wijzigen</Button>
         </CardContent>
       </Card>
+      <TwoFactor />
     </div>
   );
 }

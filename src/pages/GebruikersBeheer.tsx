@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTeamRoles, useMyTeamRole } from "@/hooks/useTeamRole";
 
-interface Row { id: string; email: string; full_name: string | null; client_id: string | null; created_at: string; role: string }
+interface Row { id: string; email: string; full_name: string | null; client_id: string | null; created_at: string; last_active_at: string | null; role: string }
 
 export default function GebruikersBeheer() {
   const { clients } = useClient();
@@ -40,7 +40,7 @@ export default function GebruikersBeheer() {
 
   const load = async () => {
     const [{ data: users }, { data: roles }] = await Promise.all([
-      supabase.from("users").select("id,email,full_name,client_id,created_at").order("created_at"),
+      supabase.from("users").select("id,email,full_name,client_id,created_at,last_active_at").order("created_at"),
       supabase.from("user_roles").select("user_id,role"),
     ]);
     const roleOf = (id: string) => (roles ?? []).some((r) => r.user_id === id && r.role === "admin") ? "admin" : "client";
@@ -93,7 +93,7 @@ export default function GebruikersBeheer() {
       </Select>
       <Card><CardContent className="p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Gebruiker</TableHead><TableHead>Rol</TableHead><TableHead>Klant</TableHead><TableHead>Aangemaakt</TableHead><TableHead className="w-28" /></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Gebruiker</TableHead><TableHead>Rol</TableHead><TableHead>Klant</TableHead><TableHead>Laatst actief</TableHead><TableHead className="w-28" /></TableRow></TableHeader>
           <TableBody>
             {rows.filter((r) => filter === "all" || (filter === "admin" ? r.role === "admin" : r.role === "client" && r.client_id === filter))
               .sort((a, b) => (a.role + clientName(a.client_id)).localeCompare(b.role + clientName(b.client_id))).map((r) => (
@@ -102,11 +102,11 @@ export default function GebruikersBeheer() {
                 <TableCell>{r.role !== "admin" ? <Badge variant="secondary">Klant</Badge> : myRole === "beheerder" && r.id !== user?.id ? (
                   <Select value={teamRoles[r.id] ?? "editor"} onValueChange={(v) => setTeamRole(r.id, v)}>
                     <SelectTrigger aria-label="Teamrol" className="h-8 w-32"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="beheerder">Beheerder</SelectItem><SelectItem value="editor">Editor</SelectItem></SelectContent>
+                    <SelectContent><SelectItem value="beheerder">Beheerder</SelectItem><SelectItem value="editor">Editor</SelectItem><SelectItem value="accountmanager">Accountmanager</SelectItem></SelectContent>
                   </Select>
-                ) : <Badge>{(teamRoles[r.id] ?? "editor") === "beheerder" ? "Beheerder" : "Editor"}</Badge>}</TableCell>
+                ) : <Badge>{(teamRoles[r.id] ?? "editor") === "beheerder" ? "Beheerder" : teamRoles[r.id] === "accountmanager" ? "Accountmanager" : "Editor"}</Badge>}</TableCell>
                 <TableCell>{r.role === "admin" ? "Alle klanten" : clientName(r.client_id)}</TableCell>
-                <TableCell>{new Date(r.created_at).toLocaleDateString("nl-NL")}</TableCell>
+                <TableCell>{r.last_active_at ? new Date(r.last_active_at).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Nog niet geregistreerd"}</TableCell>
                 <TableCell className="flex gap-1">
                   <Button variant="ghost" size="icon" aria-label="Resetmail sturen" title="Resetmail sturen" onClick={() => sendReset(r)}><KeyRound className="h-4 w-4" /></Button>
                   {r.id !== user?.id && <Button variant="ghost" size="icon" aria-label="Toegang intrekken" title="Toegang intrekken" onClick={() => setToDelete(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}

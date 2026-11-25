@@ -1,3 +1,4 @@
+import { WORKFLOW } from "./workflow";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -5,11 +6,11 @@ export type PostStatus = "none" | "to_post" | "internal_check" | "client_check" 
 export const STATUSES: { key: PostStatus; symbol: string; label: string }[] = [
   { key: "none", symbol: "", label: "Leeg" },
   { key: "to_post", symbol: ".", label: "Moet gepost" },
-  { key: "internal_check", symbol: "!", label: "Interne controle" },
-  { key: "client_check", symbol: "?", label: "Controle door klant" },
-  { key: "in_progress", symbol: "O", label: "Wordt aan gewerkt" },
-  { key: "to_schedule", symbol: "/", label: "Nog inplannen" },
-  { key: "scheduled", symbol: "X", label: "Ingepland" },
+  { key: "internal_check", symbol: "!", label: WORKFLOW.internal_review.label },
+  { key: "client_check", symbol: "?", label: WORKFLOW.client_review.label },
+  { key: "in_progress", symbol: "O", label: WORKFLOW.edit.label },
+  { key: "to_schedule", symbol: "/", label: WORKFLOW.approved_client.label },
+  { key: "scheduled", symbol: "X", label: WORKFLOW.scheduled.label },
 ];
 export const WEEKLY: PostStatus[] = ["in_progress", "internal_check", "client_check", "to_post", "scheduled"];
 export const statusOf = (k: string) => STATUSES.find((s) => s.key === k) ?? STATUSES[0];
@@ -29,13 +30,13 @@ export const weekItems = (w?: Week): Item[] => w?.items?.length ? w.items : Arra
 
 /** Cell colours, shared by the checklist page and the dashboard card. Same soft pastels as Review Hub. */
 export const cellCls = (s: PostStatus) =>
-  s === "scheduled" ? "bg-[hsl(var(--social-green-bg))] text-[hsl(var(--social-green-fg))]"
-  : s === "none" ? "bg-card"
-  : s === "to_post" ? "bg-[hsl(var(--social-amber-bg))] text-[hsl(var(--social-amber-fg))]"
-  : s === "internal_check" ? "bg-[hsl(var(--social-orange-bg))] text-[hsl(var(--social-orange-fg))]"
-  : s === "client_check" ? "bg-[hsl(var(--social-cyan-bg))] text-[hsl(var(--social-cyan-fg))]"
-  : s === "in_progress" ? "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]"
-  : "bg-[hsl(var(--social-purple-bg))] text-[hsl(var(--social-purple-fg))]"; // to_schedule
+  s === "scheduled" ? "bg-tag-success text-foreground"
+  : s === "none" ? "bg-card text-muted-foreground"
+  : s === "internal_check" ? "bg-tag-warning text-foreground"
+  : s === "client_check" ? "bg-tag-info text-foreground"
+  : s === "in_progress" ? "bg-tag-info text-foreground"
+  : s === "to_schedule" ? "bg-tag-success text-foreground"
+  : "bg-tag-warning text-foreground";
 
 /** Click cycles a cell to the next status in this order. */
 export const STATUS_CYCLE: PostStatus[] = ["none", "to_post", "internal_check", "client_check", "in_progress", "to_schedule", "scheduled"];

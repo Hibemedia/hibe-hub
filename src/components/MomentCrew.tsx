@@ -65,7 +65,7 @@ export function CrewAvatar({ c, size = 24 }: { c: { name: string; avatar_url: st
 }
 
 export function CrewBadge({ m, crew, asClient, showNames, maxAvatars = 3 }: { m: { id: string; type: string; status: string; date: string | null }; crew: ShownCrew[]; asClient: boolean; showNames?: boolean; maxAvatars?: number }) {
-  if (!crew.length) return !asClient && needsCrew(m, 0) ? <Tag variant="warning">Nog niemand ingepland</Tag> : null;
+  if (!crew.length) return !asClient && needsCrew(m, 0) ? <Tag variant="danger">Nog niemand ingepland</Tag> : null;
   return <span className="flex min-w-0 flex-wrap items-center gap-2"><AvatarStack label="Ingeplande crew" max={maxAvatars} users={crew.map((c) => ({ id: c.user_id, name: c.name, avatar_url: c.avatar_url }))} />{showNames && <span className="min-w-0 break-words text-sm text-muted-foreground">{crew.map((c) => c.name.split(" ")[0]).join(", ")}</span>}</span>;
 }
 

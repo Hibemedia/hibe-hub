@@ -1,5 +1,5 @@
-import { Fragment, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,10 @@ import { UserAuth } from "@/context/AuthContext.jsx";
 import { useClient } from "@/context/ClientContext";
 import { useTeamMembers } from "@/hooks/useChat";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
+import { Tag } from "@/components/ui/tag";
+import { CrewBadge, useCrew } from "@/components/MomentCrew";
+import { MomentDialog, EditDialog as MomentEditDialog, type Moment, MOMENT_STATUS } from "@/pages/ContentMoments";
+import { momentStatus } from "@/lib/content-moment-list";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,13 +43,13 @@ const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 type Ev = { id: string; kind: "meeting" | "vacation"; title: string; start_date: string; end_date: string; start_time: string | null; end_time: string | null; location: string | null; notes: string | null; person_id: string | null; attendees: { user_id: string }[] };
 type Form = { id?: string; kind: AgendaKind; title: string; start_date: string; end_date: string; start_time: string; end_time: string; location: string; notes: string; people: string[]; client_id: string };
 
-function useAgenda(from: string, to: string) {
+function useAgenda(from: string, to: string, momentsOnly: boolean) {
   return useQuery({
-    queryKey: ["agenda", from, to],
+    queryKey: ["agenda", from, to, momentsOnly],
     queryFn: async () => {
       const [ev, mo, tk, ed] = await Promise.all([
         db.from("calendar_events").select("*, attendees:calendar_attendees(user_id)").lte("start_date", to).gte("end_date", from),
-        db.from("content_moments").select("id,title,date,start_time,location,notes,client_id,status,crew:moment_crew(user_id)").gte("date", from).lte("date", to),
+        momentsOnly ? db.from("content_moments").select("*,crew:moment_crew(user_id)").order("date", { ascending: true, nullsFirst: false }) : db.from("content_moments").select("*,crew:moment_crew(user_id)").gte("date", from).lte("date", to),
         db.from("tasks").select("*").not("due_date", "is", null).gte("due_date", from).lte("due_date", to),
         db.from("edits").select("id,title,client_id,editor_id,status,planned_date,notes").not("planned_date", "is", null).neq("status", "delivered").gte("planned_date", from).lte("planned_date", to),
       ]);
@@ -58,27 +62,36 @@ function useAgenda(from: string, to: string) {
   });
 }
 
-export default function HibeAgenda() {
+export default function HibeAgenda({ momentsOnly = false }: { momentsOnly?: boolean }) {
   const now = new Date();
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
-  const [view, setView] = useState<"month" | "week" | "list">("month");
+  const [view, setView] = useState<"month" | "week" | "list">(momentsOnly ? "list" : "month");
   const [weekRef, setWeekRef] = useState(now);
   const grid = useMemo(() => monthGrid(cursor.y, cursor.m), [cursor]);
   const week = useMemo(() => workWeek(weekRef), [weekRef]);
   const from = view === "week" ? ymd(week[0]) : ymd(grid[0]), to = view === "week" ? ymd(week[4]) : ymd(grid[41]);
-  const { data, isLoading, error: agendaError } = useAgenda(from, to);
+  const { data, isLoading, error: agendaError } = useAgenda(from, to, momentsOnly);
   const { data: team = [] } = useTeamMembers();
   const { clients, isAdmin } = useClient();
   const me = ((UserAuth() as any)?.user?.id as string) ?? "";
   const nav = useNavigate();
   const qc = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const [momentId, setMomentId] = useState<string | null>(null);
+  const [momentEdit, setMomentEdit] = useState<Moment | null>(null);
+  const [creatingMoment, setCreatingMoment] = useState(false);
+  const [newClient, setNewClient] = useState("");
+  const [newMomentFor, setNewMomentFor] = useState<string | null>(null);
+  const [momentState, setMomentState] = useState("all");
   const [form, setForm] = useState<Form | null>(null);
   const [saving, setSaving] = useState(false);
   const name = (id: string) => team.find((t) => t.id === id)?.name ?? "Teamlid";
 
+  const crew = useCrew(data?.moments ?? []);
+  const selectedMoment = data?.moments.find(m => m.id === momentId) ?? null;
   const allEntries: AgendaEntry[] = useMemo(() => [
-    ...(data?.moments ?? []).filter((m) => m.date && m.status !== "cancelled" && m.status !== "geannuleerd").map((m) => ({
-      id: m.id, kind: "shoot" as const, clientId: m.client_id, location: m.location, notes: m.notes, start: m.date, end: m.date, time: m.start_time?.slice(0, 5),
+    ...(data?.moments ?? []).filter((m) => (m.date || momentsOnly) && m.status !== "cancelled" && m.status !== "geannuleerd").map((m) => ({
+      id: m.id, kind: "shoot" as const, clientId: m.client_id, location: m.location, notes: m.notes, start: m.date ?? "", end: m.date ?? "", time: m.start_time?.slice(0, 5),
       title: `${clients.find((c) => c.id === m.client_id)?.name ?? "Klant"} · ${m.title}`, people: (m.crew ?? []).map((c: any) => c.user_id),
     })),
     ...(data?.events ?? []).map((e) => ({
@@ -95,8 +108,13 @@ export default function HibeAgenda() {
       title: t.assignee_id === me ? t.title : `${name(t.assignee_id)}: ${t.title}`, people: [t.assignee_id],
     })),
   ], [data, clients, team, me]);
-  const { filters, setFilters } = useAgendaFilters(me);
-  const entries = filterAgendaEntries(allEntries, filters, me);
+  const { filters, setFilters } = useAgendaFilters(me, momentsOnly ? "contentmomenten" : "agenda");
+  const momentEntries = allEntries.filter(e => !momentsOnly || (e.kind === "shoot" && (momentState === "all" || momentStatus(data?.moments.find(m => m.id === e.id) ?? { date: null, status: "aangevraagd" }) === momentState)));
+  const entries = filterAgendaEntries(momentEntries, momentsOnly ? { ...filters, kinds: ["shoot"] } : filters, me);
+  useEffect(() => {
+    if (params.get("moment")) setMomentId(params.get("moment"));
+    if (params.get("nieuw")) { if (momentsOnly) setCreatingMoment(true); else setForm(blank(ymd(new Date()), "shoot")); }
+  }, [params]);
   const visibleTeam = team.filter((t) => filters.who === "everyone" || (filters.who === "me" ? t.id === me : filters.people.includes(t.id)));
   const [selected, setSelected] = useState<AgendaEntry | null>(null);
   const [task, setTask] = useState<TaskForm | null>(null);
@@ -104,14 +122,14 @@ export default function HibeAgenda() {
 
   const blank = (day: string, kind: Form["kind"] = "meeting"): Form => ({ kind, title: kind === "vacation" ? "Vakantie" : "", start_date: day, end_date: day, start_time: kind === "meeting" ? "10:00" : "", end_time: kind === "meeting" ? "11:00" : "", location: "", notes: "", people: kind === "vacation" ? [me] : [], client_id: "" });
   const editEntry = (e: AgendaEntry) => {
-    if (e.kind === "shoot") return nav("/hibe/contentmomenten");
+    if (e.kind === "shoot") { const m = data?.moments.find(m => m.id === e.id); if (m) setMomentEdit(m); return; }
     if (e.kind === "edit") return nav("/hibe/edits");
     if (e.kind === "task") { const t = data?.tasks.find((x) => x.id === e.id); if (t) setTaskEdit(taskToForm(t)); return; }
     const ev = data?.events.find((x) => x.id === e.id); if (!ev) return;
     setForm({ id: ev.id, kind: ev.kind, title: ev.title, start_date: ev.start_date, end_date: ev.end_date, start_time: ev.start_time?.slice(0, 5) ?? "", end_time: ev.end_time?.slice(0, 5) ?? "", location: ev.location ?? "", notes: ev.notes ?? "", people: ev.kind === "vacation" ? (ev.person_id ? [ev.person_id] : []) : ev.attendees.map((a) => a.user_id), client_id: "" });
   };
 
-  const open = (e: AgendaEntry) => setSelected(e);
+  const open = (e: AgendaEntry) => e.kind === "shoot" ? setMomentId(e.id) : setSelected(e);
 
   const warn = !!form && form.kind !== "vacation";
   const absent = warn ? absentOn(form.start_date, allEntries.filter((e) => e.id !== form.id)).filter((p) => form.people.includes(p)) : [];
@@ -181,7 +199,7 @@ export default function HibeAgenda() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Agenda" action={<PrimaryAction icon={Plus} onClick={() => setForm(blank(today))}>Nieuw item</PrimaryAction>} />
+      <PageHeader title={momentsOnly ? "Contentmomenten" : "Agenda"} action={<PrimaryAction icon={Plus} onClick={() => momentsOnly ? setCreatingMoment(true) : setForm(blank(today))}>{momentsOnly ? "Moment toevoegen" : "Nieuw item"}</PrimaryAction>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentedControl label="Agendaweergave" value={view} onChange={(v) => { if (v === "month" || v === "week" || v === "list") setView(v); }} options={[{ value: "month", label: "Maand" }, { value: "week", label: "Weekbezetting" }, { value: "list", label: "Lijst" }]} />
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -191,7 +209,7 @@ export default function HibeAgenda() {
           <Button variant="ghost" size="sm" onClick={() => { setCursor({ y: now.getFullYear(), m: now.getMonth() }); setWeekRef(new Date()); }}>Vandaag</Button>
         </div>
       </div>
-      <AgendaControls filters={filters} onChange={setFilters} entries={allEntries} me={me} team={team} clients={clients} light extra={<AgendaPhoneLink me={me} isAdmin={isAdmin} />} />
+      <AgendaControls filters={filters} onChange={setFilters} entries={momentEntries} me={me} team={team} clients={clients} light hideTypes={momentsOnly} extra={momentsOnly ? <Select value={momentState} onValueChange={setMomentState}><SelectTrigger aria-label="Momentstatus" className="w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Alle statussen</SelectItem>{Object.entries(MOMENT_STATUS).map(([key,label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent></Select> : <AgendaPhoneLink me={me} isAdmin={isAdmin} />} />
       {isLoading && <p className="text-sm text-muted-foreground">Agenda laden…</p>}
       {agendaError && <p className="text-sm text-destructive">Agenda kon niet worden geladen.</p>}
       {view === "week" && <div className="overflow-x-auto rounded-[20px] border border-border bg-card">
@@ -242,10 +260,16 @@ export default function HibeAgenda() {
       {view === "list" && <div className="overflow-hidden rounded-xl border border-border bg-card">
         {grid.filter((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0).map((d) => <section key={ymd(d)} className="border-b border-border last:border-0">
           <h3 className="bg-muted/40 px-4 py-2 text-sm font-semibold capitalize">{d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}</h3>
-          <div className="space-y-1 p-2">{entriesOn(ymd(d), entries).map((e) => <Button key={`${e.kind}:${e.id}`} variant="ghost" className="h-auto min-h-10 w-full justify-start gap-3 rounded-md text-left" onClick={() => open(e)}><span className={cn("shrink-0 rounded-md px-2 py-1 text-xs", KIND_CLS[e.kind])}>{KIND_LABEL[e.kind]}</span><span className="min-w-0 flex-1 truncate">{e.title}</span><span className="shrink-0 text-xs text-muted-foreground">{e.time || ""}</span></Button>)}</div>
+          <div className="space-y-1 p-2">{entriesOn(ymd(d), entries).map((e) => <Button key={`${e.kind}:${e.id}`} variant="ghost" className="h-auto min-h-10 w-full flex-col items-start justify-start gap-2 rounded-md text-left sm:flex-row sm:items-center" onClick={() => open(e)}><span className={cn("shrink-0 rounded-md px-2 py-1 text-xs", KIND_CLS[e.kind])}>{KIND_LABEL[e.kind]}</span><span className="w-full min-w-0 whitespace-normal text-left sm:w-auto sm:flex-1">{e.title}</span>{e.kind === "shoot" && (() => { const m = data?.moments.find(m => m.id === e.id); return m ? <span className="flex flex-wrap items-center gap-2"><Tag variant={momentStatus(m) === "bevestigd" ? "success" : "neutral"}>{MOMENT_STATUS[momentStatus(m) as keyof typeof MOMENT_STATUS]}</Tag><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} /></span> : null; })()}<span className="shrink-0 text-xs text-muted-foreground">{e.time || ""}</span></Button>)}</div>
         </section>)}
-        {!isLoading && !grid.some((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0) && <p className="p-4 text-sm text-muted-foreground">Geen items voor deze selectie.</p>}
+        {!isLoading && !grid.some((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0) && <div className="space-y-3 p-4 text-sm text-muted-foreground"><p>Geen items voor deze selectie.</p><Button variant="outline" onClick={() => momentsOnly ? setCreatingMoment(true) : setForm(blank(today))}>Plan in</Button></div>}
       </div>}
+      {momentsOnly && entries.filter(e => !e.start).length > 0 && <section className="space-y-2 border-t border-border py-4"><h2 className="text-sm font-semibold">Nog geen datum</h2>{entries.filter(e => !e.start).map(e => <Button key={e.id} variant="outline" className="w-full justify-between" onClick={() => open(e)}>{e.title}<span>Plan in</span></Button>)}</section>}
+      {entries.filter(e => e.kind === "shoot" && e.people.length === 0 && (!e.start || e.start >= today)).length > 0 && <section className="space-y-2 border-t border-border py-3">{entries.filter(e => e.kind === "shoot" && e.people.length === 0 && (!e.start || e.start >= today)).map(e => <div key={e.id} className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 text-sm">{e.title}</span><Tag variant="danger">Nog niemand ingepland</Tag><Button variant="outline" size="sm" onClick={() => setMomentId(e.id)}>Plan in</Button></div>)}</section>}
+      {creatingMoment && <Dialog open onOpenChange={setCreatingMoment}><DialogContent className="max-w-md"><DialogHeader><DialogTitle>Voor welke klant?</DialogTitle></DialogHeader><Select value={newClient} onValueChange={setNewClient}><SelectTrigger aria-label="Kies klant voor moment"><SelectValue placeholder="Kies een klant" /></SelectTrigger><SelectContent>{clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><Button disabled={!newClient} onClick={() => { setNewMomentFor(newClient); setCreatingMoment(false); }}>Verder</Button></DialogContent></Dialog>}
+      {newMomentFor && <MomentEditDialog clientId={newMomentFor} moment={null} onClose={() => { setNewMomentFor(null); qc.invalidateQueries({ queryKey: ["agenda"] }); }} />}
+      {selectedMoment && <MomentDialog m={selectedMoment} allMoments={data?.moments ?? []} onClose={() => setMomentId(null)} onEdit={() => { setMomentEdit(selectedMoment); setMomentId(null); }} />}
+      {momentEdit && <MomentEditDialog clientId={momentEdit.client_id} moment={momentEdit} onClose={() => { setMomentEdit(null); qc.invalidateQueries({ queryKey: ["agenda"] }); }} />}
       <AgendaDetails entry={selected} onClose={() => setSelected(null)} onOpen={(e) => { setSelected(null); editEntry(e); }} clients={clients} team={team} />
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
@@ -253,7 +277,7 @@ export default function HibeAgenda() {
           {form && <>
             <DialogHeader><DialogTitle>{form.id ? "Bewerken" : "Nieuw in de agenda"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              {!form.id && <div className="flex flex-wrap gap-2">
+              {!form.id && !momentsOnly && <div className="flex flex-wrap gap-2">
                 {(["shoot", "meeting", "vacation", "task"] as const).map((k) => <Button variant="outline" size="sm" key={k} onClick={() => { setForm({ ...blank(form.start_date, k) }); if (k === "task") setTask(blankTask(me, form.start_date)); }} className={cn("rounded-md", form.kind === k && "bg-foreground text-background")}>{k === "shoot" ? "Draaidag" : k === "meeting" ? "Meeting" : k === "task" ? "Taak" : "Vakantie / vrij"}</Button>)}
               </div>}
               {form.kind === "task" && task && <TaskFields form={task} setForm={setTask} />}

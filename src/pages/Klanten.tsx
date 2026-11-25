@@ -1,7 +1,8 @@
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MetricoolService } from "@/integrations/Metricool.service";
+import { useSearchParams } from "react-router-dom";
 import { useClient, ClientRow } from "@/context/ClientContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Archive, ArchiveRestore } from "lucide-react";
+import { clientGroupName } from "@/lib/workflow";
+import { Archive, ArchiveRestore, Search, Link2 } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -22,9 +24,13 @@ interface SyncRun { client_id: string; started_at: string; finished_at: string |
 
 export default function Klanten() {
   const { allClients, refreshClients } = useClient();
-  const [showArchived, setShowArchived] = useState(false);
-  const archivedCount = allClients.filter((c) => c.archived_at).length;
-  const clients = showArchived ? allClients : allClients.filter((c) => !c.archived_at);
+  const [query, setQuery] = useState("");
+  const [state, setState] = useState("active");
+  const [sort, setSort] = useState("az");
+  const clients = useMemo(() => allClients.filter(c => (state === "all" || (state === "active" ? !c.archived_at : !!c.archived_at)) && c.name.toLowerCase().includes(query.toLowerCase())).sort((a,b) => {
+    const grouped = clientGroupName(a.name).localeCompare(clientGroupName(b.name), "nl");
+    return (sort === "za" ? -1 : 1) * (grouped || a.name.localeCompare(b.name, "nl"));
+  }), [allClients, state, query, sort]);
   const toggleArchive = async (c: ClientRow) => {
     const archived_at = c.archived_at ? null : new Date().toISOString();
     const { error } = await supabase.from("clients").update({ archived_at } as any).eq("id", c.id);
@@ -38,6 +44,14 @@ export default function Klanten() {
   const [editing, setEditing] = useState<Partial<ClientRow> | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const id = params.get("bewerken");
+    const c = allClients.find(c => c.id === id);
+    if (!c) return;
+    setEditing({ ...c, video_only: false }); setLogoFile(null);
+    setParams(previous => { const next = new URLSearchParams(previous); next.delete("bewerken"); return next; }, { replace: true });
+  }, [params, allClients, setParams]);
 
   const loadRuns = async () => {
     const { data } = await supabase.from("sync_runs").select("client_id,started_at,finished_at,status,days_count,videos_count,error").order("started_at", { ascending: false }).limit(500);
@@ -72,7 +86,7 @@ export default function Klanten() {
     if (dup) return toast.error(`Dit Metricool-merk hoort al bij "${dup.name}"`);
     setBusy(true);
     try {
-      const payload = { name, video_only: videoOnly, metricool_blog_id: blog, tiktok_handle: (editing.tiktok_handle ?? "").replace(/^@/, "").trim() || null, capcut_style: ((editing as any).capcut_style ?? "").trim() || null } as any;
+      const payload = { name, monthly_video_target: (editing as any).monthly_video_target === "" || (editing as any).monthly_video_target == null ? null : Math.max(0, Number((editing as any).monthly_video_target)), video_only: videoOnly, metricool_blog_id: blog, tiktok_handle: (editing.tiktok_handle ?? "").replace(/^@/, "").trim() || null, capcut_style: ((editing as any).capcut_style ?? "").trim() || null } as any;
       let id = editing.id;
       if (id) {
         const { error } = await supabase.from("clients").update(payload).eq("id", id);
@@ -111,9 +125,10 @@ export default function Klanten() {
   return (
     <div className="p-6 space-y-6 max-w-6xl">
       <PageHeader title="Klanten beheren" action={<PrimaryAction icon={Plus} onClick={() => { setEditing({}); setLogoFile(null); }}>Klant toevoegen</PrimaryAction>} />
-      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-        <span>Gearchiveerde klanten verdwijnen uit het dashboard, de klantkeuze en de dagelijkse sync. Alle gegevens blijven bewaard.</span>
-        {archivedCount > 0 && <label className="flex shrink-0 items-center gap-2"><Switch checked={showArchived} onCheckedChange={setShowArchived} />Toon gearchiveerd ({archivedCount})</label>}
+      <div className="flex flex-wrap items-center gap-2">
+        <Input aria-label="Zoek klant" placeholder="Zoek klant…" value={query} onChange={e => setQuery(e.target.value)} className="w-56" />
+        <Select value={state} onValueChange={setState}><SelectTrigger aria-label="Klantstatus" className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Actief</SelectItem><SelectItem value="inactive">Inactief</SelectItem><SelectItem value="all">Alle klanten</SelectItem></SelectContent></Select>
+        <Select value={sort} onValueChange={setSort}><SelectTrigger aria-label="Sorteer klanten" className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="az">Naam A–Z</SelectItem><SelectItem value="za">Naam Z–A</SelectItem></SelectContent></Select>
       </div>
       <Card><CardContent className="p-0">
         <Table>
@@ -122,9 +137,12 @@ export default function Klanten() {
           </TableRow></TableHeader>
           <TableBody>
             {clients.length === 0 && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Voeg een klant toe om zijn Metricool-cijfers te synchroniseren. <Button size="sm" className="ml-2" onClick={() => { setEditing({}); setLogoFile(null); }}><Plus className="h-4 w-4" />Klant toevoegen</Button></TableCell></TableRow>}
-            {clients.map((c) => {
+            {clients.map((c, index) => {
               const r = runs[c.id];
-              return (
+              const group = clientGroupName(c.name);
+              const grouped = allClients.filter(x => clientGroupName(x.name) === group).length > 1;
+              return (<Fragment key={c.id}>
+                {grouped && (index === 0 || clientGroupName(clients[index - 1].name) !== group) && <TableRow key={`group-${group}`}><TableCell colSpan={5} className="bg-muted text-sm font-semibold">{group} <span className="text-xs font-normal text-muted-foreground">· kanalen</span></TableCell></TableRow>}
                 <TableRow key={c.id} className={c.archived_at ? "opacity-60" : undefined}>
                   <TableCell><div className="flex items-center gap-3">
                     {c.logo_url && logos[c.logo_url] ? <img src={logos[c.logo_url]} alt="" className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted" />}
@@ -132,7 +150,7 @@ export default function Klanten() {
                     {c.video_only && <Badge variant="outline">Alleen video's</Badge>}
                     {c.archived_at && <Badge variant="secondary">Gearchiveerd</Badge>}
                     {c.metricool_brand_label && <span className={c.metricool_brand_label.toLowerCase().includes(c.name.toLowerCase().slice(0, 4)) ? "text-xs text-muted-foreground" : "rounded-md border border-warning/50 bg-warning/10 px-1.5 text-xs"}>Metricool: {c.metricool_brand_label}</span>}</div></TableCell>
-                  <TableCell>{c.metricool_blog_id ? <>{brandLabel(c.metricool_blog_id)} <span className="text-xs text-muted-foreground">({c.metricool_blog_id})</span></> : "–"}</TableCell>
+                  <TableCell>{c.metricool_blog_id ? <>{brandLabel(c.metricool_blog_id)} <span className="text-xs text-muted-foreground">({c.metricool_blog_id})</span></> : <Button size="sm" variant="outline" onClick={() => { setEditing({ ...c, video_only: false }); setLogoFile(null); }}><Link2 className="h-4 w-4" />Koppel kanaal</Button>}</TableCell>
                   <TableCell>{c.tiktok_handle ? `@${c.tiktok_handle}` : "–"}</TableCell>
                   <TableCell>
                     {!r ? <span className="text-muted-foreground text-sm">Nog niet gesynchroniseerd</span> : (
@@ -149,7 +167,7 @@ export default function Klanten() {
                   <TableCell><div className="flex justify-end">
                     <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label={c.archived_at ? "Terugzetten" : "Archiveren"} onClick={() => toggleArchive(c)}>{c.archived_at ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}</Button></TooltipTrigger><TooltipContent>{c.archived_at ? "Terugzetten" : "Archiveren"}</TooltipContent></Tooltip>
                     <Button variant="ghost" size="icon" aria-label="Bewerken" onClick={() => { setEditing(c); setLogoFile(null); }}><Pencil className="h-4 w-4" /></Button></div></TableCell>
-                </TableRow>
+                </TableRow></Fragment>
               );
             })}
           </TableBody>
@@ -174,6 +192,7 @@ export default function Klanten() {
                 })}</SelectContent>
               </Select>
             </div>
+            <div className="space-y-2"><Label htmlFor="sla">SLA · video’s per maand</Label><Input id="sla" type="number" min="0" step="1" value={(editing as any)?.monthly_video_target ?? ""} onChange={e => setEditing({ ...editing, monthly_video_target: e.target.value } as any)} /></div>
             <div className="space-y-2"><Label htmlFor="tt">TikTok-handle</Label><Input id="tt" placeholder="bijv. dehollandsetulp" value={editing?.tiktok_handle ?? ""} onChange={(e) => setEditing({ ...editing, tiktok_handle: e.target.value })} maxLength={100} /></div>
             <div className="space-y-2"><Label htmlFor="capcut">CapCut-stijl</Label><textarea id="capcut" rows={6} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder={"Lettertype: Poppins\nGrootte: 8px\nKleur: #FFFFFF\nStroke: zwart, 40px"} value={(editing as any)?.capcut_style ?? ""} onChange={(e) => setEditing({ ...editing, capcut_style: e.target.value } as any)} maxLength={3000} /></div>
             <div className="space-y-2"><Label htmlFor="logo">Logo</Label><Input id="logo" type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)} /></div>

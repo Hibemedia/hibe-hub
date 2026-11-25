@@ -33,11 +33,11 @@ async function presign(method: string, key: string, params: Record<string, strin
   const s = await aws.sign(new Request(u, { method }), { aws: { signQuery: true } });
   return s.url;
 }
-async function call(method: string, key: string, query = "", body?: string) {
+async function call(method: string, key: string, query = "", body?: string, allowMissing = false) {
   const { aws, base } = r2();
   const res = await aws.fetch(`${base}/${enc(key)}${query}`, { method, body });
   const text = await res.text();
-  if (!res.ok) throw new Error(`Opslag gaf fout ${res.status}: ${text.slice(0, 300)}`);
+  if (!res.ok && !(allowMissing && res.status === 404 && /NoSuchKey|NoSuchUpload/.test(text))) throw new Error(`Opslag gaf fout ${res.status}: ${text.slice(0, 300)}`);
   return text;
 }
 
@@ -123,11 +123,14 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
     if (b.action === "delete_item") {
-      const { data: vs } = await admin.from("video_versions").select("r2_key,upload_id,upload_status").eq("item_id", b.item_id);
+      const { data: vs, error: versionError } = await admin.from("video_versions").select("r2_key,upload_id,upload_status").eq("item_id", b.item_id);
+      if (versionError) throw versionError;
       for (const v of vs ?? []) {
-        await (v.upload_status === "uploading" ? call("DELETE", v.r2_key, `?uploadId=${encodeURIComponent(v.upload_id)}`) : call("DELETE", v.r2_key)).catch(() => {});
+        if (v.upload_id) await call("DELETE", v.r2_key, `?uploadId=${encodeURIComponent(v.upload_id)}`, undefined, true);
+        await call("DELETE", v.r2_key, "", undefined, true);
       }
-      await admin.from("video_items").delete().eq("id", b.item_id);
+      const { error: deleteError } = await admin.from("video_items").delete().eq("id", b.item_id);
+      if (deleteError) throw deleteError;
       return json({ ok: true });
     }
     return json({ error: "Onbekende actie" }, 400);

@@ -52,8 +52,8 @@ export function FrameTopBar({ variant }: { variant: "client" | "hibe" }) {
   return (
     <header className={cn("sticky z-40 flex h-14", viewAs ? "top-11" : "top-0", " items-center gap-3 border-b border-border bg-background px-4 md:px-6", contentMoments && "content-moments-topbar")}>
       <div ref={setTitleEl} className="min-w-0 flex-1" />
-      <div className="flex min-w-0 flex-none justify-center md:flex-1">{!viewAs && <GlobalSearch variant={variant} />}</div>
-      <div className="flex flex-none items-center justify-end gap-3 md:flex-1">
+      <div className="flex min-w-0 flex-none justify-center xl:flex-1">{!viewAs && <GlobalSearch variant={variant} />}</div>
+      <div className="flex shrink-0 items-center justify-end gap-3">
         <div ref={setActionEl} className="flex items-center" />
         {variant === "hibe" && <NotificationBell />}
         {!viewAs && <Avatar />}

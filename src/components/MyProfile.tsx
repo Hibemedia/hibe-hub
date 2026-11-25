@@ -24,7 +24,7 @@ async function cropTo256(src: string, area: Area): Promise<Blob> {
   return new Promise((res) => c.toBlob((b) => res(b!), "image/png"));
 }
 
-export function MyProfile() {
+export function MyProfile({ saveRef }: { saveRef?: React.MutableRefObject<(() => Promise<void>) | null> }) {
   const { user } = UserAuth();
   const { isAdmin } = useClient();
   const qc = useQueryClient();
@@ -64,16 +64,16 @@ export function MyProfile() {
       const blob = await cropTo256(src, area);
       const path = `${user.id}/avatar-${Date.now()}.png`;
       const { error } = await supabase.storage.from("avatars").upload(path, blob, { contentType: "image/png" });
-      if (error) { setBusy(false); return toast.error("Uploaden mislukt: " + error.message); }
+      if (error) { setBusy(false); throw new Error("Uploaden mislukt: " + error.message); }
       if (avatar?.startsWith("storage:avatars/")) supabase.storage.from("avatars").remove([avatar.slice(16)]);
       avatar_url = `storage:avatars/${path}`;
     }
     const full_name = `${f.first_name.trim()} ${f.last_name.trim()}`.trim() || null;
     const { error } = await db.from("users").update({ first_name: f.first_name.trim() || null, last_name: f.last_name.trim() || null, full_name, avatar_url }).eq("id", user.id);
     setBusy(false);
-    if (error) return toast.error("Opslaan mislukt: " + error.message);
+    if (error) { toast.error("Opslaan mislukt: " + error.message); throw error; }
     setAvatar(avatar_url); setSrc(null); refresh();
-    toast.success("Je profiel is opgeslagen");
+    if (!saveRef) toast.success("Je profiel is opgeslagen");
   };
   const remove = async () => {
     if (!user?.id) return;
@@ -83,6 +83,8 @@ export function MyProfile() {
     if (avatar?.startsWith("storage:avatars/")) supabase.storage.from("avatars").remove([avatar.slice(16)]);
     setAvatar(null); refresh(); toast.success("Foto verwijderd");
   };
+
+  if (saveRef) saveRef.current = async () => { await save(); };
 
   const name = `${f.first_name} ${f.last_name}`.trim() || user?.email || "?";
   return (
@@ -108,7 +110,7 @@ export function MyProfile() {
           )}
           <input ref={input} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={save} disabled={busy}>Opslaan</Button>
+            {!saveRef && <Button size="sm" onClick={save} disabled={busy}>Profiel opslaan</Button>}
             <Button size="sm" variant="outline" onClick={() => input.current?.click()}>Andere foto</Button>
             <Button size="sm" variant="ghost" onClick={remove} disabled={!src && !avatar}>Verwijderen</Button>
           </div>

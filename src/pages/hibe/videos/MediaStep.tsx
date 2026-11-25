@@ -17,6 +17,8 @@ import { STEPS, STEP_HINT, STEP_ACTION, VIDEO_STATUS_LABEL, VideoStatus, statusF
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tag } from "@/components/ui/tag";
+import { WORKFLOW, WAIT_CLS, waitDays, waitTone, trashDaysLeft } from "@/lib/workflow";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -52,6 +54,7 @@ export default function MediaStep() {
   const up = useUploader(f.client !== "all" ? f.client : undefined, status && status !== "approved_internal" ? status : undefined, status && status !== "approved_internal" ? VIDEO_STATUS_LABEL[status] : undefined);
   const sender = useSendToClient();
   const verInput = useRef<HTMLInputElement>(null);
+  const [clearing, setClearing] = useState(false);
   const [verFor, setVerFor] = useState<BoardItem | null>(null);
   const [styleFor, setStyleFor] = useState<BoardItem | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["video-items"] });
@@ -83,6 +86,17 @@ export default function MediaStep() {
   const trash = async (i: BoardItem, on: boolean) => { try { await trashVideo(i.id, on); toast.success(on ? "Naar prullenbak" : "Teruggezet"); refresh(); } catch (e: any) { toast.error(e.message); } };
   const destroy = async (i: BoardItem) => { if (!window.confirm(`"${i.title}" definitief verwijderen, ook uit de opslag?`)) return; try { await invokeVideo({ action: "delete_item", item_id: i.id }); forgetResume(i.id); refresh(); } catch (e: any) { toast.error(e.message); } };
 
+  const clearTrash = async () => {
+    if (!m.trash.length || !window.confirm(`Alle ${m.trash.length} video's in de prullenbak definitief verwijderen, inclusief bestanden? Dit kan niet ongedaan worden gemaakt.`)) return;
+    setClearing(true);
+    let removed = 0;
+    try {
+      for (const item of m.trash) { await invokeVideo({ action: "delete_item", item_id: item.id }); forgetResume(item.id); removed++; }
+      toast.success("Prullenbak geleegd");
+    } catch { toast.error(`${removed} verwijderd; de rest is blijven staan. Probeer opnieuw.`); }
+    finally { setClearing(false); refresh(); }
+  };
+
   if (!status && !trashView) return <div className="p-8"><EmptyState text="Deze stap bestaat niet." /></div>;
   const title = trashView ? "Prullenbak" : status === "archived" ? "Archief" : VIDEO_STATUS_LABEL[status!];
   const hint = trashView ? "Video's worden na één maand in de prullenbak automatisch definitief verwijderd." : STEP_HINT[status!];
@@ -95,7 +109,7 @@ export default function MediaStep() {
         <SelectTrigger aria-label="Kies stap" className="md:hidden"><SelectValue /></SelectTrigger>
         <SelectContent>{MEDIA_SUB.map((s) => <SelectItem key={s.url} value={s.url}>{s.title}</SelectItem>)}</SelectContent>
       </Select>
-      <div><h1 className="text-2xl font-semibold tracking-tight">{title}</h1><p className="text-sm text-muted-foreground">{hint}</p></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">{title}</h1><p className="text-sm text-muted-foreground">{hint}</p></div>{trashView && <Button variant="outline" onClick={clearTrash} disabled={clearing || !m.trash.length}><Trash2 className="h-4 w-4" />{clearing ? "Prullenbak legen…" : "Prullenbak legen"}</Button>}</div>
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -122,6 +136,10 @@ export default function MediaStep() {
             </div>); })}
         </div>
       )}
+      {status === "client_review" && <div className="flex flex-wrap gap-2">{[...new Set(list.map(i => i.client_id))].map(cid => {
+        const items = base.filter(i => i.client_id === cid);
+        return <Button key={cid} variant="outline" size="sm" onClick={() => copyText(`Hoi ${m.clientName(cid)}! Deze ${items.length} video's wachten nog op je beoordeling:\n${items.map(i => `• ${i.title}`).join("\n")}\n${portalLink()}`)}><Send className="h-4 w-4" />Herinner alle · {m.clientName(cid)} ({items.length})</Button>;
+      })}</div>}
       <UploadProgress />
 
       <section className="overflow-hidden rounded-lg border border-border bg-card">
@@ -129,11 +147,13 @@ export default function MediaStep() {
           <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
             {status === "internal_review" ? "Niets te beoordelen. Zodra er een video is geüpload, verschijnt hij hier." : trashView ? "De prullenbak is leeg." : "Geen video's in deze stap."}
             {status === "internal_review" && <Button onClick={up.openPicker}><Upload />Video uploaden</Button>}
+            {status !== "internal_review" && <Button variant="outline" onClick={() => nav("/hibe/videos")}>Open Media</Button>}
           </div>
         ) : (
           <ul className="divide-y divide-border">
             <li className="flex items-center gap-3 px-4 py-2 text-xs text-muted-foreground">
               <Checkbox checked={all} onCheckedChange={(v) => setSel(v ? new Set(list.map((i) => i.id)) : new Set())} aria-label="Alles selecteren" />
+              {status && !trashView && <Tag className={WORKFLOW[status].cls}>{VIDEO_STATUS_LABEL[status]}</Tag>}
               <span>{list.length} video{list.length === 1 ? "" : "'s"} · nieuwste bovenaan</span>
             </li>
             {list.map((i) => {
@@ -148,11 +168,11 @@ export default function MediaStep() {
                     <p className="truncate text-xs text-muted-foreground">{m.clientName(i.client_id)}{i.file_name ? ` · ${typeOf(i.mime_type, i.file_name)}` : ""}{i.size_bytes ? ` · ${fmtSize(i.size_bytes)}` : ""}{status === "client_review" && capcutBy(i) ? ` · CapCut door ${m.names[capcutBy(i)!] ?? "collega"}` : ""}{status === "approved_internal" && (i.uploader ?? i.editor_id) ? ` · Edit door ${m.names[(i.uploader ?? i.editor_id)!] ?? "collega"}` : ""}</p>
                   </div>
                   {status !== "approved_internal" && <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>}
-                  <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>
+                  {trashView ? <Tag variant="neutral">nog {trashDaysLeft(i.archived_at)} dagen</Tag> : status === "client_review" ? <Tag className={WAIT_CLS[waitTone(waitDays(i.status_changed_at))]}>wacht {waitDays(i.status_changed_at)} dagen</Tag> : <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>}
                   <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
                     {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={capcutBy(i)} />}
                     {!trashView && status !== "approved_internal" && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
-                    {trashView && <Button size="sm" variant="outline" onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button>}
+                    {trashView && <><Button size="sm" variant="outline" disabled={clearing} onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button><Button size="sm" variant="outline" className="text-destructive" disabled={clearing} onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</Button></>}
                     {!trashView && status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}
                     <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}><Download />Download</Button>
                     {!trashView && a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}

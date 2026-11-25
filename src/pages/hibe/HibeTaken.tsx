@@ -10,6 +10,7 @@ import { useMyTeamRole } from "@/hooks/useTeamRole";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { UserAvatar } from "@/components/UserAvatar";
 import { TaskDialog, blankTask, taskToForm, type TaskForm } from "@/components/TaskDialog";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { groupByPerson, isOverdue, sortTasks, type Task } from "@/lib/tasks";
@@ -52,7 +53,7 @@ export default function HibeTaken() {
         <FilterChip active={view === "all"} onClick={() => setView("all")} className={cn("", view === "all" && "bg-filter-active text-foreground")}>Iedereen, per persoon</FilterChip>
         <FilterChip active={showDone} onClick={() => setShowDone(!showDone)} className={cn(" ml-auto", showDone && "bg-filter-active text-foreground")}>Afgerond tonen</FilterChip>
       </div>
-      {groups.every((g) => !g.tasks.length) && <div className="rounded-[20px] bg-card p-6 text-sm text-muted-foreground">Geen open taken.</div>}
+      {groups.every((g) => !g.tasks.length) && <div className="space-y-3 border-y border-border py-6 text-sm text-muted-foreground"><p>{showDone ? "Geen taken voor deze selectie." : "Alles afgerond: er staan geen open taken voor deze selectie."}</p><Button variant="outline" onClick={() => setForm(blankTask(me))}><Plus className="h-4 w-4" />Nieuwe taak</Button></div>}
       {groups.filter((g) => g.tasks.length).map((g) => (
         <section key={g.person} className="min-w-0 rounded-[20px] bg-card p-4">
           {view === "all" && <div className="mb-2 flex items-center gap-2"><UserAvatar userId={g.person} size={26} /><h2 className="truncate font-semibold">{name(g.person)}</h2><span className="text-sm text-muted-foreground">{g.tasks.filter((t) => !t.done_at).length} open</span></div>}

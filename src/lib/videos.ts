@@ -1,17 +1,9 @@
+import { WORKFLOW } from "./workflow";
 export type VideoStatus = "internal_review" | "feedback" | "approved_internal" | "ready_for_client" | "client_review" | "approved_client" | "scheduled" | "archived";
 
 /** Board order. */
 export const VIDEO_STATUSES: VideoStatus[] = ["internal_review", "feedback", "approved_internal", "ready_for_client", "client_review", "approved_client", "scheduled", "archived"];
-export const VIDEO_STATUS_LABEL: Record<VideoStatus, string> = {
-  internal_review: "Interne controle",
-  feedback: "Feedback verwerken",
-  approved_internal: "CapCut",
-  ready_for_client: "Mag naar klant",
-  client_review: "Ter controle bij klant",
-  approved_client: "Goedgekeurd (klant)",
-  scheduled: "Ingepland",
-  archived: "Archief",
-};
+export const VIDEO_STATUS_LABEL: Record<VideoStatus, string> = Object.fromEntries(Object.entries(WORKFLOW).map(([key, value]) => [key, value.label])) as Record<VideoStatus, string>;
 /** Statuses a client can see (from "Ter controle bij klant" onward). */
 export const CLIENT_VISIBLE: VideoStatus[] = ["client_review", "approved_client", "scheduled", "archived"];
 export const isClientVisible = (s: VideoStatus) => CLIENT_VISIBLE.includes(s);

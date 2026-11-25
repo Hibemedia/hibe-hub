@@ -1,5 +1,19 @@
 # Roadmap
 
+## Platform opschonen en stroomlijnen
+- [x] Prullenbak: zichtbare definitieve verwijdering, legen, resterende dagen; testdata/dubbelen blijven op verzoek staan tot de maandtermijn verstreken is.
+- [x] Feer- en Jebroer-kanalen visueel groeperen zonder gegevens of toegangsrechten samen te voegen; tabtitel HIBE Hub.
+- [x] Centrale fasebenamingen en kleurchips voor Media, productieboard en Socials-legenda.
+- [x] Klantwachttijd met 3/5-daggrenzen, bulkherinnering en invulbare klant-SLA.
+- [x] Contentmomenten als gefilterde Agenda; ontbrekende crew met Plan in; Bevestigd correct.
+- [x] Klanten zoeken/sorteren/statusfilter/kanaal koppelen; Team Accountmanager en laatst actief.
+- [x] Lege lijsten met actie, instellingen zonder dubbele acties, notificaties en 2FA.
+- [x] Edits bulk toewijzen/deadlines en inklapbare klantgroepen.
+- [x] Ingelogde controle, tests en wijzigingen opslaan; lokale Chrome Apple Events-instelling is buiten deze omgeving.
+
+- 151 tests slagen; bulkdeadline, geen-editor bulktoewijzing, SLA 12 opslaan/teruglezen, tijdelijke video definitief verwijderen, prullenbak-legen annuleren, WhatsApp-bulkbericht en crew openen ingelogd gecontroleerd. Desktop/telefoon zonder pagina-overflow. 2FA-knop gecontroleerd; activeren met persoonlijke authenticator blijft aan de gebruiker. Accountmanager verandert geen rechten.
+- Lokale Chrome Apple Events-instelling niet bereikbaar vanuit deze omgeving; gebruiker zet die zelf uit.
+
 ## Dashboard Vandaag en Prestaties
 - [x] Vandaag-tab met begroeting, weerchip, vijf acties en één Mijn dag-lijst.
 - [x] Contentmomenten rechts (één groot, maximaal drie compact) en alleen open checklistklanten.

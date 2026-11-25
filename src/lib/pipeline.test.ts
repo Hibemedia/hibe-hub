@@ -20,6 +20,12 @@ describe("pipeline", () => {
 });
 
 describe("done column", () => {
+  it("keeps CapCut, internal review and feedback separate; feedback is not customer wait", () => {
+    const videos = ["approved_internal", "internal_review", "feedback"].map((status, i) => ({ id: String(i), title: status, client_id: "c", status, current_version: 1, archived_at: null, status_changed_at: "2026-11-20T12:00:00Z" }));
+    const cards = buildCards({ tasks: [], moments: [], edits: [], videos }, "2026-11-25");
+    expect(cards.map(c => c.phase)).toEqual(["capcut", "check", "feedback"]);
+    expect(groupByClient(cards, new Date("2026-11-25T12:00:00Z"))[0].clientWait).toBe(0);
+  });
   const base = { tasks: [], moments: [], edits: [] };
   const v = (id: string, at: string) => ({ id, title: id, client_id: "c", status: "scheduled", current_version: 1, archived_at: null, status_changed_at: at });
   it("shows scheduled videos for 7 days, then hides them", () => {

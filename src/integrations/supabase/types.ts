@@ -988,6 +988,7 @@ export type Database = {
           full_name: string | null
           id: string
           job_title: string | null
+          last_active_at: string | null
           last_name: string | null
         }
         Insert: {
@@ -1000,6 +1001,7 @@ export type Database = {
           full_name?: string | null
           id: string
           job_title?: string | null
+          last_active_at?: string | null
           last_name?: string | null
         }
         Update: {
@@ -1012,6 +1014,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           job_title?: string | null
+          last_active_at?: string | null
           last_name?: string | null
         }
         Relationships: [
@@ -1369,6 +1372,7 @@ export type Database = {
         }
       }
       start_view_as: { Args: { _client: string }; Returns: string }
+      touch_user_activity: { Args: never; Returns: undefined }
       video_client_action: {
         Args: { _action: string; _item_id: string }
         Returns: {

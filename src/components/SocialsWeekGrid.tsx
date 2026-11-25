@@ -274,7 +274,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
         <span className="ml-auto text-sm text-muted-foreground tabular"><b className="text-foreground">{totDone}</b> van {totPlanned} posts ingepland {periodWord}</span>
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        {STATUSES.slice(1).map((s) => <span key={s.key} className="inline-flex items-center gap-1.5"><span className={cn("flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold", cellCls(s.key))}>{s.symbol}</span>{s.label}</span>)}
+        {STATUSES.slice(1).map((s) => <span key={s.key} className="inline-flex items-center gap-1.5"><span className={cn("flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold", cellCls(s.key))} aria-hidden />{s.label}</span>)}
       </div>
 
       <div className="-mx-1 overflow-x-auto px-1">

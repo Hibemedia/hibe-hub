@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -80,6 +81,10 @@ export default function HibeEdits() {
   const { data: edits = [], isLoading } = useEdits();
   const { data: team = [] } = useTeam();
   const [f, setF] = useFilters();
+  const [selection, setSelection] = useState<Set<string>>(new Set());
+  const [bulkEditor, setBulkEditor] = useState("none");
+  const [bulkDeadline, setBulkDeadline] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [creating, setCreating] = useState(false);
   const [params, setParams] = useSearchParams();
@@ -127,6 +132,25 @@ export default function HibeEdits() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [visible, edits, clients]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const applyBulk = async (kind: "editor" | "deadline") => {
+    setBulkBusy(true);
+    let completed = 0;
+    try {
+      for (const e of visible.filter(e => selection.has(e.id))) {
+        if (kind === "editor") {
+          const { error, data } = await supabase.functions.invoke("assign-edit-editor", { body: { edit_id: e.id, editor_id: bulkEditor === "none" ? null : bulkEditor } });
+          if (error || data?.error) throw new Error(data?.error ?? await errorMessage(error));
+        } else {
+          const { error } = await db.from("edits").update({ deadline: bulkDeadline || null }).eq("id", e.id);
+          if (error) throw error;
+        }
+        completed++;
+      }
+      toast.success(`${completed} edits bijgewerkt`); setSelection(new Set());
+    } catch { toast.error(`${completed} bijgewerkt; controleer de overige edits.`); }
+    finally { setBulkBusy(false); refresh(); }
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-4 md:p-8">
       <PageHeader title="Edits" action={<PrimaryAction icon={Plus} onClick={() => setCreating(true)}>Nieuwe edit</PrimaryAction>} />
@@ -138,10 +162,23 @@ export default function HibeEdits() {
         <label className="flex items-center gap-2 text-sm"><Switch checked={f.showDelivered} onCheckedChange={(v) => setF({ showDelivered: v })} />Toon ingeleverd</label>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" onClick={() => setSelection(new Set(visible.map(e => e.id)))} disabled={!visible.length}>Selecteer zichtbare edits</Button>
+        <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.map(g => [g.id, true])))}>Alles inklappen</Button>
+        <Button size="sm" variant="ghost" onClick={() => setClosed({})}>Alles uitklappen</Button>
+      </div>
+      {selection.size > 0 && <div className="flex flex-wrap items-center gap-2 border-y border-border py-3">
+        <span className="text-sm font-medium">{visible.filter(e => selection.has(e.id)).length} geselecteerd</span>
+        <FSelect label="Bulkeditor" value={bulkEditor} onChange={setBulkEditor} options={[["none", "Geen editor"], ...team.map(t => [t.id, t.name] as [string,string])]} />
+        <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("editor")}>Toewijzen</Button>
+        <Input aria-label="Bulkdeadline" type="date" value={bulkDeadline} onChange={e => setBulkDeadline(e.target.value)} className="w-44" />
+        <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("deadline")}>Deadline toepassen</Button>
+        <Button size="sm" variant="ghost" onClick={() => setSelection(new Set())}>Selectie wissen</Button>
+      </div>}
       {isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : groups.length === 0 ? (
         <div className="rounded-lg border border-border bg-card flex flex-col items-start gap-3 p-6 text-sm text-muted-foreground">
           {edits.length ? "Geen edits voor deze filters." : "Nog geen edits. Plak een lijst titels om de montageplanning te starten."}
-          {!edits.length && <Button onClick={() => setCreating(true)}><Plus className="mr-1 h-4 w-4" />Nieuwe edit</Button>}
+          <Button onClick={() => edits.length ? setF(DEF) : setCreating(true)}>{edits.length ? "Wis filters" : "Nieuwe edit"}</Button>
         </div>
       ) : groups.map((g) => (
         <section key={g.id} className="rounded-lg border border-border bg-card overflow-hidden p-0">
@@ -156,6 +193,7 @@ export default function HibeEdits() {
               {g.rows.map((e) => (
                 <li key={e.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 lg:grid-cols-[minmax(0,1fr)_190px_160px_90px_130px]">
                   <div className="col-span-2 flex min-w-0 items-center gap-2 lg:col-span-1">
+                    <Checkbox aria-label={`Selecteer edit ${e.title}`} checked={selection.has(e.id)} onCheckedChange={checked => setSelection(previous => { const next = new Set(previous); if (checked) next.add(e.id); else next.delete(e.id); return next; })} />
                     <button onClick={() => setOpen(e)} className="min-w-0 truncate text-left text-sm font-medium hover:underline">{e.title}</button>
                     {e.video?.status === "feedback" && e.video_item_id && (
                       <Link to={`/hibe/videos/${e.video_item_id}`} className="ui-tag ui-tag-warning shrink-0"><MessageSquareWarning className="h-3 w-3" />Feedback</Link>

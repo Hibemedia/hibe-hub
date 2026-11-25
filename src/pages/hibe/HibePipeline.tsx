@@ -13,6 +13,8 @@ import { PHASES, ageTone, avgDays, buildCards, daysIn, deliveredThisMonth, slaTo
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ymd } from "@/lib/agenda";
+import { WORKFLOW } from "@/lib/workflow";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const db = supabase as any;
@@ -108,7 +110,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
                 </p>
                 <Tag className={cn("rounded-tag px-2 py-0.5 text-[11px] font-semibold", SLA_TONE[tone])}>{SLA_LABEL[tone]}</Tag>
               </div>
-              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-tag bg-muted"><div className={cn("h-full rounded-tag", tone === "behind" ? "bg-red-500" : tone === "attention" ? "bg-orange-500" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
+              {target ? <div className="mt-2 h-1.5 overflow-hidden rounded-tag bg-muted"><div className={cn("h-full rounded-tag", tone === "behind" ? "bg-destructive" : tone === "attention" ? "bg-warning" : tone === "met" ? "bg-lime" : "bg-foreground")} style={{ width: `${pct}%` }} /></div> : null}
             </div>
           );
         })}
@@ -178,13 +180,13 @@ function ClientProgress({ r, now, client, logo }: { r: ClientRow; now: Date; cli
           <div className="min-w-0"><p className="truncate text-sm font-bold">{client?.name ?? "Onbekend"}</p>
             <p className="text-xs text-muted-foreground">{r.cards.filter((c) => c.phase !== "done").length} open · {r.phases.client.n ? `${r.phases.client.n} bij klant · ${r.clientWait}d` : "niets bij klant"}</p></div>
         </button>
-        <div className="grid min-w-0 flex-1 grid-cols-4 gap-1 sm:grid-cols-8">
+        <div className="grid min-w-0 flex-1 grid-cols-3 gap-1 sm:grid-cols-4 xl:grid-cols-6">
           {PHASES.map((p) => {
             const ph = r.phases[p.key];
             const t = p.key === "done" ? "ok" : ageTone(ph.maxDays);
             return (
-              <button type="button" key={p.key} disabled={!ph.n} onClick={() => pick(p.key)} title={`${p.label} · ${p.owner}`} className={cn("min-w-0 rounded-tag px-2 py-1.5 text-left", ph.n ? SEG[t] : "bg-muted text-muted-foreground", sel === p.key && "ring-2 ring-foreground")}>
-                <p className="truncate text-[11px] font-semibold">{p.label}</p>
+              <button type="button" key={p.key} disabled={!ph.n} onClick={() => pick(p.key)} title={`${p.label} · ${p.owner}`} className={cn("min-w-0 rounded-tag px-2 py-1.5 text-left", ph.n ? (`ui-tag ${WORKFLOW[p.key === "check" ? "internal_review" : p.key === "capcut" ? "approved_internal" : p.key === "ready" ? "ready_for_client" : p.key === "client" ? "client_review" : p.key === "final" ? "approved_client" : p.key === "done" ? "scheduled" : p.key].cls}`) : "bg-muted text-muted-foreground", sel === p.key && "ring-2 ring-foreground")}>
+                <p className="whitespace-normal text-[11px] font-semibold leading-4">{p.label}</p>
                 <p className="text-xs">{ph.n ? <><b>{ph.n}</b>{p.key !== "done" && ` · ${ph.maxDays}d`}</> : "–"}</p>
               </button>
             );

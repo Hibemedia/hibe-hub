@@ -20,11 +20,9 @@ export type SocialsCell = { clientId: string; date: string };
 export const statusBarCls = (s: PostStatus) =>
   s === "scheduled" ? "border-l-[hsl(var(--social-green-fg))]"
   : s === "none" ? "border-l-border"
-  : s === "to_post" ? "border-l-[hsl(var(--social-amber-fg))]"
-  : s === "internal_check" ? "border-l-[hsl(var(--social-orange-fg))]"
-  : s === "client_check" ? "border-l-[hsl(var(--social-cyan-fg))]"
-  : s === "in_progress" ? "border-l-[hsl(var(--social-blue-fg))]"
-  : "border-l-[hsl(var(--social-purple-fg))]"; // to_schedule
+  : s === "to_post" || s === "internal_check" ? "border-l-warning"
+  : s === "client_check" || s === "in_progress" ? "border-l-border"
+  : "border-l-[hsl(var(--social-green-fg))]"; // to_schedule
 
 /** Name + link fields of a checklist cell, saved together with one explicit button. */
 export function PostFields({ title, note, onSave }: { title: string; note: string; onSave: (title: string, note: string) => void }) {

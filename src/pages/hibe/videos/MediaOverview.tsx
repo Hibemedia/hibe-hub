@@ -10,6 +10,7 @@ import { UploadProgress } from "@/components/UploadProgress";
 import { useVideoActivity, useOpenClientFeedback } from "@/hooks/useVideos";
 import { STEPS, VIDEO_STATUS_LABEL, VideoStatus, ageTone, fmtAge, clientsReadyToSend } from "@/lib/videos";
 import { filterMedia } from "@/lib/media-overview";
+import { WORKFLOW } from "@/lib/workflow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tag, type TagVariant } from "@/components/ui/tag";
@@ -77,7 +78,7 @@ export default function MediaOverview() {
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {STEPS.map((s) => <Button variant="outline" key={s} aria-pressed={phase === s} onClick={() => go(s)} className={cn("h-28 min-w-0 flex-col items-start justify-between gap-2 whitespace-normal rounded-lg p-4 text-left", phase === s && "border-lime bg-filter-active hover:bg-filter-active")}>
-          <span className="text-xs leading-4 text-muted-foreground">{VIDEO_STATUS_LABEL[s]}</span>
+          <Tag className={cn(WORKFLOW[s].cls, "whitespace-normal text-xs leading-4")}>{VIDEO_STATUS_LABEL[s]}</Tag>
           <span className="text-3xl font-bold leading-none tabular">{scoped.filter((i) => i.status === s).length}</span>
         </Button>)}
       </div>
@@ -89,7 +90,7 @@ export default function MediaOverview() {
             <thead><tr className="text-left text-xs text-muted-foreground"><th className="py-2 pr-3 font-medium">{sortBtn("name", "Klant")}</th>{STEPS.map((s) => <th key={s} className="px-1 py-2 text-center font-medium">{sortBtn(s, VIDEO_STATUS_LABEL[s])}</th>)}<th className="py-2 pl-2 text-right font-medium">{sortBtn("total", "Totaal lopend")}</th></tr></thead>
             <tbody className="divide-y divide-border">{rows.map(({ c, counts, total }) => <tr key={c.id}>
               <td className="py-2 pr-3"><span className="flex max-w-56 items-center gap-2">{m.mark(c.id, 24)}<span className="min-w-0 font-medium">{c.name}</span></span></td>
-              {STEPS.map((s) => <td key={s} className="px-1 py-2 text-center">{counts[s] ? <Button variant="ghost" size="sm" aria-label={`${c.name}: ${counts[s]} bestanden in ${VIDEO_STATUS_LABEL[s]}`} onClick={() => go(s, c.id)} className="h-8 px-1"><Tag variant={BADGE[s]} className="min-w-8 justify-center font-semibold tabular">{counts[s]}</Tag></Button> : <span className="text-muted-foreground">—</span>}</td>)}
+              {STEPS.map((s) => <td key={s} className="px-1 py-2 text-center">{counts[s] ? <Button variant="ghost" size="sm" aria-label={`${c.name}: ${counts[s]} bestanden in ${VIDEO_STATUS_LABEL[s]}`} onClick={() => go(s, c.id)} className="h-8 px-1"><Tag className={cn(WORKFLOW[s].cls, "min-w-8 justify-center font-semibold tabular")}>{counts[s]}</Tag></Button> : <span className="text-muted-foreground">—</span>}</td>)}
               <td className="py-2 pl-2 text-right">{total ? <Button variant="ghost" size="sm" aria-label={`${c.name}: alle lopende bestanden`} onClick={() => go("running", c.id)} className="h-8 px-1"><Tag className="font-semibold tabular">{total}</Tag></Button> : <span className="text-muted-foreground">—</span>}</td>
             </tr>)}</tbody>
           </table>}
@@ -101,7 +102,7 @@ export default function MediaOverview() {
           <Button asChild variant="ghost" className="h-auto w-full justify-start rounded-none px-2 py-3"><Link to={`/hibe/videos/${i.id}`} className="!no-underline">
             <VideoThumb versionId={i.versionId} className="h-12 w-8 shrink-0" />
             <span className="min-w-0 flex-1 text-left"><span className="block truncate font-semibold">{i.title}</span><span className="mt-1 block truncate text-xs font-normal text-muted-foreground">{m.clientName(i.client_id)} · {i.uploader ? m.names[i.uploader] ?? "Onbekend" : "HIBE"} · V{i.current_version}</span></span>
-            <Tag variant={BADGE[i.status]} className="hidden max-w-48 whitespace-normal sm:inline-flex">{VIDEO_STATUS_LABEL[i.status]}</Tag>
+            <Tag className={cn(WORKFLOW[i.status].cls, "hidden max-w-48 whitespace-normal sm:inline-flex")}>{VIDEO_STATUS_LABEL[i.status]}</Tag>
             <span className="shrink-0 text-xs font-normal text-muted-foreground" title="Wachttijd in deze fase">{fmtAge(i.status_changed_at)}</span><ArrowRight />
           </Link></Button>
         </li>)}</ul>}

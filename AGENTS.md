@@ -33,3 +33,12 @@
 - Productieboard (/hibe/pipeline) is read-only, derived live in src/lib/pipeline.ts from existing tables/timestamps — one source of truth.
 
 - Scope Agenda light styles to Agenda; preserve other pages.
+
+<!-- LOVABLE:BEGIN -->
+- Shared phase labels and semantic colours live in workflow.ts; keep stored Video and Socials statuses intact because the external checklist has its own source of truth.
+- Contentmomenten mounts the Agenda in moment-only mode and reuses moment dialogs/crew; no calendar copies are created.
+- Channel grouping is presentation-only; each channel retains its client ID, statistics and access scope to prevent cross-tenant disclosure.
+- MFA uses the auth provider's TOTP enrollment/challenge APIs; ProtectedRoute requires the second-factor challenge when the account has a verified factor.
+- Team last activity is written via an authenticated RPC using server time; Accountmanager is an internal role with no additional privileges.
+- Bulk edit assignment reuses assign-edit-editor per item so only the assigned editor receives mail.
+<!-- LOVABLE:END -->
