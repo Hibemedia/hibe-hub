@@ -100,7 +100,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
   const month = now.toLocaleDateString("nl-NL", { month: "long" });
   return (
     <section className="rounded-[20px] bg-card p-4">
-      <header className="mb-3"><h2 className="truncate font-bold">Opgeleverd in {month}</h2><p className="text-xs text-muted-foreground">Ingepland = opgeleverd. Vul per klant de SLA in (video's per maand).</p></header>
+      <header className="mb-3"><h2 className="truncate font-bold">Opgeleverd in {month}</h2><p className="text-xs text-muted-foreground">Ingepland = opgeleverd. Telt automatisch mee vanaf Media → Ingepland.</p></header>
       {isError && <p role="alert" className="mb-3 text-sm text-destructive">SLA bijwerken mislukt. De laatst opgehaalde voortgang blijft staan.</p>}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {clients.map((c) => {
