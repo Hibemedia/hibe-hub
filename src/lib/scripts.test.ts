@@ -1,3 +1,4 @@
+// @ts-ignore project tests run with Bun
 import { describe, expect, test } from "bun:test";
 import { filterScripts, type Script } from "./scripts";
 const s = (id: string, client_id: string, title: string, body: string, created_at: string): Script => ({ id, client_id, title, body, link: null, moment_id: null, shared_with_client: false, created_at, updated_at: created_at });
