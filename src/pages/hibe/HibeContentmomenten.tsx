@@ -30,7 +30,13 @@ export default function HibeContentmomenten() {
   const [editing, setEditing] = useState<Moment | null>(null);
   const [creating, setCreating] = useState<null | "choose" | string>(null);
   const [params, setParams] = useSearchParams();
-  useEffect(() => { if (params.get("nieuw")) { setCreating("choose"); const next = new URLSearchParams(params); next.delete("nieuw"); setParams(next, { replace: true }); } }, [params, setParams]);
+  useEffect(() => {
+    const moment = params.get("moment");
+    if (!params.get("nieuw") && !moment) return;
+    if (params.get("nieuw")) setCreating("choose");
+    if (moment) setOpenId(moment);
+    const next = new URLSearchParams(params); next.delete("nieuw"); next.delete("moment"); setParams(next, { replace: true });
+  }, [params, setParams]);
   const [chosen, setChosen] = useState("");
   const me = UserAuth()?.user?.id ?? "";
   const { filters, setFilters } = useAgendaFilters(me, "contentmomenten");

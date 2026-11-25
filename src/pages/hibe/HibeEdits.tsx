@@ -84,13 +84,21 @@ export default function HibeEdits() {
   const [creating, setCreating] = useState(false);
   const [params, setParams] = useSearchParams();
   useEffect(() => {
-    if (!params.has("nieuw") && !params.has("status")) return;
+    if (!params.has("nieuw") && !params.has("status") && !params.has("editor")) return;
     if (params.get("nieuw")) setCreating(true);
     const st = params.get("status"); if (st) setF({ status: st, client: "all", editor: "all", mine: false });
-    setParams({}, { replace: true });
+    if (params.get("editor") === "none") setF({ ...DEF, editor: "none" });
+    setParams((previous) => { const next = new URLSearchParams(previous); next.delete("nieuw"); next.delete("status"); next.delete("editor"); return next; }, { replace: true });
   }, []);
   const [deliver, setDeliver] = useState<Row | null>(null);
   const [open, setOpen] = useState<Row | null>(null);
+  useEffect(() => {
+    const id = params.get("edit");
+    if (!id || isLoading) return;
+    const edit = edits.find((e) => e.id === id);
+    if (edit) setOpen(edit);
+    setParams((previous) => { const next = new URLSearchParams(previous); next.delete("edit"); return next; }, { replace: true });
+  }, [params, edits, isLoading, setParams]);
   const member = (id: string | null) => team.find((t) => t.id === id);
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
   const refresh = () => qc.invalidateQueries({ queryKey: ["edits"] });

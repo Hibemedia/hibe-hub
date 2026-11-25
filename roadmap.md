@@ -1,5 +1,11 @@
 # Roadmap
 
+## Dashboard Vandaag en Prestaties
+- [x] Vandaag-tab met begroeting, weerchip, vijf acties en één Mijn dag-lijst.
+- [x] Contentmomenten rechts (één groot, maximaal drie compact) en alleen open checklistklanten.
+- [x] Prestaties-tab met één periodefilter voor cijfers, grafiek, topvideo's en ranglijst; vandaag als onvolledige dag weggelaten. Andere overzichtspagina's behouden hun bestaande periodegedrag.
+- [x] Ingelogd als Bram gecontroleerd: beoordeling en video openen, contentmomentdetails, geen-editorfilter, 7-dagenfilter voor cijfers/ranglijst/topvideo's, gepubliceerde post en klantprestaties openen. Desktop/mobiel zonder overflow of runtimefouten; 65 tests slagen, build OK. Bram heeft geen eigen open edits of feedback voor een live doorklik in die twee groepen.
+
 ## Media-overzicht
 - [x] Titel Media, Overzicht/Board-tabs en duidelijke productieboardknop.
 - [x] Zes brede fasekaarten, klikbare klantbadges en bestandslijst met zoek-, klant-, fase- en uploaderfilters.

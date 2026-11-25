@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, CloudSun, Sun, Droplets, type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Tag } from "@/components/ui/tag";
 
 export function weatherInfo(code: number): { label: string; icon: LucideIcon } {
   if (code === 0) return { label: "Zonnig", icon: Sun };
@@ -15,7 +16,7 @@ export function weatherInfo(code: number): { label: string; icon: LucideIcon } {
 }
 
 /** Compact weerkaartje: vandaag bovenaan, daaronder de hele week in miniatuur. */
-export function WeatherCard({ lat, lon, place, className }: { lat: number; lon: number; place: string; className?: string }) {
+export function WeatherCard({ lat, lon, place, className, compact = false }: { lat: number; lon: number; place: string; className?: string; compact?: boolean }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["weather", lat, lon],
     staleTime: 15 * 60e3,
@@ -27,11 +28,13 @@ export function WeatherCard({ lat, lon, place, className }: { lat: number; lon: 
     },
   });
 
-  if (isLoading) return <Skeleton className={cn("h-[168px] w-full rounded-lg", className)} />;
+  if (isLoading) return <Skeleton className={cn(compact ? "h-8 w-36 rounded-tag" : "h-[168px] w-full rounded-lg", className)} />;
+  if (compact && (isError || !data)) return <Tag className={className}>Weer niet beschikbaar</Tag>;
   if (isError || !data)
     return <section className={cn("flex h-[168px] w-full items-center justify-center rounded-lg bg-card p-4 text-xs text-muted-foreground", className)}>Het weer kon niet geladen worden.</section>;
 
   const cur = weatherInfo(data.current.weather_code);
+  if (compact) return <Tag icon={<cur.icon />} title={`Weer in ${place}: ${cur.label}`} className={cn("h-8 shrink-0 gap-2 px-3", className)}><span>{Math.round(data.current.temperature_2m)}°</span><span>{cur.label}</span><span className="hidden text-muted-foreground sm:inline">· {place}</span></Tag>;
   const rain = data.daily.precipitation_probability_max[0] ?? 0;
   const days: string[] = data.daily.time;
 

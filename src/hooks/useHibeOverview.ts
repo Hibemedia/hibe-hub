@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DailyStat, PeriodKey, periodRange, totalsFor, pctChange, lastWeekRange } from "@/lib/stats";
 import { RankScope, rankingRange } from "@/lib/dashboard";
 import type { VideoRow } from "@/hooks/useClientStats";
+import { dashboardRange } from "@/lib/dashboard-view";
 
 const PAGE = 1000;
 export type ClientStat = DailyStat & { client_id: string };
@@ -20,14 +21,15 @@ export interface ClientSummary {
 }
 
 /** Cross-client figures for the HIBE environment (admins can read every client's rows). */
-export function useHibeOverview(period: PeriodKey, enabled = true) {
+export function useHibeOverview(period: PeriodKey, enabled = true, completeDaysOnly = false) {
   return useQuery({
-    queryKey: ["hibe-overview", period],
+    queryKey: ["hibe-overview", period, completeDaysOnly],
     enabled,
     queryFn: async () => {
-      const { data: last } = await supabase.from("daily_stats").select("date").or("followers.not.is.null,views.not.is.null")
+      const { data: last, error: lastError } = await supabase.from("daily_stats").select("date").or("followers.not.is.null,views.not.is.null")
         .order("date", { ascending: false }).limit(1).maybeSingle();
-      const range = periodRange(period, last?.date ? new Date(last.date + "T00:00:00Z") : new Date());
+      if (lastError) throw lastError;
+      const range = completeDaysOnly ? dashboardRange(period, last?.date ?? null) : periodRange(period, last?.date ? new Date(last.date + "T00:00:00Z") : new Date());
       const stats: ClientStat[] = [];
       for (let from = 0; ; from += PAGE) {
         let q = supabase.from("daily_stats").select("client_id,network,date,followers,views,interactions,posts")
@@ -40,7 +42,7 @@ export function useHibeOverview(period: PeriodKey, enabled = true) {
       }
 
       const byClient = new Map<string, ClientStat[]>();
-      for (const r of stats) (byClient.get(r.client_id) ?? byClient.set(r.client_id, []).get(r.client_id)!).push(r);
+      for (const r of stats) { const rows = byClient.get(r.client_id) ?? []; rows.push(r); byClient.set(r.client_id, rows); }
       const summaries: ClientSummary[] = [...byClient.entries()].map(([clientId, rows]) => {
         const cur = totalsFor(rows, range.start, range.end);
         const prev = range.prevStart ? totalsFor(rows, range.prevStart, range.prevEnd) : null;
@@ -63,12 +65,14 @@ export function useHibeOverview(period: PeriodKey, enabled = true) {
 
       let vq = supabase.from("videos").select("id,client_id,network,external_id,published_at,title,views,likes,comments,shares,saves,url,thumbnail_url")
         .order("views", { ascending: false }).limit(5);
+      if (completeDaysOnly) vq = vq.lt("published_at", new Date(new Date(`${range.end}T00:00:00Z`).getTime() + 86400000).toISOString());
       if (range.start) vq = vq.gte("published_at", range.start);
-      const { data: vids } = await vq;
+      const { data: vids, error: videoError } = await vq;
+      if (videoError) throw videoError;
       const videos = (vids ?? []) as TopVideo[];
       const stored = videos.filter((v) => v.thumbnail_url?.startsWith("storage:thumbnails/"));
       if (stored.length) {
-        const { data: signed } = await supabase.storage.from("thumbnails").createSignedUrls(stored.map((v) => v.thumbnail_url!.slice(19)), 3600);
+        const { data: signed } = await supabase.storage.from("thumbnails").createSignedUrls(stored.map((v) => v.thumbnail_url?.slice(19) ?? ""), 3600);
         stored.forEach((v, i) => { v.thumbnail_url = signed?.[i]?.signedUrl ?? null; });
       }
       return { range, stats, summaries, totals, videos };
