@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useViewAs } from "@/context/ViewAs";
 import { useCrew, CrewBadge, CrewEditor } from "@/components/MomentCrew";
+import { MomentScripts } from "@/components/MomentScripts";
 import { momentStatus, normalizeMomentStatus } from "@/lib/content-moment-list";
 
 const TYPES = { shoot: "Shoot", post: "Post", evenement: "Evenement", actie: "Actie", idee: "Idee" } as const;
@@ -145,6 +146,7 @@ export function MomentDialog({ m, allMoments = [], onClose, onEdit }: { m: Momen
         {!isAdmin && crew.byMoment(m.id).length > 0 && <div><h3 className="mb-1.5 text-sm font-semibold">Wie er komt</h3><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient showNames /></div>}
         {isAdmin && m.type === "shoot" && <CrewEditor m={m} allMoments={allMoments.length ? allMoments : [m]} />}
         {m.script && <div><h3 className="text-sm font-semibold">Script</h3><p className="whitespace-pre-line text-sm text-foreground/80">{m.script}</p></div>}
+        <MomentScripts momentId={m.id} clientId={m.client_id} canEdit={isAdmin} />
         {m.notes && <div><h3 className="text-sm font-semibold">Notities</h3><p className="whitespace-pre-line text-sm text-foreground/80">{m.notes}</p></div>}
 
         {isAdmin && (

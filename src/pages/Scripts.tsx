@@ -41,6 +41,14 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
       return data as Script[];
     },
   });
+  const { data: dayNames = {} } = useQuery({
+    queryKey: ["script-days", scripts.map((s) => s.moment_id).join()], enabled: scripts.some((s) => s.moment_id),
+    queryFn: async () => {
+      const ids = [...new Set(scripts.map((s) => s.moment_id).filter(Boolean))] as string[];
+      const { data } = await supabase.from("content_moments").select("id,title,date").in("id", ids);
+      return Object.fromEntries((data ?? []).map((m) => [m.id, `${m.title}${m.date ? ` · ${fmt(m.date)}` : ""}`])) as Record<string, string>;
+    },
+  });
   const formClient = edit?.client_id ?? null;
   const { data: moments = [] } = useQuery({
     queryKey: ["script-moments", formClient], enabled: !!formClient,
@@ -128,6 +136,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                 <div>
                   <h2 className="text-xl font-bold">{sel.title}</h2>
                   <p className="text-sm text-muted-foreground">{clientName(sel.client_id)} · {fmt(sel.created_at)}</p>
+                  {sel.moment_id && dayNames[sel.moment_id] && <p className="mt-1"><Tag>Draaidag: {dayNames[sel.moment_id]}</Tag></p>}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(sel.body); toast.success("Gekopieerd"); }}><Copy className="h-4 w-4" />Kopieer</Button>
