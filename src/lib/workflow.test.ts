@@ -1,6 +1,6 @@
 // @ts-ignore project tests run with Bun
 import { describe, it, expect } from "bun:test";
-import { waitTone, waitDays, trashDaysLeft, clientGroupName, sortTrash } from "./workflow";
+import { waitTone, waitDays, trashDaysLeft, clientGroupName, sortTrash, sortNewestFirst } from "./workflow";
 describe("platform rules", () => {
   it("wait is green below 3, orange at 3 through 5, red after 5", () => {
     expect([2,3,5,6].map(waitTone)).toEqual(["ok","warn","warn","late"]);
@@ -24,5 +24,14 @@ describe("platform rules", () => {
     expect(sortTrash(items).map((i) => i.id)).toEqual(["nieuw", "midden", "oud"]);
     expect(items.map((i) => i.id)).toEqual(["oud", "nieuw", "midden"]);
     expect(sortTrash([{ id: "geen", archived_at: null }]).map((i) => i.id)).toEqual(["geen"]);
+  });
+  it("puts the newest scheduled video on top and the oldest at the bottom", () => {
+    const items = [
+      { id: "oud", status_changed_at: "2026-11-16T14:22:00Z" },
+      { id: "nieuw", status_changed_at: "2026-11-24T15:39:00Z" },
+      { id: "midden", status_changed_at: "2026-11-23T13:47:00Z" },
+    ];
+    expect(sortNewestFirst(items).map((i) => i.id)).toEqual(["nieuw", "midden", "oud"]);
+    expect(items.map((i) => i.id)).toEqual(["oud", "nieuw", "midden"]);
   });
 });

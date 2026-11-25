@@ -1,2 +1,3 @@
 - Feedback responsibility is stored on video_items.editor_id, initialized from linked edits and changed through set_video_feedback_editor; uploader history remains separate.
 - Reuse FeedbackEditor in every HIBE step and review header; invalidate board and item queries after assignment so return actions name the saved recipient and wait while it saves.- CapCut responsibility is video_items.capcut_editor_id (separate from feedback editor_id), set directly by admins via CapcutEditor in the CapCut step — avoids double work without touching feedback mail flow.
+- The Ingepland step orders videos newest-first by status_changed_at through sortNewestFirst, so the stamp shown per row and the list order always agree.

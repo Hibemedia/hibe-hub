@@ -25,6 +25,11 @@ export function clientGroupName(name: string): string {
   return name;
 }
 
+/** Newest first by the moment the item entered its current step. */
+export function sortNewestFirst<T extends { status_changed_at: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => new Date(b.status_changed_at ?? 0).getTime() - new Date(a.status_changed_at ?? 0).getTime());
+}
+
 /** Newest trashed first, so the items closest to auto-deletion sink to the bottom. */
 export function sortTrash<T extends { archived_at: string | null }>(items: T[]): T[] {
   return [...items].sort((a, b) => new Date(b.archived_at ?? 0).getTime() - new Date(a.archived_at ?? 0).getTime());
