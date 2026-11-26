@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useViewAs } from "@/context/ViewAs";
 import { isClientVisible } from "@/lib/videos";
 import { ClientVideoArchive } from "@/components/videos/ClientVideoArchive";
+import { PostedSocialVideos } from "@/components/videos/PostedSocialVideos";
 
 /** Klant-startscherm: what waits for review, then all own videos in three groups. */
 export default function ClientVideos() {
@@ -57,6 +58,7 @@ export default function ClientVideos() {
           <Group title="Wijzigingen aangevraagd" list={changes} note="HIBE is ermee bezig." empty="Geen openstaande wijzigingen. HIBE is ermee bezig zodra je wijzigingen vraagt." />
           <Group title="Goedgekeurd" list={approved} empty="Nog geen goedgekeurde video's." />
           <ClientVideoArchive />
+          <PostedSocialVideos />
         </>
       )}
     </div>

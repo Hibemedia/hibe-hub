@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/components/StatsOverview";
 import { toast } from "sonner";
 import { ClientVideoArchive } from "@/components/videos/ClientVideoArchive";
+import { PostedSocialVideos } from "@/components/videos/PostedSocialVideos";
 import { Textarea } from "@/components/ui/textarea";
 import { useViewAs } from "@/context/ViewAs";
 
@@ -76,6 +77,7 @@ export default function Branding() {
       {isAdmin && !viewAs && client && <CapcutStyleEditor key={client.id} clientId={client.id} initialStyle={client.capcut_style ?? ""} onSaved={refreshClients} />}
 
       {clientId && <ClientVideoArchive />}
+      {clientId && <PostedSocialVideos />}
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label="Categorie">
         <FilterChip aria-pressed={cat === "all"} onClick={() => setCat("all")} className=" shrink-0">Alles <span className="ml-1.5 text-muted-foreground tabular">{files.length}</span></FilterChip>
