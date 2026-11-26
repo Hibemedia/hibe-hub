@@ -35,6 +35,16 @@ export function sortTrash<T extends { trashed_at: string | null }>(items: T[]): 
   return [...items].sort((a, b) => new Date(b.trashed_at ?? 0).getTime() - new Date(a.trashed_at ?? 0).getTime());
 }
 
+/** The moment a video really entered the archive; older rows may only have the step stamp. */
+export const archivedAt = (i: { archived_at: string | null; status_changed_at: string }) => i.archived_at ?? i.status_changed_at;
+
+/** Newest archived first; equal archive stamps fall back to the step stamp. */
+export function sortArchived<T extends { archived_at: string | null; status_changed_at: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) =>
+    (new Date(archivedAt(b) ?? 0).getTime() - new Date(archivedAt(a) ?? 0).getTime()) ||
+    (new Date(b.status_changed_at ?? 0).getTime() - new Date(a.status_changed_at ?? 0).getTime()));
+}
+
 export function trashDaysLeft(archivedAt: string | null, now = Date.now()): number {
   if (!archivedAt) return 0;
   const archived = new Date(archivedAt);

@@ -34,7 +34,7 @@ export function ClientVideoArchive() {
   return (
     <section className="min-w-0 space-y-3" aria-label="Videoarchief">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-        <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold"><Archive className="h-4 w-4 shrink-0" /><span className="truncate">Videoarchief</span><span className="tabular text-muted-foreground">{archived.length}</span></h2>
+        <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold"><Archive className="h-4 w-4 shrink-0" /><span className="truncate">Videoarchief</span></h2>
         {archived.length > 0 && <div className="relative w-full sm:w-64"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Zoek in videoarchief" placeholder="Zoek op videotitel" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" /></div>}
       </div>
       {isLoading || isError || shown.length === 0 ? <p className="text-sm text-muted-foreground">{isLoading ? "Laden…" : isError ? "Het videoarchief kon niet worden geladen." : archived.length ? "Geen video's gevonden." : "Nog geen gearchiveerde video's."}</p> : (

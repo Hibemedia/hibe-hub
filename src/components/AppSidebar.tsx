@@ -53,6 +53,8 @@ export const MEDIA_SUB: { title: string; url: string; status?: VideoStatus | "tr
   { title: "Archief", url: "/hibe/videos/stap/archief", status: "archived" as VideoStatus },
   { title: "Prullenbak", url: "/hibe/videos/stap/prullenbak", status: "trash" as const },
 ];
+/** Archive and trash hold finished work: no count needed there. */
+const NO_COUNT = new Set(["archived", "trash"]);
 /** Counts per step for the Media Management submenu. */
 export function useMediaCounts(enabled: boolean) {
   return useQuery({
@@ -74,7 +76,7 @@ function MediaGroup({ item, collapsed }: { item: Item; collapsed: boolean }) {
   const active = path.startsWith("/hibe/videos") || path.startsWith("/hibe/pipeline");
   const [open, setOpen] = useState(() => localStorage.getItem(MEDIA_OPEN_KEY) !== "0");
   const toggle = () => setOpen((o) => { localStorage.setItem(MEDIA_OPEN_KEY, o ? "0" : "1"); return !o; });
-  const n = (s?: string) => (s ? counts[s] : undefined);
+  const n = (s?: string) => (s && !NO_COUNT.has(s) ? counts[s] : undefined);
   if (collapsed) return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild onPointerEnter={(e) => (e.currentTarget as HTMLElement).click()}>

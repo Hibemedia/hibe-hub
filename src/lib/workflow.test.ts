@@ -1,6 +1,6 @@
 // @ts-ignore project tests run with Bun
 import { describe, it, expect } from "bun:test";
-import { waitTone, waitDays, trashDaysLeft, clientGroupName, sortTrash, sortNewestFirst } from "./workflow";
+import { waitTone, waitDays, trashDaysLeft, clientGroupName, sortTrash, sortNewestFirst, sortArchived, archivedAt } from "./workflow";
 describe("platform rules", () => {
   it("wait is green below 3, orange at 3 through 5, red after 5", () => {
     expect([2,3,5,6].map(waitTone)).toEqual(["ok","warn","warn","late"]);
@@ -33,5 +33,31 @@ describe("platform rules", () => {
     ];
     expect(sortNewestFirst(items).map((i) => i.id)).toEqual(["nieuw", "midden", "oud"]);
     expect(items.map((i) => i.id)).toEqual(["oud", "nieuw", "midden"]);
+  });
+  it("sorts the archive by archive date, newest on top", () => {
+    const items = [
+      { id: "oud", archived_at: "2026-09-02T10:00:00Z", status_changed_at: "2026-11-20T10:00:00Z" },
+      { id: "nieuw", archived_at: "2026-11-25T10:00:00Z", status_changed_at: "2026-10-01T10:00:00Z" },
+      { id: "midden", archived_at: "2026-10-18T10:00:00Z", status_changed_at: "2026-11-30T10:00:00Z" },
+    ];
+    expect(sortArchived(items).map((i) => i.id)).toEqual(["nieuw", "midden", "oud"]);
+    expect(items.map((i) => i.id)).toEqual(["oud", "nieuw", "midden"]);
+  });
+  it("falls back to the step stamp when a video has no archive stamp", () => {
+    expect(archivedAt({ archived_at: null, status_changed_at: "2026-11-05T08:00:00Z" })).toBe("2026-11-05T08:00:00Z");
+    const items = [
+      { id: "zonder", archived_at: null, status_changed_at: "2026-11-28T10:00:00Z" },
+      { id: "met", archived_at: "2026-11-20T10:00:00Z", status_changed_at: "2026-01-01T10:00:00Z" },
+    ];
+    expect(sortArchived(items).map((i) => i.id)).toEqual(["zonder", "met"]);
+  });
+  it("orders videos archived in one batch by their own step stamp", () => {
+    const same = "2026-11-26T09:31:25Z";
+    const items = [
+      { id: "later", archived_at: same, status_changed_at: "2026-11-24T15:32:00Z" },
+      { id: "eerder", archived_at: same, status_changed_at: "2026-11-16T14:22:00Z" },
+      { id: "midden", archived_at: same, status_changed_at: "2026-11-20T11:14:00Z" },
+    ];
+    expect(sortArchived(items).map((i) => i.id)).toEqual(["later", "midden", "eerder"]);
   });
 });

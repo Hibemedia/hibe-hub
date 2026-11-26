@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tag } from "@/components/ui/tag";
-import { WORKFLOW, WAIT_CLS, waitDays, waitTone, trashDaysLeft, sortNewestFirst } from "@/lib/workflow";
+import { WORKFLOW, WAIT_CLS, waitDays, waitTone, trashDaysLeft, sortNewestFirst, sortArchived, archivedAt } from "@/lib/workflow";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -62,7 +62,8 @@ export default function MediaStep() {
   const capcutBy = (i: BoardItem) => capcutEditorOf(i);
 
   const stepItems = m.live.filter((i) => i.status === status);
-  const base = trashView ? m.trash : status === "scheduled" ? sortNewestFirst(stepItems) : stepItems;
+  const base = trashView ? m.trash : status === "scheduled" ? sortNewestFirst(stepItems) : status === "archived" ? sortArchived(stepItems) : stepItems;
+  const filtering = f.client !== "all" || f.uploader !== "all" || !!f.q;
   const uploaders = useMemo(() => [...new Set(base.map((i) => i.uploader).filter(Boolean) as string[])], [base]);
   const list = base.filter((i) => (f.client === "all" || i.client_id === f.client) && (f.uploader === "all" || i.uploader === f.uploader) && (!f.q || i.title.toLowerCase().includes(f.q.toLowerCase())));
   const ready = status === "ready_for_client" ? [...new Set(m.live.filter((i) => i.status === "ready_for_client").map((i) => i.client_id))] : [];
@@ -155,7 +156,7 @@ export default function MediaStep() {
             <li className="flex items-center gap-3 px-4 py-2 text-xs text-muted-foreground">
               <Checkbox checked={all} onCheckedChange={(v) => setSel(v ? new Set(list.map((i) => i.id)) : new Set())} aria-label="Alles selecteren" />
               {status && !trashView && <Tag className={WORKFLOW[status].cls}>{VIDEO_STATUS_LABEL[status]}</Tag>}
-              <span>{list.length} video{list.length === 1 ? "" : "'s"} · {trashView ? "nieuwst weggegooid bovenaan" : status === "scheduled" ? "nieuwst ingepland bovenaan" : "nieuwste bovenaan"}</span>
+              <span>{(filtering || !trashView) && status !== "archived" ? `${list.length} video${list.length === 1 ? "" : "'s"} · ` : ""}{trashView ? "nieuwst weggegooid bovenaan" : status === "scheduled" ? "nieuwst ingepland bovenaan" : status === "archived" ? "nieuwst gearchiveerd bovenaan" : "nieuwste bovenaan"}</span>
             </li>
             {list.map((i) => {
               const a = status && !trashView ? STEP_ACTION[status] : undefined;
@@ -169,7 +170,7 @@ export default function MediaStep() {
                     <p className="truncate text-xs text-muted-foreground">{m.clientName(i.client_id)}{i.file_name ? ` · ${typeOf(i.mime_type, i.file_name)}` : ""}{i.size_bytes ? ` · ${fmtSize(i.size_bytes)}` : ""}{status === "client_review" && capcutBy(i) ? ` · CapCut door ${m.names[capcutBy(i)!] ?? "collega"}` : ""}{status === "approved_internal" && (i.uploader ?? i.editor_id) ? ` · Edit door ${m.names[(i.uploader ?? i.editor_id)!] ?? "collega"}` : ""}</p>
                   </div>
                   {status !== "approved_internal" && <span className={cn("hidden w-12 items-center gap-1 text-sm sm:flex", i.openComments ? "" : "text-muted-foreground/50")} title="Open opmerkingen"><MessageSquare className="h-4 w-4" />{i.openComments || ""}</span>}
-                  {trashView ? <Tag variant="neutral">nog {trashDaysLeft(i.trashed_at)} dagen</Tag> : status === "client_review" ? <Tag className={WAIT_CLS[waitTone(waitDays(i.status_changed_at))]}>wacht {waitDays(i.status_changed_at)} dagen</Tag> : <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title="In deze stap sinds">{fmtStamp(i.status_changed_at)}</span>}
+                  {trashView ? <Tag variant="neutral">nog {trashDaysLeft(i.trashed_at)} dagen</Tag> : status === "client_review" ? <Tag className={WAIT_CLS[waitTone(waitDays(i.status_changed_at))]}>wacht {waitDays(i.status_changed_at)} dagen</Tag> : <span className={cn("hidden w-28 text-sm tabular sm:block", toneCls[ageTone(i.status_changed_at)])} title={status === "archived" ? "Gearchiveerd op" : "In deze stap sinds"}>{fmtStamp(status === "archived" ? archivedAt(i) : i.status_changed_at)}</span>}
                   <div className={cn("flex flex-wrap items-center gap-2", !trashView && "w-full lg:w-auto")} onClick={(e) => e.stopPropagation()}>
                     {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={capcutBy(i)} />}
                     {!trashView && status !== "approved_internal" && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}

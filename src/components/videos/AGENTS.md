@@ -4,3 +4,4 @@
 - Trash and archive are separate: trash is video_items.trashed_at (the only thing video-trash-cleanup deletes); archive is status 'archived' (its trigger stamps archived_at) and is never auto-deleted.
 - Reuse CapcutStylePanel in the CapCut list and player; save clients.capcut_style and refresh ClientContext so Branding and all videos share the same style, with existing admin access and view-as read-only behavior.
 - Scheduled videos auto-archive nightly (archive_posted_videos via pg_cron) once their linked Socials post date has passed; status_changed_at is preserved so SLA still counts them — posted date has one source.
+- The Archief step orders videos newest-first through sortArchived (archived_at, step stamp breaking ties) and shows that same stamp per row, so order and displayed date always agree.
