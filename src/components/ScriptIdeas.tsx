@@ -26,6 +26,17 @@ export function ScriptIdeas({ open, onOpenChange, initialClient }: { open: boole
   useEffect(() => { if (open && initialClient) setClientId(initialClient); }, [open, initialClient]);
   useEffect(() => { setBrief(clients.find((c) => c.id === clientId)?.brief ?? ""); setRes(null); setSaved(new Set()); }, [clientId, clients]);
 
+  const [savingBrief, setSavingBrief] = useState(false);
+  const briefDirty = !!clientId && brief.trim() !== (clients.find((c) => c.id === clientId)?.brief ?? "").trim();
+  const saveBrief = async () => {
+    if (!clientId) return;
+    setSavingBrief(true);
+    const { error } = await supabase.from("clients").update({ brief: brief.trim() || null }).eq("id", clientId);
+    setSavingBrief(false);
+    if (error) return toast.error("Opslaan lukt niet");
+    refreshClients(); toast.success("Klantinformatie opgeslagen");
+  };
+
   const generate = async () => {
     if (!clientId) return toast.error("Kies eerst een klant");
     setBusy(true); setRes(null); setSaved(new Set());
@@ -58,7 +69,10 @@ export function ScriptIdeas({ open, onOpenChange, initialClient }: { open: boole
             </Select></div>
           <div><Label>Over deze klant</Label>
             <Textarea rows={3} value={brief} onChange={(e) => setBrief(e.target.value)} maxLength={2000} placeholder="Bijv. interieurwinkel in Utrecht, verkoopt vooral design-banken, doelgroep 30–50 jaar" />
-            <p className="mt-1 text-xs text-muted-foreground">Wordt bewaard bij de klant en gebruikt voor elke volgende keer.</p></div>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">Wordt bewaard bij de klant en gebruikt voor elke volgende keer.</p>
+              <Button size="sm" variant="outline" onClick={saveBrief} disabled={!briefDirty || savingBrief}>{savingBrief ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}Opslaan</Button>
+            </div></div>
           <div><Label>Focus (optioneel)</Label><Input value={focus} onChange={(e) => setFocus(e.target.value)} placeholder="Bijv. nieuwe collectie banken, kerst" /></div>
           <Button onClick={generate} disabled={busy || !clientId} className="w-full">
             {busy ? <><Loader2 className="h-4 w-4 animate-spin" />Trends zoeken… (kan een minuut duren)</> : <><Sparkles className="h-4 w-4" />Bedenk ideeën</>}
