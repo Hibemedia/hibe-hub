@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Upload, Send, ArrowUpDown, ArrowRight, Search, Clock, Check } from "lucide-react";
+import { Upload, Send, ArrowUpDown, ArrowRight, Search, Clock, Check, ChevronRight } from "lucide-react";
 import { PageHeader, PrimaryAction } from "@/components/PageHeader";
 import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useMedia";
 import { MediaTabs } from "@/components/videos/MediaTabs";
@@ -40,6 +40,10 @@ export default function MediaOverview() {
   };
   const scoped = filterMedia(m.live, { ...f, phase: "all" });
   const list = filterMedia(m.live, { ...f, phase });
+  // Files grouped per client, collapsed by default; a client filter or search opens them.
+  const groups = Object.entries(list.reduce<Record<string, typeof list>>((acc, i) => { (acc[i.client_id] ??= []).push(i); return acc; }, {})).sort((a, b) => m.clientName(a[0]).localeCompare(m.clientName(b[0])));
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const autoOpen = f.client !== "all" || !!f.q || groups.length === 1;
   const uploaders = [...new Set(m.live.flatMap((i) => i.uploader ? [i.uploader] : []))].sort((a, b) => (m.names[a] ?? "").localeCompare(m.names[b] ?? ""));
   const running = scoped.filter((i) => i.status !== "scheduled");
   const rows = m.clients.map((c) => {
@@ -98,7 +102,15 @@ export default function MediaOverview() {
       </section>
       <section ref={filesRef} className="scroll-mt-24 min-w-0" aria-label="Bestandslijst">
         <div className="mb-2 flex flex-wrap items-center gap-2"><h2 className="text-base font-semibold">Bestanden</h2><Tag>{list.length}</Tag>{phase !== "all" && <Tag variant={phase === "running" ? "neutral" : BADGE[phase as VideoStatus]}>{phase === "running" ? "Alle lopende fases" : VIDEO_STATUS_LABEL[phase as VideoStatus]}</Tag>}</div>
-        {m.isLoading ? <p className="py-4 text-sm text-muted-foreground">Laden…</p> : list.length === 0 ? <p className="py-4 text-sm text-muted-foreground">Geen bestanden gevonden.</p> : <ul className="divide-y divide-border border-y border-border">{list.map((i) => <li key={i.id}>
+        {m.isLoading ? <p className="py-4 text-sm text-muted-foreground">Laden…</p> : list.length === 0 ? <p className="py-4 text-sm text-muted-foreground">Geen bestanden gevonden.</p> : <div className="divide-y divide-border border-y border-border">{groups.map(([cid, items]) => {
+          const isOpen = autoOpen || !!open[cid];
+          return <div key={cid}>
+            <button type="button" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [cid]: !isOpen }))} className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-muted/50">
+              <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-90")} />
+              <span className="min-w-0 flex-1 truncate font-semibold">{m.clientName(cid)}</span>
+              <Tag>{items.length}</Tag>
+            </button>
+            {isOpen && <ul className="divide-y divide-border border-t border-border bg-card/40">{items.map((i) => <li key={i.id}>
           <Button asChild variant="ghost" className="h-auto w-full justify-start rounded-none px-2 py-3"><Link to={`/hibe/videos/${i.id}`} className="!no-underline">
             <VideoThumb versionId={i.versionId} className="h-12 w-8 shrink-0" />
             <span className="min-w-0 flex-1 text-left"><span className="block truncate font-semibold">{i.title}</span><span className="mt-1 block truncate text-xs font-normal text-muted-foreground">{m.clientName(i.client_id)} · {i.uploader ? m.names[i.uploader] ?? "Onbekend" : "HIBE"} · V{i.current_version}</span></span>
@@ -106,6 +118,8 @@ export default function MediaOverview() {
             <span className="shrink-0 text-xs font-normal text-muted-foreground" title="Wachttijd in deze fase">{fmtAge(i.status_changed_at)}</span><ArrowRight />
           </Link></Button>
         </li>)}</ul>}
+          </div>;
+        })}</div>}
       </section>
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <section className="min-w-0 border-t border-border pt-4">
