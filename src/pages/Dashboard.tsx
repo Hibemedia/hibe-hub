@@ -2,7 +2,10 @@ import { Tag } from "@/components/ui/tag";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, Check, Play } from "lucide-react";
-import { KpiBand, EmptyState } from "@/components/StatsOverview";
+import { KpiBand, EmptyState, DailyChart, NetworkBreakdown, TopVideoList } from "@/components/StatsOverview";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PeriodSelect } from "@/components/PeriodSelect";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClientStats } from "@/hooks/useClientStats";
@@ -24,6 +27,10 @@ export default function Dashboard() {
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
       <PageHeader title="Home" />
+      <Tabs defaultValue="vandaag" className="space-y-5">
+        <TabsList><TabsTrigger value="vandaag">Vandaag</TabsTrigger><TabsTrigger value="prestaties">Prestaties</TabsTrigger></TabsList>
+        <TabsContent value="prestaties" className="mt-0"><ClientPerformanceTab /></TabsContent>
+        <TabsContent value="vandaag" className="mt-0 space-y-5">
       <section className="flex flex-col gap-4 rounded-lg bg-foreground p-5 text-background sm:flex-row sm:items-center sm:justify-between md:p-6" aria-live="polite">
         <div>
           <p className="text-2xl font-semibold">{pending.isLoading ? "…" : n === 0 ? "Er wacht niets op jouw beoordeling" : `${n} video${n === 1 ? "" : "'s"} wacht${n === 1 ? "" : "en"} op jouw beoordeling`}</p>
@@ -64,6 +71,29 @@ export default function Dashboard() {
           )}
         </>
       )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+/** Client-scoped stats (RLS limits daily_stats/videos to the own client): totals, chart, top videos. */
+function ClientPerformanceTab() {
+  const [period, setPeriod] = useState<PeriodKey>("30d");
+  const { data, isLoading } = useClientStats(period);
+  const stats = data?.stats ?? [];
+  const range = data?.range;
+  if (!isLoading && !data?.client) return <EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." />;
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">Jouw cijfers</h2>
+        <PeriodSelect value={period} onChange={setPeriod} />
+      </div>
+      <KpiBand stats={stats} range={range!} loading={isLoading || !range} />
+      {range && <DailyChart stats={stats} range={range} />}
+      <TopVideoList videos={data?.videos ?? []} limit={5} />
+      {range && <NetworkBreakdown stats={stats} range={range} />}
     </div>
   );
 }

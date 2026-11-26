@@ -36,7 +36,9 @@ export default function ClientReview() {
     if (queue || boardLoading) return;
     setQueue(flow ? board.filter((i) => i.client_id === clientId && i.status === "client_review" && !i.archived_at).map((i) => i.id) : id ? [id] : []);
   }, [boardLoading, board, flow, id, clientId, queue]);
-  useEffect(() => { setQueue(null); setIdx(0); setResults({}); }, [id]);
+  // Reset only when the id actually changes; resetting on mount wiped the queue when the board was cached (stuck on "Laden…").
+  const lastId = useRef(id);
+  useEffect(() => { if (lastId.current === id) return; lastId.current = id; setQueue(null); setIdx(0); setResults({}); }, [id]);
 
   const current = queue?.[idx];
   const done = queue !== null && (queue.length === 0 ? flow : idx >= queue.length);
