@@ -1,3 +1,4 @@
+// @ts-ignore project tests run with Bun
 import { describe, expect, it } from "bun:test";
 import { splitScripts } from "./scripts-split";
 describe("splitScripts", () => {
