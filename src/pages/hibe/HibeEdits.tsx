@@ -166,8 +166,8 @@ export default function HibeEdits() {
 
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant="outline" onClick={() => setSelection(new Set(visible.map(e => e.id)))} disabled={!visible.length}>Selecteer zichtbare edits</Button>
-        <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.map(g => [g.id, true])))}>Alles inklappen</Button>
-        <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.map(g => [g.id, false])))}>Alles uitklappen</Button>
+        <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.flatMap(g => [[g.id, true], ...shootDays(g.rows).map(d => [`${g.id}|${d.date ?? "none"}`, true])])))}>Alles inklappen</Button>
+        <Button size="sm" variant="ghost" onClick={() => setClosed(Object.fromEntries(groups.flatMap(g => [[g.id, false], ...shootDays(g.rows).map(d => [`${g.id}|${d.date ?? "none"}`, false])])))}>Alles uitklappen</Button>
       </div>
       {selection.size > 0 && <div className="flex flex-wrap items-center gap-2 border-y border-border py-3">
         <span className="text-sm font-medium">{visible.filter(e => selection.has(e.id)).length} geselecteerd</span>
@@ -202,8 +202,16 @@ export default function HibeEdits() {
             <span className="shrink-0 text-xs tabular text-muted-foreground">{progressLabel(g.all)}</span>
           </button>
           {closed[g.id] === false && (
-            <ul className="divide-y divide-border border-t border-border">
-              {g.rows.map((e) => (
+            <div className="border-t border-border">
+              {shootDays(g.rows).map((d) => { const k = `${g.id}|${d.date ?? "none"}`; const isOpen = closed[k] === false; return (
+                <div key={k} className="border-b border-border last:border-b-0">
+                  <button onClick={() => setClosed((c) => ({ ...c, [k]: c[k] === false }))} aria-expanded={isOpen} className="flex w-full items-center gap-2 bg-muted/40 px-5 py-2.5 text-left text-sm hover:bg-muted/70">
+                    <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform", !isOpen && "-rotate-90")} />
+                    <span className="flex-1 font-medium">{d.date ? `Draaidag ${fmtDeadline(d.date)}` : "Zonder draaidag"}</span>
+                    <span className="text-xs tabular text-muted-foreground">{d.rows.length} edits</span>
+                  </button>
+                  {isOpen && <ul className="divide-y divide-border border-t border-border">
+                  {d.rows.map((e) => (
                 <li key={e.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 lg:grid-cols-[minmax(0,1fr)_190px_160px_90px_130px]">
                   <div className="col-span-2 flex min-w-0 items-center gap-2 lg:col-span-1">
                     <Checkbox aria-label={`Selecteer edit ${e.title}`} checked={selection.has(e.id)} onCheckedChange={checked => setSelection(previous => { const next = new Set(previous); if (checked) next.add(e.id); else next.delete(e.id); return next; })} />
@@ -228,8 +236,11 @@ export default function HibeEdits() {
                   {e.status === "delivered" ? <span className="text-right text-xs text-muted-foreground">Ingeleverd</span> :
                     <Button size="sm" variant="outline" onClick={() => setDeliver(e)} className="justify-self-end"><Upload className="mr-1 h-3.5 w-3.5" />Inleveren</Button>}
                 </li>
-              ))}
-            </ul>
+                  ))}
+                  </ul>}
+                </div>
+              ); })}
+            </div>
           )}
         </section>
       ))}
@@ -239,6 +250,13 @@ export default function HibeEdits() {
       {open && <EditDialog edit={open} onClose={() => setOpen(null)} onSave={async (p) => { await update(open, p); setOpen(null); }} onDelete={async () => { await db.from("edits").delete().eq("id", open.id); setOpen(null); refresh(); }} />}
     </div>
   );
+}
+
+function shootDays<T extends { shoot_date?: string | null }>(rows: T[]) {
+  const m = new Map<string | null, T[]>();
+  rows.forEach((r) => { const k = r.shoot_date ?? null; m.set(k, [...(m.get(k) ?? []), r]); });
+  return [...m.entries()].map(([date, rows]) => ({ date, rows }))
+    .sort((a, b) => (a.date === null ? 1 : b.date === null ? -1 : b.date.localeCompare(a.date)));
 }
 
 function FSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: [string, string][] }) {
