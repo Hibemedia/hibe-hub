@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tag } from "@/components/ui/tag";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ScriptIdeas } from "@/components/ScriptIdeas";
 import { ScriptPdfImport } from "@/components/ScriptPdfImport";
@@ -28,6 +29,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const viewAs = useViewAs();
   const canEdit = isAdmin && !viewAs;
   const qc = useQueryClient();
+  const [workflow, setWorkflow] = useState<"new" | "shoot">("new");
   const [q, setQ] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
@@ -64,10 +66,12 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   });
 
   const shown = useMemo(() => {
-    const list = filterScripts(scripts, q, scope === "hibe" ? clientFilter : "all").filter((s) => dayFilter === "all" || (dayFilter === NONE ? !s.moment_id : s.moment_id === dayFilter));
+    const list = filterScripts(scripts, q, scope === "hibe" ? clientFilter : "all")
+      .filter((s) => !canEdit || (workflow === "shoot" ? !!s.moment_id : !s.moment_id))
+      .filter((s) => !canEdit || workflow !== "shoot" || dayFilter === "all" || (dayFilter === NONE ? !s.moment_id : s.moment_id === dayFilter));
     const dayDate = (s: Script) => (s.moment_id ? days[s.moment_id]?.date ?? "0" : "");
     return list.sort((a, b) => dayDate(b).localeCompare(dayDate(a)) || (a.moment_id ?? "").localeCompare(b.moment_id ?? "") || (a.moment_id ? a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at)));
-  }, [scripts, q, clientFilter, scope, dayFilter, days]);
+  }, [scripts, q, clientFilter, scope, dayFilter, days, canEdit, workflow]);
   const dayOptions = Object.entries(days).filter(([id]) => scripts.some((s) => s.moment_id === id && (scope === "client" || clientFilter === "all" || s.client_id === clientFilter)))
     .sort((a, b) => (b[1].date ?? "").localeCompare(a[1].date ?? ""));
   const { data: editMap = {} } = useScriptEdits(canEdit ? scripts.filter((s) => s.moment_id).map((s) => s.id) : []);
@@ -124,16 +128,39 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
     qc.invalidateQueries({ queryKey: ["edits"] });
   };
   const newScript = () => setEdit({ client_id: scope === "client" ? clientId ?? undefined : clientFilter !== "all" ? clientFilter : undefined, shared_with_client: false, body: "" });
+  const changeWorkflow = (value: string) => {
+    setWorkflow(value as "new" | "shoot");
+    setDayFilter("all");
+    setSelId(null);
+    setQ("");
+  };
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Scripts" action={canEdit ? <PrimaryAction icon={Plus} onClick={newScript}>Nieuw script</PrimaryAction> : undefined} />
-      {used.length > 0 && (
+      <PageHeader title="Scripts" action={canEdit ? workflow === "new"
+        ? <PrimaryAction icon={Plus} onClick={newScript}>Nieuw script</PrimaryAction>
+        : <PrimaryAction icon={Upload} onClick={() => setPdfIn(true)}>PDF draaidag uploaden</PrimaryAction> : undefined} />
+      {canEdit && (
+        <div className="space-y-2">
+          <Tabs value={workflow} onValueChange={changeWorkflow}>
+            <TabsList className="grid w-full grid-cols-2 sm:w-auto">
+              <TabsTrigger value="new">Nieuwe scripts</TabsTrigger>
+              <TabsTrigger value="shoot">Draaidag verwerken</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <p className="text-sm text-muted-foreground">
+            {workflow === "new"
+              ? "Bedenk en schrijf nieuwe scripts en stuur ze naar de klant voor goedkeuring."
+              : "Upload de PDF van een afgelopen draaidag, koppel per script de video en verdeel de edits."}
+          </p>
+        </div>
+      )}
+      {workflow === "new" && used.length > 0 && (
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="font-semibold">Kennisbank: al gebruikt op contentdagen</h2>
           <ul className="mt-2 divide-y divide-border">
             {used.map(({ script: s, moment }) => (
-              <li key={s.id}><button onClick={() => setSelId(s.id)} className="flex w-full items-center justify-between gap-3 py-2 text-left text-sm hover:text-foreground">
+              <li key={s.id}><button onClick={() => { setWorkflow("shoot"); setQ(""); setSelId(s.id); }} className="flex w-full items-center justify-between gap-3 py-2 text-left text-sm hover:text-foreground">
                 <span className="font-medium">{s.title}</span>
                 <span className="shrink-0 text-muted-foreground">{moment.title} · {fmt(moment.date!)}</span>
               </button></li>
@@ -141,7 +168,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
           </ul>
         </section>
       )}
-      {canEdit && byDay.length > 0 && (
+      {canEdit && workflow === "shoot" && byDay.length > 0 && (
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="font-semibold">Scripts per draaidag</h2>
           <p className="text-sm text-muted-foreground">Voeg alle scripts van een draaidag samen in één PDF, genummerd vanaf script 1.</p>
@@ -167,12 +194,11 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
       <div className="flex flex-wrap gap-2">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Zoek in titels en tekst voor inspiratie…" className="pl-9" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={canEdit && workflow === "shoot" ? "Zoek scripts van draaidagen…" : "Zoek in titels en tekst voor inspiratie…"} className="pl-9" />
         </div>
-        {canEdit && <Button variant="outline" onClick={() => setIdeas(true)}><Sparkles className="h-4 w-4" />Ideeën genereren</Button>}
-        {canEdit && <Button variant="outline" onClick={() => setPdfIn(true)}><Upload className="h-4 w-4" />PDF draaidag uploaden</Button>}
+        {canEdit && workflow === "new" && <Button variant="outline" onClick={() => setIdeas(true)}><Sparkles className="h-4 w-4" />Ideeën genereren</Button>}
         {scope === "hibe" && (
-          <Select value={clientFilter} onValueChange={(v) => { setClientFilter(v); setDayFilter("all"); }}>
+          <Select value={clientFilter} onValueChange={(v) => { setClientFilter(v); setDayFilter("all"); setSelId(null); }}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle klanten</SelectItem>
@@ -180,22 +206,29 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
             </SelectContent>
           </Select>
         )}
-        <Select value={dayFilter} onValueChange={setDayFilter}>
-          <SelectTrigger className="w-[220px]" aria-label="Draaidag"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle draaidagen</SelectItem>
-            <SelectItem value={NONE}>Zonder draaidag</SelectItem>
-            {dayOptions.map(([id, m]) => <SelectItem key={id} value={id}>{m.title}{m.date ? ` · ${fmt(m.date)}` : ""}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {canEdit && workflow === "shoot" && (
+          <Select value={dayFilter} onValueChange={setDayFilter}>
+            <SelectTrigger className="w-[220px]" aria-label="Draaidag"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Alle draaidagen</SelectItem>
+              {dayOptions.map(([id, m]) => <SelectItem key={id} value={id}>{m.title}{m.date ? ` · ${fmt(m.date)}` : ""}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {shown.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-10 text-center">
           <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 font-semibold">{scripts.length ? "Geen scripts gevonden" : "Nog geen scripts"}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{canEdit ? "Plak of upload een script en koppel het aan een klant." : "Zodra HIBE een script naar je stuurt, staat het hier."}</p>
-          {canEdit && <Button className="mt-4" onClick={newScript}><Plus className="h-4 w-4" />Nieuw script</Button>}
+          <p className="mt-3 font-semibold">{q || clientFilter !== "all" || dayFilter !== "all" ? "Geen scripts gevonden" : canEdit && workflow === "shoot" ? "Nog geen draaidagscripts" : "Nog geen nieuwe scripts"}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {!canEdit ? "Zodra HIBE een script naar je stuurt, staat het hier." : workflow === "shoot"
+              ? "Upload de PDF met goedgekeurde scripts van een afgelopen draaidag. Daarna koppel je video's en editors."
+              : "Genereer ideeën of maak zelf een script. Daarna stuur je het naar de klant voor goedkeuring."}
+          </p>
+          {canEdit && !q && clientFilter === "all" && dayFilter === "all" && (workflow === "shoot"
+            ? <Button className="mt-4" onClick={() => setPdfIn(true)}><Upload className="h-4 w-4" />PDF draaidag uploaden</Button>
+            : <div className="mt-4 flex flex-wrap justify-center gap-2"><Button onClick={() => setIdeas(true)}><Sparkles className="h-4 w-4" />Ideeën genereren</Button><Button variant="outline" onClick={newScript}><Plus className="h-4 w-4" />Nieuw script</Button></div>)}
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
@@ -253,12 +286,12 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                     <SelectTrigger><SelectValue placeholder="Kies klant" /></SelectTrigger>
                     <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                   </Select></div>
-                <div><Label>Draaidag (optioneel)</Label>
-                  <Select value={edit.moment_id ?? NONE} onValueChange={(v) => setEdit({ ...edit, moment_id: v === NONE ? null : v })} disabled={!edit.client_id}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value={NONE}>Geen</SelectItem>
+                {workflow === "shoot" && <div><Label>Draaidag</Label>
+                  <Select value={edit.moment_id ?? ""} onValueChange={(v) => setEdit({ ...edit, moment_id: v })} disabled={!edit.client_id}>
+                    <SelectTrigger><SelectValue placeholder="Kies draaidag" /></SelectTrigger>
+                    <SelectContent>
                       {moments.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.title}{m.date ? ` · ${fmt(m.date)}` : ""}</SelectItem>)}</SelectContent>
-                  </Select></div>
+                  </Select></div>}
               </div>
               <div><Label>Titel</Label><Input value={edit.title ?? ""} onChange={(e) => setEdit({ ...edit, title: e.target.value })} maxLength={200} /></div>
               <div>
