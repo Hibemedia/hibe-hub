@@ -1,3 +1,4 @@
+// @ts-ignore project tests run with Bun
 import { describe, expect, test } from "bun:test";
 import { groupPosted } from "./posted-videos";
 const r = (id: string, network: string, title: string | null, views: number, d: string) => ({ id, network, title, views, published_at: d, url: null, thumbnail_url: null });
