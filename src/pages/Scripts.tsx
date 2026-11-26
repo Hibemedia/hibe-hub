@@ -132,7 +132,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   };
   const makeEdits = async (g: (typeof byDay)[number]) => {
     const todo = g.list.filter((s) => !editMap[s.id]);
-    try { for (const s of todo) await createEditForScript(s, g.moment.date, null, null); toast.success(`${todo.length} edits aangemaakt`); }
+    try { for (const s of todo) await createEditForScript(s, g.moment.date); toast.success(`${todo.length} edits aangemaakt`); }
     catch { toast.error("Niet alle edits zijn aangemaakt"); }
     qc.invalidateQueries({ queryKey: ["edits"] });
   };
@@ -161,7 +161,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
           <p className="text-sm text-muted-foreground">
             {workflow === "new"
               ? "Bedenk en schrijf nieuwe scripts en stuur ze naar de klant voor goedkeuring."
-              : "Upload de PDF van een afgelopen draaidag, koppel per script de video en verdeel de edits."}
+              : "Upload de PDF van een afgelopen draaidag en maak de edits aan. Voeg bij Edits de videolinkjes toe en verdeel wie wat edit."}
           </p>
         </div>
       )}
@@ -233,7 +233,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
           <p className="mt-3 font-semibold">{q || clientFilter !== "all" || dayFilter !== "all" ? "Geen scripts gevonden" : canEdit && workflow === "shoot" ? "Nog geen draaidagscripts" : "Nog geen nieuwe scripts"}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {!canEdit ? "Zodra HIBE een script naar je stuurt, staat het hier." : workflow === "shoot"
-              ? "Upload de PDF met goedgekeurde scripts van een afgelopen draaidag. Daarna koppel je video's en editors."
+              ? "Upload de PDF met goedgekeurde scripts van een afgelopen draaidag. Maak daarna de edits aan; linkjes en editors voeg je bij Edits toe."
               : "Genereer ideeën of maak zelf een script. Daarna stuur je het naar de klant voor goedkeuring."}
           </p>
           {canEdit && !q && clientFilter === "all" && dayFilter === "all" && (workflow === "shoot"
