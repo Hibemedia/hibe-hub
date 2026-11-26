@@ -43,5 +43,5 @@ export async function scriptsDayPdf(opts: { client: string; day: string; date: s
   });
   const pages = doc.getPages();
   pages.forEach((p, i) => p.drawText(`HIBE · pagina ${i + 1} van ${pages.length}`, { x: M, y: 24, size: 8, font, color: grey }));
-  return new Blob([await doc.save()], { type: "application/pdf" });
+  return new Blob([(await doc.save()) as BlobPart], { type: "application/pdf" });
 }
