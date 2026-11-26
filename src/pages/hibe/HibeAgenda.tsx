@@ -115,6 +115,10 @@ export default function HibeAgenda({ momentsOnly = false }: { momentsOnly?: bool
     if (params.get("moment")) setMomentId(params.get("moment"));
     if (params.get("nieuw")) { if (momentsOnly) setCreatingMoment(true); else setForm(blank(ymd(new Date()), "shoot")); }
   }, [params]);
+  // Contentmomenten list: every upcoming day from today on, not just the visible month.
+  const listDays = momentsOnly
+    ? [...new Set(entries.map((e) => e.start).filter((d): d is string => !!d && (momentState === "afgerond" || d >= ymd(now))))].sort().map((d) => new Date(`${d}T12:00:00`))
+    : grid.filter((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0);
   const visibleTeam = team.filter((t) => filters.who === "everyone" || (filters.who === "me" ? t.id === me : filters.people.includes(t.id)));
   const [selected, setSelected] = useState<AgendaEntry | null>(null);
   const [task, setTask] = useState<TaskForm | null>(null);
@@ -258,11 +262,11 @@ export default function HibeAgenda({ momentsOnly = false }: { momentsOnly?: bool
       </div>}
 
       {view === "list" && <div className="overflow-hidden rounded-xl border border-border bg-card">
-        {grid.filter((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0).map((d) => <section key={ymd(d)} className="border-b border-border last:border-0">
+        {listDays.map((d) => <section key={ymd(d)} className="border-b border-border last:border-0">
           <h3 className="bg-muted/40 px-4 py-2 text-sm font-semibold capitalize">{d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}</h3>
           <div className="space-y-1 p-2">{entriesOn(ymd(d), entries).map((e) => <Button key={`${e.kind}:${e.id}`} variant="ghost" className="h-auto min-h-10 w-full flex-col items-start justify-start gap-2 rounded-md text-left sm:flex-row sm:items-center" onClick={() => open(e)}><span className={cn("shrink-0 rounded-md px-2 py-1 text-xs", KIND_CLS[e.kind])}>{KIND_LABEL[e.kind]}</span><span className="w-full min-w-0 whitespace-normal text-left sm:w-auto sm:flex-1">{e.title}</span>{e.kind === "shoot" && (() => { const m = data?.moments.find(m => m.id === e.id); return m ? <span className="flex flex-wrap items-center gap-2"><Tag variant={momentStatus(m) === "bevestigd" ? "success" : "neutral"}>{MOMENT_STATUS[momentStatus(m) as keyof typeof MOMENT_STATUS]}</Tag><CrewBadge m={m} crew={crew.byMoment(m.id)} asClient={false} /></span> : null; })()}<span className="shrink-0 text-xs text-muted-foreground">{e.time || ""}</span></Button>)}</div>
         </section>)}
-        {!isLoading && !grid.some((d) => d.getMonth() === cursor.m && entriesOn(ymd(d), entries).length > 0) && <div className="space-y-3 p-4 text-sm text-muted-foreground"><p>Geen items voor deze selectie.</p><Button variant="outline" onClick={() => momentsOnly ? setCreatingMoment(true) : setForm(blank(today))}>Plan in</Button></div>}
+        {!isLoading && listDays.length === 0 && <div className="space-y-3 p-4 text-sm text-muted-foreground"><p>Geen items voor deze selectie.</p><Button variant="outline" onClick={() => momentsOnly ? setCreatingMoment(true) : setForm(blank(today))}>Plan in</Button></div>}
       </div>}
       {momentsOnly && entries.filter(e => !e.start).length > 0 && <section className="space-y-2 border-t border-border py-4"><h2 className="text-sm font-semibold">Nog geen datum</h2>{entries.filter(e => !e.start).map(e => <Button key={e.id} variant="outline" className="w-full justify-between" onClick={() => open(e)}>{e.title}<span>Plan in</span></Button>)}</section>}
       {entries.filter(e => e.kind === "shoot" && e.people.length === 0 && (!e.start || e.start >= today)).length > 0 && <section className="space-y-2 border-t border-border py-3">{entries.filter(e => e.kind === "shoot" && e.people.length === 0 && (!e.start || e.start >= today)).map(e => <div key={e.id} className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 text-sm">{e.title}</span><Tag variant="danger">Nog niemand ingepland</Tag><Button variant="outline" size="sm" onClick={() => setMomentId(e.id)}>Plan in</Button></div>)}</section>}
