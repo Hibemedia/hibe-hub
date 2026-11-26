@@ -20,6 +20,35 @@ export const mondayOf = (d: Date) => { const x = new Date(d.getFullYear(), d.get
 /** The seven dates (Monday..Sunday) of the week containing d. */
 export const weekDates = (d: Date) => { const m = mondayOf(d); return Array.from({ length: 7 }, (_, i) => { const x = new Date(m); x.setDate(x.getDate() + i); return ymd(x); }); };
 
+export type WeekBand = { start: string; end: string; dates: string[] };
+
+/**
+ * The whole weeks (Monday..Sunday) covering the month containing d. The month view
+ * uses this so a week is never cut in half: it starts on the Monday of the week that
+ * contains the 1st and ends on the Sunday of the week that contains the last day.
+ */
+export function monthWeeks(d: Date): WeekBand[] {
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  const out: WeekBand[] = [];
+  const m = mondayOf(first);
+  while (ymd(m) <= ymd(last)) {
+    const dates = weekDates(m);
+    out.push({ start: dates[0], end: dates[6], dates });
+    m.setDate(m.getDate() + 7);
+  }
+  return out;
+}
+
+/** ISO-8601 week number: week 1 is the Monday-based week containing the first Thursday of the year. */
+export function isoWeek(d: Date): number {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7) + 3); // Thursday of this week
+  const first = new Date(x.getFullYear(), 0, 4);
+  first.setDate(first.getDate() - ((first.getDay() + 6) % 7) + 3); // Thursday of week 1
+  return 1 + Math.round((x.getTime() - first.getTime()) / (7 * 86400000));
+}
+
 export type SClient = { id: string; name: string; abbreviation: string; category: string; is_active: boolean; tracking_mode: string; weekly_target: number };
 export type Post = { client_id: string; post_date: string; status: PostStatus; note: string | null; title: string | null };
 export type Item = { id: string; title: string; status: PostStatus; note: string };

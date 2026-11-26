@@ -1,6 +1,6 @@
 // @ts-ignore bun types not installed in app tsconfig
 import { describe, expect, it } from "bun:test";
-import { mondayOf, weekDates, ymd, statusOf, socialPreviewRows, filterPickableVideos, type SClient, type Post, type Week, type SocialVideoLink } from "./socials";
+import { mondayOf, weekDates, monthWeeks, isoWeek, ymd, statusOf, socialPreviewRows, filterPickableVideos, type SClient, type Post, type Week, type SocialVideoLink } from "./socials";
 describe("socials", () => {
   it("monday of a sunday is the previous monday", () => expect(ymd(mondayOf(new Date(2026, 10, 15)))).toBe("2026-11-09"));
   it("monday of a monday is itself", () => expect(ymd(mondayOf(new Date(2026, 10, 9)))).toBe("2026-11-09"));
@@ -15,6 +15,27 @@ describe("socials", () => {
     const d = weekDates(new Date(2026, 10, 15));
     expect(d[0]).toBe("2026-11-09");
     expect(d[6]).toBe("2026-11-15");
+  });
+
+  it("monthWeeks runs whole weeks, never a cut week", () => {
+    const w = monthWeeks(new Date(2026, 10, 1)); // november 2026: 1st is a sunday, 30th a monday
+    expect(w.map((x) => x.start)).toEqual(["2026-10-26", "2026-11-02", "2026-11-09", "2026-11-16", "2026-11-23", "2026-11-30"]);
+    expect(w[0].dates[0]).toBe("2026-10-26");
+    expect(w[0].dates[6]).toBe("2026-11-01");
+    expect(w[w.length - 1].end).toBe("2026-12-06");
+    expect(w.every((x) => x.dates.length === 7 && ymd(mondayOf(new Date(x.start + "T00:00:00"))) === x.start)).toBe(true);
+  });
+  it("monthWeeks keeps a month that starts and ends mid-week whole", () => {
+    const w = monthWeeks(new Date(2026, 9, 1)); // oktober 2026: 1st thursday, 31st saturday
+    expect(w[0].start).toBe("2026-09-28");
+    expect(w[w.length - 1].end).toBe("2026-11-01");
+    expect(w.every((x) => x.dates[0] < x.dates[6])).toBe(true);
+  });
+  it("isoWeek numbers weeks Monday-based and equal for the whole week", () => {
+    expect(isoWeek(new Date(2026, 10, 9))).toBe(46);
+    expect(isoWeek(new Date(2026, 10, 15))).toBe(46);
+    expect(isoWeek(new Date(2026, 10, 16))).toBe(47);
+    expect(isoWeek(new Date(2026, 0, 1))).toBe(isoWeek(new Date(2026, 0, 4)));
   });
 
   const D = weekDates(new Date(2026, 10, 11)); // 2026-11-09 .. 2026-11-15

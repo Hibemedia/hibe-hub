@@ -14,7 +14,7 @@ import { VIDEO_STATUS_LABEL } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 import {
   Item, Post, PostStatus, SClient, STATUSES, WEEKLY, Week,
-  callSocials, cellCls, linkSocialVideo, mondayOf, statusOf, unlinkSocialVideo,
+  callSocials, cellCls, isoWeek, linkSocialVideo, mondayOf, monthWeeks, statusOf, unlinkSocialVideo,
   useSocialVideoLinks, videoToPostStatus, weekDates, weekItems, ymd,
 } from "@/lib/socials";
 
@@ -33,25 +33,38 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
   const [cell, setCell] = useState<SocialsCell | null>(null);
 
   const today = ymd(new Date());
-  const { dates, from, to, weekFrom, label } = useMemo(() => {
+  const { dates, from, to, weekFrom, label, bands, focusMonth } = useMemo(() => {
     if (view === "week") {
       const base = new Date();
       base.setDate(base.getDate() + offset * 7);
       const ds = weekDates(base);
       const monday = new Date(ds[0] + "T00:00:00");
-      return { dates: ds, from: ds[0], to: ds[6], weekFrom: ds[0], label: `week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}` };
+      return { dates: ds, from: ds[0], to: ds[6], weekFrom: ds[0], label: `week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}`, bands: [] as { start: string }[], focusMonth: -1 };
     }
+    // Whole weeks only: the month starts on the Monday of the week containing the 1st
+    // and ends on the Sunday of the week containing the last day, so no week is cut off.
     const base = new Date();
     base.setDate(1);
     base.setMonth(base.getMonth() + offset);
-    const first = new Date(base.getFullYear(), base.getMonth(), 1);
-    const last = new Date(base.getFullYear(), base.getMonth() + 1, 0);
-    const ds = Array.from({ length: last.getDate() }, (_, i) => ymd(new Date(base.getFullYear(), base.getMonth(), i + 1)));
-    return { dates: ds, from: ymd(first), to: ymd(last), weekFrom: ymd(mondayOf(first)), label: base.toLocaleString("nl-NL", { month: "long", year: "numeric" }) };
+    const weeks = monthWeeks(base);
+    const ds = weeks.flatMap((w) => w.dates);
+    return {
+      dates: ds,
+      from: weeks[0].start,
+      to: weeks[weeks.length - 1].end,
+      weekFrom: weeks[0].start,
+      label: base.toLocaleString("nl-NL", { month: "long", year: "numeric" }),
+      bands: weeks.map((w) => ({ start: w.start })),
+      focusMonth: base.getMonth(),
+    };
   }, [view, offset]);
 
   const isCurrent = from <= today && today <= to;
   const key = ["socials", view, from];
+
+  /** Month view runs whole weeks: mark the Monday that opens a week and the days the month itself does not cover. */
+  const weekStart = (d: string) => view === "month" && dow(d) === 0;
+  const outOfMonth = (d: string) => view === "month" && focusMonth >= 0 && new Date(d + "T00:00:00").getMonth() !== focusMonth;
 
   const { data, isLoading, error } = useQuery({
     queryKey: key,
@@ -169,7 +182,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
     const weekend = dow(d) >= 5;
     const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [st.label, p?.title, p?.note].filter(Boolean).join(" — ");
     return (
-      <td key={d} className={cn("border border-border p-0", d === today && "ring-2 ring-inset ring-foreground")}>
+      <td key={d} className={cn("border border-border p-0", weekStart(d) && "border-l-2 border-l-foreground/25", d === today && "ring-2 ring-inset ring-foreground")}>
         <button
           aria-label={`${c.name} ${d}: ${st.label}`}
           title={hover}
@@ -246,7 +259,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
       : done >= target ? "bg-[hsl(var(--social-green-bg))] text-[hsl(var(--social-green-fg))]"
       : "bg-[hsl(var(--social-blue-bg))] text-[hsl(var(--social-blue-fg))]";
     return (
-      <td key={ws} colSpan={span} className="border border-border p-0" title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
+      <td key={ws} colSpan={span} className={cn("border border-border p-0", weekStart(ws) && "border-l-2 border-l-foreground/25")} title={`Week van ${monday.getDate()} ${monday.toLocaleString("nl-NL", { month: "short" })}: ${done} van ${target} afgeleverd`}>
         <div className={cn("flex min-h-[28px] w-full items-center justify-center text-[11px] font-bold tabular", cls)}>{done}/{target}</div>
       </td>
     );
@@ -278,17 +291,33 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
       </div>
 
       <div className="-mx-1 overflow-x-auto px-1">
-        <table className={cn("w-full table-fixed border-collapse text-xs", view === "week" ? "min-w-[640px]" : "min-w-[980px]")}>
+        <table className="w-full table-fixed border-collapse text-xs" style={{ minWidth: view === "week" ? 640 : 160 + dates.length * 25 + 112 }}>
           <colgroup><col className={view === "week" ? "w-32 md:w-44" : "w-40"} />{dates.map((d) => <col key={d} className={view === "week" ? undefined : "w-[25px]"} />)}<col className={view === "week" ? "w-32 md:w-36" : "w-28"} /></colgroup>
-          <thead><tr>
-            <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
-            {dates.map((d, i) => (
-              <th key={d} className={cn("border border-border px-1 py-1 font-medium", d === today ? "bg-foreground text-background" : dow(d) >= 5 ? "bg-muted text-muted-foreground" : "bg-background text-muted-foreground")}>
-                <div>{view === "week" ? DAYS[i] : DOW_LETTERS[dow(d)]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
-              </th>
-            ))}
-            <th className="border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">{view === "week" ? "Deze week" : "Deze maand"}</th>
-          </tr></thead>
+          <thead>
+            {view === "month" && (
+              <tr>
+                <th className="sticky left-0 z-10 border border-border bg-card" aria-hidden />
+                {bands.map((b) => {
+                  const m = new Date(b.start + "T00:00:00");
+                  return (
+                    <th key={b.start} colSpan={7} className="border border-border border-l-2 border-l-foreground/25 bg-muted/70 px-1.5 py-1 text-left text-[11px] font-semibold text-muted-foreground">
+                      week {isoWeek(m)} · {m.getDate()} {m.toLocaleString("nl-NL", { month: "short" })}
+                    </th>
+                  );
+                })}
+                <th className="border border-border bg-card" aria-hidden />
+              </tr>
+            )}
+            <tr>
+              <th className="sticky left-0 z-10 border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">Klant</th>
+              {dates.map((d, i) => (
+                <th key={d} className={cn("border border-border px-1 py-1 font-medium", weekStart(d) && "border-l-2 border-l-foreground/25", d === today ? "bg-foreground text-background" : dow(d) >= 5 ? "bg-muted text-muted-foreground" : "bg-background text-muted-foreground", outOfMonth(d) && "opacity-50")}>
+                  <div>{view === "week" ? DAYS[i] : DOW_LETTERS[dow(d)]}</div><div>{new Date(d + "T00:00:00").getDate()}</div>
+                </th>
+              ))}
+              <th className="border border-border bg-card px-2 py-1.5 text-left font-medium text-muted-foreground">{view === "week" ? "Deze week" : "Deze maand"}</th>
+            </tr>
+          </thead>
           <tbody>
             {daily.length > 0 && groupHeader("Wij plannen in", "planning per dag")}
             {daily.map((c) => {

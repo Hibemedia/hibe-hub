@@ -3,3 +3,4 @@
 - Task handoff authorization uses the existing row's assignee/creator or beheerder in RLS USING; WITH CHECK keeps the HIBE-only gate without requiring the new assignee to be the caller.- An edit links to its shoot via edits.moment_id (shoot_date copied from the moment); the Productieboard hides shoots that have a linked edit — derived, never stored on the moment.
 - Posted social videos are grouped across channels in posted-videos.ts (same caption within 7 days = one video, views summed) — derived at read time, never stored.
 - A script's edit links via edits.script_id (moment_id/shoot_date copied); Scripts creates it and assigns through assign-edit-editor so the editor gets the usual mail.
+- The Socials checklist month view spans whole weeks via monthWeeks()/isoWeek() in socials.ts, never the calendar month, so no week is cut in half.
