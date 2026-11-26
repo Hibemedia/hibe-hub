@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ScriptIdeas } from "@/components/ScriptIdeas";
+import { ScriptPdfImport } from "@/components/ScriptPdfImport";
 import { scriptsDayPdf } from "@/lib/scripts-pdf";
 import { filterScripts, usedScripts, type MomentInfo, type Script } from "@/lib/scripts";
 
@@ -30,6 +31,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const [clientFilter, setClientFilter] = useState("all");
   const [selId, setSelId] = useState<string | null>(null);
   const [ideas, setIdeas] = useState(false);
+  const [pdfIn, setPdfIn] = useState(false);
   const [edit, setEdit] = useState<Partial<Script> | null>(null);
 
   const { data: scripts = [] } = useQuery({
@@ -147,6 +149,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Zoek in titels en tekst voor inspiratie…" className="pl-9" />
         </div>
         {canEdit && <Button variant="outline" onClick={() => setIdeas(true)}><Sparkles className="h-4 w-4" />Ideeën genereren</Button>}
+        {canEdit && <Button variant="outline" onClick={() => setPdfIn(true)}><Upload className="h-4 w-4" />PDF draaidag uploaden</Button>}
         {scope === "hibe" && (
           <Select value={clientFilter} onValueChange={setClientFilter}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
@@ -205,6 +208,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
         </div>
       )}
 
+      {canEdit && pdfIn && <ScriptPdfImport open={pdfIn} onOpenChange={setPdfIn} clients={clients} initialClient={scope === "client" ? clientId : clientFilter !== "all" ? clientFilter : null} />}
       {canEdit && <ScriptIdeas open={ideas} onOpenChange={setIdeas} initialClient={scope === "client" ? clientId : clientFilter !== "all" ? clientFilter : null} />}
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
         <DialogContent className="max-w-2xl">
