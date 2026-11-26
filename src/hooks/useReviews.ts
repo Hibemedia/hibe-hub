@@ -54,7 +54,8 @@ export function usePendingReviewCount() {
         .from("video_items" as any)
         .select("id", { count: "exact", head: true })
         .eq("client_id", clientId!)
-        .eq("status", "client_review");
+        .eq("status", "client_review")
+        .is("trashed_at", null);
       if (error) throw error;
       return count ?? 0;
     },

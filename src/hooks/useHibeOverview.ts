@@ -130,7 +130,7 @@ export function useHibeActions(clientIds: string[]) {
     enabled: clientIds.length > 0,
     queryFn: async (): Promise<ActionData> => {
       const [{ data: items }, { data: moments }, { data: runs }] = await Promise.all([
-        (supabase as any).from("video_items").select("id,client_id,title,status").in("status", ["client_review", "feedback"]),
+        (supabase as any).from("video_items").select("id,client_id,title,status").in("status", ["client_review", "feedback"]).is("trashed_at", null),
         supabase.from("content_moments").select("id,client_id,title,date").eq("status", "aangevraagd").order("created_at"),
         supabase.from("sync_runs").select("client_id,status,started_at,finished_at,error").order("started_at", { ascending: false }).limit(1000),
       ]);

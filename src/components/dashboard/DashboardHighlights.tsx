@@ -25,7 +25,7 @@ export function DashboardHighlights() {
     queryKey: ["dashboard", "next-internal-review"],
     queryFn: async () => {
       const { data, count, error } = await supabase.from("video_items").select("id,title,client_id", { count: "exact" })
-        .eq("status", "internal_review").is("archived_at", null)
+        .eq("status", "internal_review").is("archived_at", null).is("trashed_at", null)
         .order("status_changed_at", { ascending: true }).order("id").limit(3);
       if (error) throw error;
       return { items: (data ?? []) as ReviewItem[], total: count ?? 0 };

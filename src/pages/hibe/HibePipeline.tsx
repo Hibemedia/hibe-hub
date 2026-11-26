@@ -24,7 +24,7 @@ function usePipelineData() {
       db.from("tasks").select("id,title,client_id,assignee_id,done_at,created_at,moment_id").is("done_at", null),
       db.from("content_moments").select("id,title,client_id,type,status,date,created_at"),
       db.from("edits").select("id,title,client_id,editor_id,status,created_at,updated_at").neq("status", "delivered"),
-      db.from("video_items").select("id,title,client_id,status,current_version,archived_at,status_changed_at").is("archived_at", null),
+      db.from("video_items").select("id,title,client_id,status,current_version,archived_at,status_changed_at").is("archived_at", null).is("trashed_at", null),
       db.from("edits").select("moment_id").not("moment_id", "is", null),
     ]);
     for (const r of [t, m, e, v, l]) if (r.error) throw r.error;
@@ -84,7 +84,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
   const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const { data, isError } = useQuery({ queryKey: ["sla", start], refetchInterval: 60_000, refetchOnWindowFocus: "always", queryFn: async () => {
     const [v, c] = await Promise.all([
-      db.from("video_items").select("client_id,status,status_changed_at").eq("status", "scheduled").gte("status_changed_at", start),
+      db.from("video_items").select("client_id,status,status_changed_at").eq("status", "scheduled").is("trashed_at", null).gte("status_changed_at", start),
       db.from("clients").select("id,monthly_video_target"),
     ]);
     if (v.error) throw v.error; if (c.error) throw c.error;

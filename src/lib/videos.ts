@@ -27,8 +27,8 @@ export function capcutEditorOf(i: { capcut_editor_id: string | null; source: str
 }
 
 /** Archive status is client-visible even when archiving also stamps archived_at. */
-export function clientArchive<T extends { client_id: string; status: VideoStatus; current_version: number }>(items: T[], clientId: string | null) {
-  return items.filter((item) => item.client_id === clientId && item.status === "archived" && item.current_version > 0);
+export function clientArchive<T extends { client_id: string; status: VideoStatus; current_version: number; trashed_at?: string | null }>(items: T[], clientId: string | null) {
+  return items.filter((item) => item.client_id === clientId && item.status === "archived" && item.current_version > 0 && !item.trashed_at);
 }
 
 /** Number of videos waiting in "Mag naar klant" that triggers the notice. */

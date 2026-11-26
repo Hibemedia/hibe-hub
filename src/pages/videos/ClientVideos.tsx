@@ -17,7 +17,7 @@ export default function ClientVideos() {
   const base = useBase();
   const { data = [], isLoading } = useVideoBoard({ includeDone: true });
   const viewAs = useViewAs();
-  const items = data.filter((i) => i.client_id === clientId && !i.archived_at && i.current_version > 0 && (!viewAs || isClientVisible(i.status)));
+  const items = data.filter((i) => i.client_id === clientId && !i.archived_at && !i.trashed_at && i.current_version > 0 && (!viewAs || isClientVisible(i.status)));
   const todo = items.filter((i) => i.status === "client_review");
   const changes = items.filter((i) => i.status === "feedback");
   const approved = items.filter((i) => ["approved_client", "scheduled"].includes(i.status));

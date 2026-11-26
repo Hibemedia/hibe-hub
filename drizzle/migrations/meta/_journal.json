@@ -330,6 +330,13 @@
       "when": 1795604798801,
       "tag": "0046_separate_trash_from_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795684641182,
+      "tag": "0047_hide_trashed_videos_from_clients",
+      "breakpoints": true
     }
   ]
 }

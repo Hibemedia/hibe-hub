@@ -34,7 +34,7 @@ export default function ClientReview() {
   const [results, setResults] = useState<Record<string, "approved" | "changes">>({});
   useEffect(() => {
     if (queue || boardLoading) return;
-    setQueue(flow ? board.filter((i) => i.client_id === clientId && i.status === "client_review" && !i.archived_at).map((i) => i.id) : id ? [id] : []);
+    setQueue(flow ? board.filter((i) => i.client_id === clientId && i.status === "client_review" && !i.archived_at && !i.trashed_at).map((i) => i.id) : id ? [id] : []);
   }, [boardLoading, board, flow, id, clientId, queue]);
   // Reset only when the id actually changes; resetting on mount wiped the queue when the board was cached (stuck on "Laden…").
   const lastId = useRef(id);
