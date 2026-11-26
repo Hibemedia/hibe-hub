@@ -13,6 +13,19 @@ import { useOverviewVideo } from "@/hooks/useOverviewDetails";
 import { usePendingReviewCount } from "@/hooks/useReviews";
 import { NETWORK_LABELS, formatNumber, type Network, type PeriodKey } from "@/lib/stats";
 import { useBase } from "@/lib/paths";
+import { useClient } from "@/context/ClientContext";
+import { BarChart3 } from "lucide-react";
+
+/** Shown when a client has no statistics yet (new or video-only): makes clear where they will appear. */
+function StatsComing() {
+  return (
+    <section className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card px-6 py-12 text-center">
+      <span className="flex h-12 w-12 items-center justify-center rounded-control bg-muted"><BarChart3 className="h-6 w-6 text-muted-foreground" aria-hidden /></span>
+      <h2 className="text-lg font-semibold">Je statistieken komen hier te staan</h2>
+      <p className="max-w-md text-sm text-muted-foreground">Zodra HIBE je kanalen koppelt en er cijfers binnenkomen, zie je hier je volgers, weergaven en welke video het best deed.</p>
+    </section>
+  );
+}
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useClientStats("30d" as PeriodKey);
@@ -23,6 +36,8 @@ export default function Dashboard() {
   const pending = usePendingReviewCount();
   const n = pending.data ?? 0;
   const best = video.data;
+  const { client } = useClient();
+  const noStats = !!client?.video_only || (!isLoading && !isError && !stats.length);
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-8">
@@ -39,7 +54,7 @@ export default function Dashboard() {
         <Button asChild className="shrink-0 bg-lime text-lime-foreground hover:bg-lime/90"><Link to={n ? `${base}/videos/beoordelen` : `${base}/videos`}>{n ? <><Play aria-hidden />Start beoordelen</> : <><Check aria-hidden />Bekijk video's</>}</Link></Button>
       </section>
 
-      {isError ? (
+      {(noStats) ? <StatsComing /> : isError ? (
         <EmptyState text="De cijfers konden niet worden geladen. Probeer het later opnieuw." />
       ) : !isLoading && !data?.client ? (
         <EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." />
@@ -83,7 +98,8 @@ function ClientPerformanceTab() {
   const { data, isLoading } = useClientStats(period);
   const stats = data?.stats ?? [];
   const range = data?.range;
-  if (!isLoading && !data?.client) return <EmptyState text="Nog geen data. Je account is nog niet aan een klant gekoppeld." />;
+  const { client } = useClient();
+  if (client?.video_only || (!isLoading && (!data?.client || !stats.length))) return <StatsComing />;
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">

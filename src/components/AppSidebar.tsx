@@ -31,7 +31,7 @@ export const CLIENT_MENU: Item[] = [
   { title: "Branding & Archief", url: "/branding", icon: Archive },
 ];
 /** Klanten waarvoor HIBE niet post: alleen video's goedkeuren/downloaden, geen cijfers. */
-export const VIDEO_ONLY_URLS = ["/videos", "/content-moments", "/scripts", "/branding"];
+export const VIDEO_ONLY_URLS = ["/", "/videos", "/content-moments", "/scripts", "/branding"];
 const HIBE_MENU: Item[] = [
   { title: "Dashboard", url: "/hibe", icon: LayoutGrid },
   { title: "Media", url: "/hibe/videos", icon: Film, prefix: "/hibe/videos" },

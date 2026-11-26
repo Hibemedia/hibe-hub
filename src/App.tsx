@@ -39,7 +39,7 @@ const queryClient = new QueryClient();
 
 const clientPages = (
   <>
-    <Route index element={<FullClientOnly><Dashboard /></FullClientOnly>} />
+    <Route index element={<Dashboard />} />
     <Route path="performance" element={<FullClientOnly><Performance /></FullClientOnly>} />
     <Route path="planning" element={<FullClientOnly><Planning /></FullClientOnly>} />
     <Route path="video-approval" element={<Navigate to="../videos" relative="path" replace />} />
