@@ -177,6 +177,15 @@ export default function HibeEdits() {
         <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("deadline")}>Deadline toepassen</Button>
         <Input aria-label="Inplannen op" type="date" value={bulkPlanned} onChange={e => setBulkPlanned(e.target.value)} className="w-44" />
         <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("planned")}>Inplannen</Button>
+        <Button size="sm" variant="ghost" disabled={bulkBusy} onClick={async () => {
+          const ids = visible.filter(e => selection.has(e.id)).map(e => e.id);
+          if (!ids.length || !confirm(`${ids.length} edit(s) verwijderen?`)) return;
+          setBulkBusy(true);
+          const { error } = await db.from("edits").delete().in("id", ids);
+          setBulkBusy(false);
+          if (error) toast.error("Verwijderen lukt niet"); else { toast.success(`${ids.length} edits verwijderd`); setSelection(new Set()); }
+          refresh();
+        }}><Trash2 className="mr-1 h-4 w-4" />Verwijderen</Button>
         <Button size="sm" variant="ghost" onClick={() => setSelection(new Set())}>Selectie wissen</Button>
       </div>}
       {isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : groups.length === 0 ? (

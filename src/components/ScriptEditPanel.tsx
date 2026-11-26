@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Scissors, ExternalLink } from "lucide-react";
+import { Scissors, ExternalLink, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeamMembers } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,11 @@ export function ScriptEditPanel({ script, shootDate }: { script: Script; shootDa
     const { error } = await db.from("edits").update({ drive_link: v.trim() || null }).eq("id", edit!.id);
     if (error) toast.error("Opslaan lukt niet"); else toast.success("Videolink opgeslagen"); refresh();
   };
+  const remove = async () => {
+    if (!confirm("Deze edit verwijderen? Het script blijft bestaan.")) return;
+    const { error } = await db.from("edits").delete().eq("id", edit!.id);
+    if (error) toast.error("Verwijderen lukt niet"); else toast.success("Edit verwijderd"); refresh();
+  };
   const editors = <SelectContent><SelectItem value="none">Geen editor</SelectItem>{team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>;
 
   return (
@@ -64,10 +69,11 @@ export function ScriptEditPanel({ script, shootDate }: { script: Script; shootDa
       <div className="mb-3 flex items-center gap-2"><Scissors className="h-4 w-4" /><h3 className="font-semibold">Video & edit</h3>
         {edit && <Tag className="ml-auto">{EDIT_STATUS_LABEL[edit.status]}</Tag>}</div>
       {edit ? (
-        <div className="grid gap-2 sm:grid-cols-[1fr_200px_auto]">
+        <div className="grid gap-2 sm:grid-cols-[1fr_200px_auto_auto]">
           <Input key={edit.id} defaultValue={edit.drive_link ?? ""} onBlur={(e) => saveDrive(e.target.value)} placeholder="Link naar de video (Drive)" aria-label="Videolink" />
           <Select value={edit.editor_id ?? "none"} onValueChange={assign}><SelectTrigger aria-label="Editor"><SelectValue /></SelectTrigger>{editors}</Select>
           <Button variant="outline" asChild><Link to={`/hibe/edits?edit=${edit.id}`}><ExternalLink className="h-4 w-4" />Open edit</Link></Button>
+          <Button variant="ghost" onClick={remove} aria-label="Edit verwijderen"><Trash2 className="h-4 w-4" />Verwijderen</Button>
         </div>
       ) : (
         <div className="grid gap-2 sm:grid-cols-[1fr_200px_auto]">

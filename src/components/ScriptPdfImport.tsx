@@ -30,10 +30,10 @@ export function ScriptPdfImport({ open, onOpenChange, clients, initialClient }: 
     try {
       const text = await pdfText(f);
       let list = splitScripts(text, f.name.replace(/\.pdf$/i, ""));
-      if (list.length <= 1 && text.trim()) {
+      if (text.trim()) {
         const { data, error } = await supabase.functions.invoke("split-scripts", { body: { text } });
         if (!error && Array.isArray(data?.scripts) && data.scripts.length) list = data.scripts;
-        else toast.error(data?.error ?? "Automatisch verdelen lukte niet; pas de verdeling zelf aan");
+        else toast.error(data?.error ?? "Netjes ordenen lukte niet; controleer de verdeling zelf");
       }
       if (!list.length) toast.error("Geen tekst gevonden in deze PDF (is het een scan?)");
       setParts(list);
