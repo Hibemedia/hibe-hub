@@ -84,6 +84,7 @@ export default function HibeEdits() {
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [bulkEditor, setBulkEditor] = useState("none");
   const [bulkDeadline, setBulkDeadline] = useState("");
+  const [bulkPlanned, setBulkPlanned] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [creating, setCreating] = useState(false);
@@ -132,7 +133,7 @@ export default function HibeEdits() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [visible, edits, clients]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const applyBulk = async (kind: "editor" | "deadline") => {
+  const applyBulk = async (kind: "editor" | "deadline" | "planned") => {
     setBulkBusy(true);
     let completed = 0;
     try {
@@ -141,14 +142,15 @@ export default function HibeEdits() {
           const { error, data } = await supabase.functions.invoke("assign-edit-editor", { body: { edit_id: e.id, editor_id: bulkEditor === "none" ? null : bulkEditor } });
           if (error || data?.error) throw new Error(data?.error ?? await errorMessage(error));
         } else {
-          const { error } = await db.from("edits").update({ deadline: bulkDeadline || null }).eq("id", e.id);
+          const patch = kind === "planned" ? { planned_date: bulkPlanned || null } : { deadline: bulkDeadline || null };
+          const { error } = await db.from("edits").update(patch).eq("id", e.id);
           if (error) throw error;
         }
         completed++;
       }
       toast.success(`${completed} edits bijgewerkt`); setSelection(new Set());
     } catch { toast.error(`${completed} bijgewerkt; controleer de overige edits.`); }
-    finally { setBulkBusy(false); refresh(); }
+    finally { setBulkBusy(false); refresh(); qc.invalidateQueries({ queryKey: ["agenda"] }); }
   };
 
   return (
@@ -173,6 +175,8 @@ export default function HibeEdits() {
         <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("editor")}>Toewijzen</Button>
         <Input aria-label="Bulkdeadline" type="date" value={bulkDeadline} onChange={e => setBulkDeadline(e.target.value)} className="w-44" />
         <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("deadline")}>Deadline toepassen</Button>
+        <Input aria-label="Inplannen op" type="date" value={bulkPlanned} onChange={e => setBulkPlanned(e.target.value)} className="w-44" />
+        <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => applyBulk("planned")}>Inplannen</Button>
         <Button size="sm" variant="ghost" onClick={() => setSelection(new Set())}>Selectie wissen</Button>
       </div>}
       {isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : groups.length === 0 ? (
