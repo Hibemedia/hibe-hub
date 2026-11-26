@@ -28,7 +28,13 @@ export function ScriptPdfImport({ open, onOpenChange, clients, initialClient }: 
     if (!f) return;
     setBusy(true);
     try {
-      const list = splitScripts(await pdfText(f), f.name.replace(/\.pdf$/i, ""));
+      const text = await pdfText(f);
+      let list = splitScripts(text, f.name.replace(/\.pdf$/i, ""));
+      if (list.length <= 1 && text.trim()) {
+        const { data, error } = await supabase.functions.invoke("split-scripts", { body: { text } });
+        if (!error && Array.isArray(data?.scripts) && data.scripts.length) list = data.scripts;
+        else toast.error(data?.error ?? "Automatisch verdelen lukte niet; pas de verdeling zelf aan");
+      }
       if (!list.length) toast.error("Geen tekst gevonden in deze PDF (is het een scan?)");
       setParts(list);
     } catch { toast.error("Deze PDF kan niet gelezen worden"); }
@@ -63,8 +69,9 @@ export function ScriptPdfImport({ open, onOpenChange, clients, initialClient }: 
           </div>
           <div><Label>PDF met goedgekeurde scripts</Label>
             <Input type="file" accept="application/pdf,.pdf" disabled={busy} onChange={(e) => read(e.target.files?.[0])} />
-            <p className="mt-1 text-xs text-muted-foreground">Elk script begint bij een kop als "Script 1: titel". Controleer de verdeling hieronder voor je opslaat.</p>
+            <p className="mt-1 text-xs text-muted-foreground">De PDF wordt automatisch in losse scripts verdeeld (dit kan een halve minuut duren). Controleer de verdeling hieronder voor je opslaat.</p>
           </div>
+          {busy && <p className="text-sm text-muted-foreground">PDF lezen en verdelen…</p>}
           {parts.map((p, i) => (
             <div key={i} className="space-y-2 rounded-lg border border-border p-3">
               <div className="flex items-center gap-2">
