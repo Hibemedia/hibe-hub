@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Trash2, Upload, Copy, ExternalLink, EyeOff, Send, FileText, Sparkles } from "lucide-react";
+import { Plus, Search, Trash2, Upload, Copy, ExternalLink, EyeOff, Send, FileText, Sparkles, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useViewAs } from "@/context/ViewAs";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ScriptIdeas } from "@/components/ScriptIdeas";
+import { scriptsDayPdf } from "@/lib/scripts-pdf";
 import { filterScripts, usedScripts, type MomentInfo, type Script } from "@/lib/scripts";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
@@ -90,6 +91,21 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
     const text = await f.text();
     setEdit((e) => ({ ...e, body: text, title: e?.title || f.name.replace(/\.[^.]+$/, "") }));
   };
+  const byDay = useMemo(() => {
+    const m = new Map<string, Script[]>();
+    for (const s of scripts) if (s.moment_id && days[s.moment_id] && (scope === "client" || clientFilter === "all" || s.client_id === clientFilter)) m.set(s.moment_id, [...(m.get(s.moment_id) ?? []), s]);
+    return [...m.entries()].map(([id, list]) => ({ id, moment: days[id], client: list[0].client_id, list: [...list].sort((a, b) => a.created_at.localeCompare(b.created_at)) }))
+      .sort((a, b) => clientName(a.client).localeCompare(clientName(b.client)) || (b.moment.date ?? "").localeCompare(a.moment.date ?? ""));
+  }, [scripts, days, clientFilter, scope, clients]); // eslint-disable-line react-hooks/exhaustive-deps
+  const today = new Date().toISOString().slice(0, 10);
+  const downloadDay = async (g: (typeof byDay)[number]) => {
+    try {
+      const blob = await scriptsDayPdf({ client: clientName(g.client), day: g.moment.title, date: g.moment.date, scripts: g.list });
+      const url = URL.createObjectURL(blob); const a = document.createElement("a");
+      a.href = url; a.download = `Scripts ${clientName(g.client)} ${g.moment.title} ${g.moment.date ?? ""}.pdf`.replace(/[\\/:*?"<>|]/g, "").trim();
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch { toast.error("PDF maken lukt niet"); }
+  };
   const newScript = () => setEdit({ client_id: scope === "client" ? clientId ?? undefined : clientFilter !== "all" ? clientFilter : undefined, shared_with_client: false, body: "" });
 
   return (
@@ -104,6 +120,23 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                 <span className="font-medium">{s.title}</span>
                 <span className="shrink-0 text-muted-foreground">{moment.title} · {fmt(moment.date!)}</span>
               </button></li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {canEdit && byDay.length > 0 && (
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="font-semibold">Scripts per draaidag</h2>
+          <p className="text-sm text-muted-foreground">Voeg alle scripts van een draaidag samen in één PDF, genummerd vanaf script 1.</p>
+          <ul className="mt-2 divide-y divide-border">
+            {byDay.map((g) => (
+              <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <p className="font-medium">{g.moment.title}{g.moment.date ? ` · ${fmt(g.moment.date)}` : ""}</p>
+                  <p className="text-muted-foreground">{scope === "hibe" ? `${clientName(g.client)} · ` : ""}{g.list.length} {g.list.length === 1 ? "script" : "scripts"}{g.moment.date && g.moment.date < today ? " · draaidag voorbij" : ""}</p>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => downloadDay(g)}><Download className="h-4 w-4" />PDF</Button>
+              </li>
             ))}
           </ul>
         </section>
