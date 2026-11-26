@@ -98,10 +98,13 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
     qc.invalidateQueries({ queryKey: ["scripts"] });
   };
   const remove = async (s: Script) => {
-    if (!confirm(`"${s.title}" verwijderen?`)) return;
+    if (!confirm(`"${s.title}" verwijderen? Nog niet ingeleverde edits van dit script worden ook verwijderd.`)) return;
+    const db = supabase as any;
+    const del = await db.from("edits").delete().eq("script_id", s.id).neq("status", "delivered");
+    if (del.error) return toast.error("Edits verwijderen lukt niet");
     const { error } = await supabase.from("scripts").delete().eq("id", s.id);
     if (error) return toast.error("Verwijderen lukt niet");
-    setSelId(null); qc.invalidateQueries({ queryKey: ["scripts"] });
+    setSelId(null); qc.invalidateQueries({ queryKey: ["scripts"] }); qc.invalidateQueries({ queryKey: ["edits"] });
   };
   const toggleShare = async (s: Script) => {
     const { error } = await supabase.from("scripts").update({ shared_with_client: !s.shared_with_client }).eq("id", s.id);
