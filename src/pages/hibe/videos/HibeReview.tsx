@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { useMedia } from "@/components/videos/useMedia";
 import { VideoThumb, StatusLabel } from "@/components/videos/parts";
 import { FeedbackEditor } from "@/components/videos/FeedbackEditor";
+import { CapcutStylePanel } from "@/components/videos/CapcutStylePanel";
 import { Player, PlayerHandle } from "@/components/videos/Player";
 import { UploadProgress } from "@/components/UploadProgress";
 import { EmptyState } from "@/components/StatsOverview";
@@ -139,6 +140,7 @@ export default function HibeReview() {
           </div>
           <UploadProgress />
           {!quiet && <CapcutStyle clientId={item.client_id} />}
+          {quiet && <div className="md:hidden"><CapcutStylePanel key={item.client_id} clientId={item.client_id} /></div>}
         </main>
 
         {quiet && <CapcutStyleAside clientId={item.client_id} />}
@@ -185,32 +187,20 @@ export default function HibeReview() {
   );
 }
 
-function useCapcutStyle(clientId: string) {
-  const [style, setStyle] = useState<string | null>(null);
-  useEffect(() => { supabase.from("clients").select("capcut_style").eq("id", clientId).maybeSingle().then(({ data }) => setStyle((data as any)?.capcut_style ?? null)); }, [clientId]);
-  return style;
-}
-
 function CapcutStyle({ clientId }: { clientId: string }) {
-  const style = useCapcutStyle(clientId);
-  if (!style) return null;
   return (
     <section className="mx-auto max-w-xl rounded-xl border border-border bg-card p-4">
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">CapCut-stijl van deze klant</p>
-      <p className="whitespace-pre-line text-sm leading-relaxed">{style}</p>
+      <CapcutStylePanel key={clientId} clientId={clientId} />
     </section>
   );
 }
 
 /** CapCut-final: de stijl staat naast de video, zodat je haar tijdens het kijken erbij hebt. */
 function CapcutStyleAside({ clientId }: { clientId: string }) {
-  const style = useCapcutStyle(clientId);
-  if (!style) return null;
   return (
     <aside className="hidden min-h-0 w-[380px] shrink-0 overflow-y-auto border-l border-border bg-card p-4 md:flex md:flex-col">
       <section className="rounded-xl border border-border bg-background p-4">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">CapCut-stijl van deze klant</p>
-        <p className="whitespace-pre-line text-sm leading-relaxed">{style}</p>
+        <CapcutStylePanel key={clientId} clientId={clientId} />
       </section>
     </aside>
   );

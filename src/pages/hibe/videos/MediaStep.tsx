@@ -7,6 +7,7 @@ import { useMedia, useSavedFilters, useUploader } from "@/components/videos/useM
 import { VideoThumb } from "@/components/videos/parts";
 import { FeedbackEditor } from "@/components/videos/FeedbackEditor";
 import { CapcutEditor } from "@/components/videos/CapcutEditor";
+import { CapcutStylePanel } from "@/components/videos/CapcutStylePanel";
 import { useSendToClient, copyText, portalLink } from "@/components/videos/SendDialog";
 import { UploadProgress } from "@/components/UploadProgress";
 import { EmptyState } from "@/components/StatsOverview";
@@ -58,7 +59,6 @@ export default function MediaStep() {
   const [verFor, setVerFor] = useState<BoardItem | null>(null);
   const [styleFor, setStyleFor] = useState<BoardItem | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["video-items"] });
-  const capcutOf = (cid: string) => m.clients.find((c) => c.id === cid)?.capcut_style ?? null;
   const capcutBy = (i: BoardItem) => capcutEditorOf(i);
 
   const stepItems = m.live.filter((i) => i.status === status);
@@ -174,7 +174,7 @@ export default function MediaStep() {
                     {!trashView && status === "approved_internal" && <CapcutEditor itemId={i.id} title={i.title} userId={capcutBy(i)} />}
                     {!trashView && status !== "approved_internal" && <FeedbackEditor itemId={i.id} title={i.title} editorId={i.editor_id} onSavingChange={(saving) => editorSaving(i.id, saving)} />}
                     {trashView && <><Button size="sm" variant="outline" disabled={clearing} onClick={() => trash(i, false)}><RotateCcw />Terugzetten</Button><Button size="sm" variant="outline" className="text-destructive" disabled={clearing} onClick={() => destroy(i)}><Trash2 />Definitief verwijderen</Button></>}
-                    {!trashView && status === "approved_internal" && capcutOf(i.client_id) && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}
+                    {!trashView && status === "approved_internal" && <Button size="sm" variant="outline" onClick={() => setStyleFor(i)}>CapCut-stijl</Button>}
                     <Button size="sm" variant="outline" onClick={() => downloadVideo(i.versionId, i.file_name ?? i.title)}><Download />Download</Button>
                     {!trashView && a && <Button size="sm" variant={a.kind === "review" ? "default" : "outline"} onClick={() => act(i)}>{a.label}</Button>}
                     <DropdownMenu>
@@ -203,7 +203,7 @@ export default function MediaStep() {
       <Dialog open={!!styleFor} onOpenChange={(o) => { if (!o) setStyleFor(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>CapCut-stijl van {styleFor ? m.clientName(styleFor.client_id) : ""}</DialogTitle></DialogHeader>
-          <p className="whitespace-pre-line text-sm leading-relaxed">{styleFor ? capcutOf(styleFor.client_id) : ""}</p>
+          {styleFor && <CapcutStylePanel key={styleFor.client_id} clientId={styleFor.client_id} />}
         </DialogContent>
       </Dialog>
     </div>
