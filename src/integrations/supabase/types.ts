@@ -870,28 +870,38 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          edit_id: string | null
           id: string
           post_date: string
           social_client_id: string
-          video_item_id: string
+          video_item_id: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          edit_id?: string | null
           id?: string
           post_date: string
           social_client_id: string
-          video_item_id: string
+          video_item_id?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          edit_id?: string | null
           id?: string
           post_date?: string
           social_client_id?: string
-          video_item_id?: string
+          video_item_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "social_post_video_links_edit_id_fkey"
+            columns: ["edit_id"]
+            isOneToOne: false
+            referencedRelation: "edits"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "social_post_video_links_video_item_id_fkey"
             columns: ["video_item_id"]

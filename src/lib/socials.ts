@@ -79,7 +79,31 @@ export const videoToPostStatus = (s: string): PostStatus =>
   : s === "scheduled" || s === "archived" ? "scheduled"
   : "to_schedule"; // approved_internal, ready_for_client, approved_client
 
-export type SocialVideoLink = { id: string; social_client_id: string; post_date: string; video_item_id: string };
+export type SocialVideoLink = { id: string; social_client_id: string; post_date: string; video_item_id: string | null; edit_id?: string | null };
+export type SocialEdit = { id: string; client_id: string; title: string; status: string; video_item_id: string | null };
+
+export function filterPickableEdits(edits: SocialEdit[], query: string, clientName: (id: string) => string, onlyClientName?: string | null) {
+  return filterPickableVideos(edits.filter((e) => e.status !== "delivered" && !e.video_item_id), query, clientName, onlyClientName);
+}
+
+/** Until delivery, a reserved edit stays in montage, not approved or published. */
+export function socialLinkStatus(link: SocialVideoLink, videos: { id: string; status: string }[], edits: SocialEdit[]): PostStatus {
+  const edit = edits.find((e) => e.id === link.edit_id);
+  const video = videos.find((v) => v.id === (link.video_item_id ?? edit?.video_item_id));
+  return video ? videoToPostStatus(video.status) : edit ? "in_progress" : "none";
+}
+
+export function useSocialEdits() {
+  return useQuery({
+    queryKey: ["social-edits"],
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("edits").select("id,client_id,title,status,video_item_id").order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as SocialEdit[];
+    },
+  });
+}
 
 /**
  * Videos that can be linked to a checklist cell: everything outside the archive,
@@ -106,15 +130,20 @@ export function filterPickableVideos<T extends { id: string; client_id: string; 
 export function useSocialVideoLinks() {
   return useQuery({
     queryKey: ["social-video-links"],
+    refetchInterval: 30000,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("social_post_video_links").select("id,social_client_id,post_date,video_item_id");
+      const { data, error } = await (supabase as any).from("social_post_video_links").select("id,social_client_id,post_date,video_item_id,edit_id");
       if (error) throw error;
       return (data ?? []) as SocialVideoLink[];
     },
   });
 }
 export async function linkSocialVideo(socialClientId: string, postDate: string, videoItemId: string) {
-  const { error } = await (supabase as any).from("social_post_video_links").upsert({ social_client_id: socialClientId, post_date: postDate, video_item_id: videoItemId }, { onConflict: "social_client_id,post_date" });
+  const { error } = await (supabase as any).from("social_post_video_links").upsert({ social_client_id: socialClientId, post_date: postDate, video_item_id: videoItemId, edit_id: null }, { onConflict: "social_client_id,post_date" });
+  if (error) throw error;
+}
+export async function linkSocialEdit(socialClientId: string, postDate: string, editId: string) {
+  const { error } = await supabase.from("social_post_video_links").upsert({ social_client_id: socialClientId, post_date: postDate, video_item_id: null, edit_id: editId }, { onConflict: "social_client_id,post_date" });
   if (error) throw error;
 }
 export async function unlinkSocialVideo(id: string) {
@@ -134,6 +163,7 @@ export function socialPreviewRows(
   dates: string[],
   weekFrom: string,
   limit: number,
+  edits: SocialEdit[] = [],
 ): { rows: PreviewRow[]; hidden: number; done: number; planned: number } {
   const rows = clients.filter((c) => c.is_active).map((c) => {
     let cells: PreviewCell[];
@@ -145,8 +175,7 @@ export function socialPreviewRows(
     } else {
       cells = dates.map((d) => {
         const l = links.find((x) => x.social_client_id === c.id && x.post_date === d);
-        const v = l ? videos.find((x) => x.id === l.video_item_id) : undefined;
-        return { date: d, status: v ? videoToPostStatus(v.status) : posts.find((p) => p.client_id === c.id && p.post_date === d)?.status ?? "none", linked: !!v };
+        return { date: d, status: l ? socialLinkStatus(l, videos, edits) : posts.find((p) => p.client_id === c.id && p.post_date === d)?.status ?? "none", linked: !!l };
       });
     }
     const done = cells.filter((x) => x.status === "scheduled").length;

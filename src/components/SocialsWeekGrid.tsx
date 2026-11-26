@@ -14,8 +14,8 @@ import { VIDEO_STATUS_LABEL } from "@/lib/videos";
 import { cn } from "@/lib/utils";
 import {
   Item, Post, PostStatus, SClient, STATUSES, WEEKLY, Week,
-  callSocials, cellCls, isoWeek, linkSocialVideo, mondayOf, monthWeeks, statusOf, unlinkSocialVideo,
-  useSocialVideoLinks, videoToPostStatus, weekDates, weekItems, ymd,
+  callSocials, cellCls, isoWeek, linkSocialVideo, linkSocialEdit, mondayOf, monthWeeks, statusOf, unlinkSocialVideo,
+  useSocialVideoLinks, useSocialEdits, socialLinkStatus, weekDates, weekItems, ymd,
 } from "@/lib/socials";
 
 const DAYS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
@@ -73,6 +73,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
   });
   const { data: links = [] } = useSocialVideoLinks();
   const { data: videos = [] } = useVideoItems();
+  const { data: edits = [] } = useSocialEdits();
 
   const posts = useMemo(() => new Map((data?.posts ?? []).map((p) => [`${p.client_id}_${p.post_date}`, p])), [data]);
   const weeks = useMemo(() => new Map((data?.weeks ?? []).map((w) => [`${w.client_id}_${w.week_start}`, w])), [data]);
@@ -81,7 +82,7 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
   const linkFor = (cid: string, d: string) => links.find((l) => l.social_client_id === cid && l.post_date === d);
   const effStatus = (cid: string, d: string): PostStatus => {
     const l = linkFor(cid, d);
-    if (l) { const v = videos.find((x) => x.id === l.video_item_id); return v ? videoToPostStatus(v.status) : "none"; }
+    if (l) return socialLinkStatus(l, videos, edits);
     return posts.get(`${cid}_${d}`)?.status ?? "none";
   };
 
@@ -112,6 +113,14 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
   const unlink = async (id: string) => {
     try { await unlinkSocialVideo(id); qc.invalidateQueries({ queryKey: ["social-video-links"] }); }
     catch { toast.error("Loskoppelen mislukt"); }
+  };
+  const linkEdit = async (cid: string, d: string, editId: string) => {
+    try {
+      await linkSocialEdit(cid, d, editId);
+      await qc.invalidateQueries({ queryKey: ["social-video-links"] });
+      setCell(null);
+      toast.success("Edit ingepland voor publicatie");
+    } catch { toast.error("Edit koppelen mislukt"); }
   };
 
   /** Progress per client over the visible range: [done, planned]. */
@@ -176,11 +185,12 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
     const k = `${c.id}_${d}`;
     const l = linkFor(c.id, d);
     const video = l ? videos.find((v) => v.id === l.video_item_id) : null;
+    const edit = l ? edits.find((e) => e.id === l.edit_id) : null;
     const p = posts.get(k);
     const eff = effStatus(c.id, d);
     const st = statusOf(eff);
     const weekend = dow(d) >= 5;
-    const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : "Gekoppelde video") : [st.label, p?.title, p?.note].filter(Boolean).join(" — ");
+    const hover = l ? (video ? `${video.title} · ${VIDEO_STATUS_LABEL[video.status]}` : edit ? `${edit.title} · Edit nog niet ingeleverd` : "Gekoppelde video") : [st.label, p?.title, p?.note].filter(Boolean).join(" — ");
     return (
       <td key={d} className={cn("border border-border p-0", weekStart(d) && "border-l-2 border-l-foreground/25", d === today && "ring-2 ring-inset ring-foreground")}>
         <button
@@ -353,9 +363,12 @@ export function SocialsWeekGrid({ weekOnly = false }: { weekOnly?: boolean } = {
         link={cellLink}
         video={cellVideo}
         videos={videos}
+        edits={edits}
+        edit={cellLink ? edits.find((e) => e.id === cellLink.edit_id) ?? null : null}
         clientName={hibeName}
         onSave={(patch) => { if (cell) savePost(cell.clientId, cell.date, patch); }}
         onLink={(videoId) => { if (cell) { link(cell.clientId, cell.date, videoId); setCell(null); } }}
+        onLinkEdit={(editId) => { if (cell) linkEdit(cell.clientId, cell.date, editId); }}
         onUnlink={() => { if (cellLink) unlink(cellLink.id); }}
         onClose={() => setCell(null)}
       />

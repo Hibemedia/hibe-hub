@@ -1,5 +1,9 @@
 # Roadmap
 
+## Socials-checklist: edits vooraf plannen
+- [x] Nog niet ingeleverde edits kiezen per publicatiedag; na inlevering volgt dezelfde koppeling de video.
+- [x] 17 tests slagen; ingelogd een echte open edit ingepland, na verversen teruggelezen en proefplanning verwijderd. Desktop en mobiel gecontroleerd; build OK. Automatische overdracht bij inleveren getest als statusregel, geen echte klantedit ingeleverd.
+
 ## Automatische SLA-koppeling
 - [x] SLA blijft gekoppeld aan Media: Ingepland en het maanddoel bij Klanten; ververst elke minuut zolang het bord zichtbaar is en bij terugkeer naar het scherm, inclusief automatische maandwisseling.
 - [x] 11 productieboard/SLA-tests slagen; ingelogd opgeslagen telling gecontroleerd en doelwijziging vanuit een tweede scherm automatisch ontvangen zonder herladen; oorspronkelijk doel hersteld.

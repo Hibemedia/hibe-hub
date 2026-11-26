@@ -4,12 +4,14 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { cn } from "@/lib/utils";
 import {
-  STATUSES, cellCls, filterPickableVideos, statusOf, videoToPostStatus,
-  type Post, type PostStatus, type SocialVideoLink,
+  STATUSES, cellCls, filterPickableVideos, filterPickableEdits, statusOf, videoToPostStatus,
+  type Post, type PostStatus, type SocialVideoLink, type SocialEdit,
 } from "@/lib/socials";
+import { EDIT_STATUS_LABEL, type EditStatus } from "@/lib/edits";
 import { VIDEO_STATUS_LABEL } from "@/lib/videos";
 import type { VideoItem } from "@/hooks/useVideos";
 
@@ -50,7 +52,7 @@ export function PostFields({ title, note, onSave }: { title: string; note: strin
  * Right-hand sidebar for one checklist cell: status (or the linked video) on top,
  * the full list of pickable videos underneath, always visible with its own search.
  */
-export function SocialsCellPanel({ cell, cellLabel, eff, post, link, video, videos, clientName, onSave, onLink, onUnlink, onClose }: {
+export function SocialsCellPanel({ cell, cellLabel, eff, post, link, video, videos, edits, edit, clientName, onSave, onLink, onLinkEdit, onUnlink, onClose }: {
   cell: SocialsCell | null;
   /** Name of the checklist client, as the checklist itself shows it. */
   cellLabel: string;
@@ -59,25 +61,31 @@ export function SocialsCellPanel({ cell, cellLabel, eff, post, link, video, vide
   link: SocialVideoLink | null;
   video: VideoItem | null;
   videos: VideoItem[];
+  edits: SocialEdit[];
+  edit: SocialEdit | null;
   clientName: (id: string) => string;
   onSave: (patch: Partial<Post>) => void;
   onLink: (videoId: string) => void;
+  onLinkEdit: (editId: string) => void;
   onUnlink: () => void;
   onClose: () => void;
 }) {
   const [q, setQ] = useState("");
   const [onlyClient, setOnlyClient] = useState(false);
+  const [source, setSource] = useState("videos");
 
   /** Opening another cell starts with a clean search and the full list. */
   useEffect(() => { setQ(""); setOnlyClient(false); }, [cell?.clientId, cell?.date]);
 
   const list = useMemo(
-    () => filterPickableVideos(videos, q, clientName, onlyClient ? cellLabel : null),
-    [videos, q, clientName, onlyClient, cellLabel],
+    () => source === "edits"
+      ? filterPickableEdits(edits, q, clientName, onlyClient ? cellLabel : null)
+      : filterPickableVideos(videos, q, clientName, onlyClient ? cellLabel : null),
+    [videos, edits, source, q, clientName, onlyClient, cellLabel],
   );
   /** One block per client, in the order the videos arrive (newest activity first). */
   const groups = useMemo(() => {
-    const m = new Map<string, VideoItem[]>();
+    const m = new Map<string, (VideoItem | SocialEdit)[]>();
     for (const v of list) { const g = m.get(v.client_id); if (g) g.push(v); else m.set(v.client_id, [v]); }
     return [...m.entries()];
   }, [list]);
@@ -101,10 +109,11 @@ export function SocialsCellPanel({ cell, cellLabel, eff, post, link, video, vide
         <div className="max-h-[46%] min-h-0 shrink-0 overflow-y-auto border-b border-border px-4 py-3">
           {link ? (
             <div className="space-y-2 rounded-md bg-background p-2.5">
-              <p className="flex items-center gap-1.5 text-xs font-medium"><Link2 className="h-3.5 w-3.5" />Volgt de status van de video</p>
-              <p className="truncate text-sm font-semibold">{video?.title ?? "Video niet gevonden"}</p>
+              <p className="flex items-center gap-1.5 text-xs font-medium"><Link2 className="h-3.5 w-3.5" />{video ? "Volgt de status van de video" : "Edit ingepland voor publicatie"}</p>
+              <p className="truncate text-sm font-semibold">{video?.title ?? edit?.title ?? "Video niet gevonden"}</p>
               {video && <p className="text-xs text-muted-foreground">{clientName(video.client_id)} · {VIDEO_STATUS_LABEL[video.status]}</p>}
-              <button onClick={onUnlink} className="inline-flex items-center gap-1 text-xs text-destructive transition hover:opacity-80"><Unlink className="h-3 w-3" />Koppeling verwijderen</button>
+              {!video && edit && <p className="text-xs text-muted-foreground">{clientName(edit.client_id)} · {EDIT_STATUS_LABEL[edit.status as EditStatus] ?? edit.status}</p>}
+              <Button variant="ghost" size="sm" onClick={onUnlink} className="text-destructive"><Unlink className="h-3 w-3" />Koppeling verwijderen</Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -126,9 +135,10 @@ export function SocialsCellPanel({ cell, cellLabel, eff, post, link, video, vide
 
         <div className="flex min-h-0 flex-1 flex-col px-4 py-3">
           <div className="flex shrink-0 items-baseline gap-2">
-            <Label className="text-xs">Koppel een video uit Video's</Label>
+            <Label className="text-xs">{source === "edits" ? "Koppel een edit" : "Koppel een video"}</Label>
             <span className="ml-auto text-[11px] tabular text-muted-foreground">{list.length}</span>
           </div>
+          <SegmentedControl className="mt-2 shrink-0" label="Koppelingsbron" value={source} onChange={setSource} options={[{ value: "videos", label: "Video's" }, { value: "edits", label: "Edits" }]} />
           <div className="mt-1.5 flex shrink-0 gap-1">
             <FilterChip className="h-7 px-2 text-xs" active={!onlyClient} onClick={() => setOnlyClient(false)}>Alles</FilterChip>
             <FilterChip className="h-7 max-w-[200px] px-2 text-xs" active={onlyClient} disabled={!cell} onClick={() => setOnlyClient(true)}>
@@ -141,19 +151,19 @@ export function SocialsCellPanel({ cell, cellLabel, eff, post, link, video, vide
           </div>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto" aria-label="Beschikbare video's">
             {groups.length === 0 ? (
-              <p className="px-1 py-3 text-sm text-muted-foreground">Geen video gevonden.</p>
+              <p className="px-1 py-3 text-sm text-muted-foreground">{source === "edits" ? "Geen open edit gevonden." : "Geen video gevonden."}</p>
             ) : groups.map(([cid, vs]) => (
               <div key={cid} className="mb-2">
                 <p className="sticky top-0 z-10 bg-card px-1 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{clientName(cid)}</p>
                 {vs.map((v) => (
-                  <button key={v.id} onClick={() => onLink(v.id)}
-                    className="flex w-full items-start gap-2 rounded-md px-1 py-1.5 text-left transition hover:bg-muted">
-                    <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-control", cellCls(videoToPostStatus(v.status)))} aria-hidden />
+                  <Button variant="ghost" key={v.id} onClick={() => source === "edits" ? onLinkEdit(v.id) : onLink(v.id)}
+                    className="flex h-auto w-full items-start justify-start gap-2 rounded-md px-1 py-1.5 text-left whitespace-normal">
+                    <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-control", cellCls(source === "edits" ? "in_progress" : videoToPostStatus(v.status)))} aria-hidden />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{v.title || "Naamloze video"}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{VIDEO_STATUS_LABEL[v.status]}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{source === "edits" ? EDIT_STATUS_LABEL[v.status as EditStatus] : VIDEO_STATUS_LABEL[v.status as VideoItem["status"]]}</span>
                     </span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             ))}

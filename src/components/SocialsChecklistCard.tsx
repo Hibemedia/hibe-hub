@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { openChecklistRows } from "@/lib/dashboard-view";
 import { Button } from "@/components/ui/button";
 import {
-  callSocials, cellCls, socialPreviewRows, statusOf, useSocialVideoLinks, weekDates,
+  callSocials, cellCls, socialPreviewRows, statusOf, useSocialVideoLinks, useSocialEdits, weekDates,
   type Post, type SClient, type Week,
 } from "@/lib/socials";
 
@@ -25,13 +25,14 @@ export function SocialsChecklistPreview({ className }: { className?: string }) {
   });
   const { data: links = [] } = useSocialVideoLinks();
   const { data: videos = [] } = useVideoItems();
+  const { data: edits = [] } = useSocialEdits();
   const p = useMemo(
     () => {
-      const all = socialPreviewRows(data?.clients ?? [], data?.posts ?? [], data?.weeks ?? [], links, videos, ds, ds[0], Number.MAX_SAFE_INTEGER);
+      const all = socialPreviewRows(data?.clients ?? [], data?.posts ?? [], data?.weeks ?? [], links, videos, ds, ds[0], Number.MAX_SAFE_INTEGER, edits);
       const open = openChecklistRows(all.rows);
       return { ...all, rows: open.slice(0, MAX_ROWS), hidden: Math.max(0, open.length - MAX_ROWS) };
     },
-    [data, links, videos, ds],
+    [data, links, videos, edits, ds],
   );
 
   return (
