@@ -461,6 +461,7 @@ export type Database = {
           moment_id: string | null
           notes: string | null
           planned_date: string | null
+          script_id: string | null
           shoot_date: string | null
           status: string
           title: string
@@ -478,6 +479,7 @@ export type Database = {
           moment_id?: string | null
           notes?: string | null
           planned_date?: string | null
+          script_id?: string | null
           shoot_date?: string | null
           status?: string
           title: string
@@ -495,6 +497,7 @@ export type Database = {
           moment_id?: string | null
           notes?: string | null
           planned_date?: string | null
+          script_id?: string | null
           shoot_date?: string | null
           status?: string
           title?: string
@@ -514,6 +517,13 @@ export type Database = {
             columns: ["moment_id"]
             isOneToOne: false
             referencedRelation: "content_moments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edits_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "scripts"
             referencedColumns: ["id"]
           },
           {

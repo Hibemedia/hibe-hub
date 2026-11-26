@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { ScriptIdeas } from "@/components/ScriptIdeas";
 import { ScriptPdfImport } from "@/components/ScriptPdfImport";
+import { ScriptEditPanel, useScriptEdits, createEditForScript } from "@/components/ScriptEditPanel";
 import { scriptsDayPdf } from "@/lib/scripts-pdf";
 import { filterScripts, usedScripts, type MomentInfo, type Script } from "@/lib/scripts";
 
@@ -29,6 +30,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
+  const [dayFilter, setDayFilter] = useState("all");
   const [selId, setSelId] = useState<string | null>(null);
   const [ideas, setIdeas] = useState(false);
   const [pdfIn, setPdfIn] = useState(false);
@@ -61,7 +63,14 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
     queryFn: async () => (await supabase.from("content_moments").select("id,title,date").eq("client_id", formClient!).order("date", { ascending: false })).data ?? [],
   });
 
-  const shown = useMemo(() => filterScripts(scripts, q, scope === "hibe" ? clientFilter : "all"), [scripts, q, clientFilter, scope]);
+  const shown = useMemo(() => {
+    const list = filterScripts(scripts, q, scope === "hibe" ? clientFilter : "all").filter((s) => dayFilter === "all" || (dayFilter === NONE ? !s.moment_id : s.moment_id === dayFilter));
+    const dayDate = (s: Script) => (s.moment_id ? days[s.moment_id]?.date ?? "0" : "");
+    return list.sort((a, b) => dayDate(b).localeCompare(dayDate(a)) || (a.moment_id ?? "").localeCompare(b.moment_id ?? "") || (a.moment_id ? a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at)));
+  }, [scripts, q, clientFilter, scope, dayFilter, days]);
+  const dayOptions = Object.entries(days).filter(([id]) => scripts.some((s) => s.moment_id === id && (scope === "client" || clientFilter === "all" || s.client_id === clientFilter)))
+    .sort((a, b) => (b[1].date ?? "").localeCompare(a[1].date ?? ""));
+  const { data: editMap = {} } = useScriptEdits(canEdit ? scripts.filter((s) => s.moment_id).map((s) => s.id) : []);
   const sel = shown.find((s) => s.id === selId) ?? shown[0] ?? null;
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
 
@@ -108,6 +117,12 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch { toast.error("PDF maken lukt niet"); }
   };
+  const makeEdits = async (g: (typeof byDay)[number]) => {
+    const todo = g.list.filter((s) => !editMap[s.id]);
+    try { for (const s of todo) await createEditForScript(s, g.moment.date, null, null); toast.success(`${todo.length} edits aangemaakt`); }
+    catch { toast.error("Niet alle edits zijn aangemaakt"); }
+    qc.invalidateQueries({ queryKey: ["edits"] });
+  };
   const newScript = () => setEdit({ client_id: scope === "client" ? clientId ?? undefined : clientFilter !== "all" ? clientFilter : undefined, shared_with_client: false, body: "" });
 
   return (
@@ -135,9 +150,15 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
               <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm">
                 <div className="min-w-0">
                   <p className="font-medium">{g.moment.title}{g.moment.date ? ` · ${fmt(g.moment.date)}` : ""}</p>
-                  <p className="text-muted-foreground">{scope === "hibe" ? `${clientName(g.client)} · ` : ""}{g.list.length} {g.list.length === 1 ? "script" : "scripts"}{g.moment.date && g.moment.date < today ? " · draaidag voorbij" : ""}</p>
+                  <p className="text-muted-foreground">{scope === "hibe" ? `${clientName(g.client)} · ` : ""}{g.list.length} {g.list.length === 1 ? "script" : "scripts"} · {g.list.filter((s) => editMap[s.id]?.editor_id).length} met editor{g.moment.date && g.moment.date < today ? " · draaidag voorbij" : ""}</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => downloadDay(g)}><Download className="h-4 w-4" />PDF</Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => setDayFilter(g.id)}>Bekijk</Button>
+                  {g.list.some((s) => !editMap[s.id])
+                    ? <Button size="sm" variant="outline" onClick={() => makeEdits(g)}>Edits maken ({g.list.filter((s) => !editMap[s.id]).length})</Button>
+                    : <span className="self-center text-xs text-muted-foreground">alle edits aangemaakt</span>}
+                  <Button size="sm" variant="outline" onClick={() => downloadDay(g)}><Download className="h-4 w-4" />PDF</Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -151,7 +172,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
         {canEdit && <Button variant="outline" onClick={() => setIdeas(true)}><Sparkles className="h-4 w-4" />Ideeën genereren</Button>}
         {canEdit && <Button variant="outline" onClick={() => setPdfIn(true)}><Upload className="h-4 w-4" />PDF draaidag uploaden</Button>}
         {scope === "hibe" && (
-          <Select value={clientFilter} onValueChange={setClientFilter}>
+          <Select value={clientFilter} onValueChange={(v) => { setClientFilter(v); setDayFilter("all"); }}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle klanten</SelectItem>
@@ -159,6 +180,14 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
             </SelectContent>
           </Select>
         )}
+        <Select value={dayFilter} onValueChange={setDayFilter}>
+          <SelectTrigger className="w-[220px]" aria-label="Draaidag"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle draaidagen</SelectItem>
+            <SelectItem value={NONE}>Zonder draaidag</SelectItem>
+            {dayOptions.map(([id, m]) => <SelectItem key={id} value={id}>{m.title}{m.date ? ` · ${fmt(m.date)}` : ""}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {shown.length === 0 ? (
@@ -171,14 +200,16 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
       ) : (
         <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
           <ul className="max-h-[70vh] space-y-1 overflow-y-auto rounded-xl border border-border bg-card p-2">
-            {shown.map((s) => (
+            {shown.map((s, i) => (
               <li key={s.id}>
+                {(i === 0 || shown[i - 1].moment_id !== s.moment_id) && <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{s.moment_id ? dayNames[s.moment_id] ?? "Draaidag" : "Zonder draaidag"}</p>}
                 <button onClick={() => setSelId(s.id)} className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${sel?.id === s.id ? "bg-accent" : "hover:bg-muted"}`}>
                   <p className="truncate font-semibold">{s.title}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     {scope === "hibe" && <Tag>{clientName(s.client_id)}</Tag>}
                     <span>{fmt(s.created_at)}</span>
                     {canEdit && s.shared_with_client && <span>· naar klant gestuurd</span>}
+                    {canEdit && editMap[s.id] && <span>· edit{editMap[s.id].editor_id ? " toegewezen" : ""}</span>}
                   </div>
                 </button>
               </li>
@@ -202,6 +233,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
                   </>}
                 </div>
               </div>
+              {canEdit && sel.moment_id && <ScriptEditPanel script={sel} shootDate={days[sel.moment_id]?.date ?? null} />}
               <pre className="mt-4 whitespace-pre-wrap font-sans text-[15px] leading-relaxed">{sel.body || "Geen tekst."}</pre>
             </article>
           )}
