@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Trash2, Upload, Copy, ExternalLink, EyeOff, Send, FileText, Sparkles, Download } from "lucide-react";
+import { Plus, Search, Trash2, Upload, Copy, ExternalLink, EyeOff, Send, FileText, Sparkles, Download, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/context/ClientContext";
 import { useViewAs } from "@/context/ViewAs";
@@ -18,7 +18,7 @@ import { ScriptIdeas } from "@/components/ScriptIdeas";
 import { ScriptPdfImport } from "@/components/ScriptPdfImport";
 import { ScriptEditPanel, useScriptEdits, createEditForScript } from "@/components/ScriptEditPanel";
 import { scriptsDayPdf } from "@/lib/scripts-pdf";
-import { filterScripts, usedScripts, type MomentInfo, type Script } from "@/lib/scripts";
+import { filterScripts, groupScriptsByDay, dayBlockOpen, usedScripts, type MomentInfo, type Script } from "@/lib/scripts";
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
 const NONE = "__none";
@@ -33,6 +33,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const [q, setQ] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [dayFilter, setDayFilter] = useState("all");
+  const [openDays, setOpenDays] = useState<Record<string, boolean>>({});
   const [selId, setSelId] = useState<string | null>(null);
   const [ideas, setIdeas] = useState(false);
   const [pdfIn, setPdfIn] = useState(false);
@@ -77,6 +78,14 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const { data: editMap = {} } = useScriptEdits(canEdit ? scripts.filter((s) => s.moment_id).map((s) => s.id) : []);
   const sel = shown.find((s) => s.id === selId) ?? shown[0] ?? null;
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "Klant";
+
+  const collapsible = canEdit && workflow === "shoot";
+  const filterActive = q.trim() !== "" || (scope === "hibe" && clientFilter !== "all") || dayFilter !== "all";
+  const blockOpts = { collapsible, filterActive, selectedMomentId: sel?.moment_id };
+  const groups = useMemo(() => groupScriptsByDay(shown, dayNames), [shown, dayNames]);
+  const allDaysOpen = groups.every((g) => dayBlockOpen(g.id, openDays, blockOpts));
+  const toggleDay = (id: string | null) => setOpenDays((m) => ({ ...m, [id ?? "__none"]: !dayBlockOpen(id, m, blockOpts) }));
+  const toggleAllDays = () => setOpenDays(Object.fromEntries(groups.map((g) => [g.id ?? "__none", !allDaysOpen])));
 
   const save = async () => {
     if (!edit?.client_id || !edit.title?.trim()) return toast.error("Kies een klant en vul een titel in");
@@ -131,6 +140,7 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
   const changeWorkflow = (value: string) => {
     setWorkflow(value as "new" | "shoot");
     setDayFilter("all");
+    setOpenDays({});
     setSelId(null);
     setQ("");
   };
@@ -232,22 +242,48 @@ export default function Scripts({ scope = "client" }: { scope?: "hibe" | "client
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
-          <ul className="max-h-[70vh] space-y-1 overflow-y-auto rounded-xl border border-border bg-card p-2">
-            {shown.map((s, i) => (
-              <li key={s.id}>
-                {(i === 0 || shown[i - 1].moment_id !== s.moment_id) && <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{s.moment_id ? dayNames[s.moment_id] ?? "Draaidag" : "Zonder draaidag"}</p>}
-                <button onClick={() => setSelId(s.id)} className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${sel?.id === s.id ? "bg-accent" : "hover:bg-muted"}`}>
-                  <p className="truncate font-semibold">{s.title}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    {scope === "hibe" && <Tag>{clientName(s.client_id)}</Tag>}
-                    <span>{fmt(s.created_at)}</span>
-                    {canEdit && s.shared_with_client && <span>· naar klant gestuurd</span>}
-                    {canEdit && editMap[s.id] && <span>· edit{editMap[s.id].editor_id ? " toegewezen" : ""}</span>}
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="min-w-0 space-y-2">
+            {collapsible && !filterActive && groups.length > 1 && (
+              <div className="flex items-center justify-between px-1">
+                <p className="text-xs text-muted-foreground">{groups.length} draaidagen</p>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={toggleAllDays}>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${allDaysOpen ? "rotate-180" : ""}`} />
+                  {allDaysOpen ? "Alles inklappen" : "Alles uitklappen"}
+                </Button>
+              </div>
+            )}
+            <ul className="max-h-[70vh] space-y-1 overflow-y-auto rounded-xl border border-border bg-card p-2">
+              {groups.map((g) => {
+                const open = dayBlockOpen(g.id, openDays, blockOpts);
+                const holdsSel = g.list.some((s) => s.id === sel?.id);
+                return (
+                  <li key={g.id ?? "__none"}>
+                    {collapsible ? (
+                      <button onClick={() => toggleDay(g.id)} aria-expanded={open} aria-current={holdsSel ? "true" : undefined} className="flex w-full items-center gap-2 rounded-lg px-3 pb-1 pt-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground">
+                        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
+                        <span className={`min-w-0 truncate ${holdsSel ? "text-foreground" : ""}`}>{g.label}</span>
+                        {holdsSel && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-lime" aria-hidden />}
+                        <span className="ml-auto shrink-0 text-[11px] font-normal normal-case tabular-nums">{g.list.length}</span>
+                      </button>
+                    ) : (
+                      <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g.label}</p>
+                    )}
+                    {open && g.list.map((s) => (
+                      <button key={s.id} onClick={() => setSelId(s.id)} className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${sel?.id === s.id ? "bg-accent" : "hover:bg-muted"}`}>
+                        <p className="truncate font-semibold">{s.title}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                          {scope === "hibe" && <Tag>{clientName(s.client_id)}</Tag>}
+                          <span>{fmt(s.created_at)}</span>
+                          {canEdit && s.shared_with_client && <span>· naar klant gestuurd</span>}
+                          {canEdit && editMap[s.id] && <span>· edit{editMap[s.id].editor_id ? " toegewezen" : ""}</span>}
+                        </div>
+                      </button>
+                    ))}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
           {sel && (
             <article className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
