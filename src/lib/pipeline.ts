@@ -59,10 +59,12 @@ export function buildCards(d: { tasks: T[]; moments: M[]; edits: E[]; videos: V[
 export const avgDays = (cards: Card[], now: Date) => (cards.length ? Math.round(cards.reduce((s, c) => s + daysIn(c.since, now), 0) / cards.length * 10) / 10 : null);
 
 /** SLA: a video counts as delivered in the month its status became "scheduled". */
-export function deliveredThisMonth(videos: { client_id: string; status: string; status_changed_at: string }[], now: Date = new Date()) {
+export function deliveredThisMonth(videos: { client_id: string; status: string; status_changed_at: string; archived_at?: string | null }[], now: Date = new Date()) {
   const counts: Record<string, number> = {};
   for (const v of videos) {
-    if (v.status !== "scheduled") continue;
+    // Auto-archived after posting keeps its scheduled timestamp (archived_at is later), so it still counts.
+    const autoArchived = v.status === "archived" && !!v.archived_at && v.archived_at > v.status_changed_at;
+    if (v.status !== "scheduled" && !autoArchived) continue;
     const d = new Date(v.status_changed_at);
     if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) counts[v.client_id] = (counts[v.client_id] ?? 0) + 1;
   }

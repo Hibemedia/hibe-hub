@@ -91,3 +91,10 @@ describe("groupByClient", () => {
     expect(groupByClient(cards as any, now, "client")[0].client_id).toBe("b");
   });
 });
+
+import { deliveredThisMonth as dtm } from "./pipeline";
+it("auto-archived posted video still counts for SLA in its scheduled month", () => {
+  const now = new Date("2026-11-26T12:00:00Z");
+  expect(dtm([{ client_id: "c", status: "archived", status_changed_at: "2026-11-20T10:00:00Z", archived_at: "2026-11-26T00:05:00Z" }], now)).toEqual({ c: 1 });
+  expect(dtm([{ client_id: "c", status: "archived", status_changed_at: "2026-11-20T10:00:00Z", archived_at: "2026-11-20T10:00:00Z" }], now)).toEqual({});
+});

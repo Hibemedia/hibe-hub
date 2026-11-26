@@ -84,7 +84,7 @@ function SlaBlock({ clients, logo }: { clients: { id: string; name: string; logo
   const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const { data, isError } = useQuery({ queryKey: ["sla", start], refetchInterval: 60_000, refetchOnWindowFocus: "always", queryFn: async () => {
     const [v, c] = await Promise.all([
-      db.from("video_items").select("client_id,status,status_changed_at").eq("status", "scheduled").is("trashed_at", null).gte("status_changed_at", start),
+      db.from("video_items").select("client_id,status,status_changed_at,archived_at").in("status", ["scheduled", "archived"]).is("trashed_at", null).gte("status_changed_at", start),
       db.from("clients").select("id,monthly_video_target"),
     ]);
     if (v.error) throw v.error; if (c.error) throw c.error;

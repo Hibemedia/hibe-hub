@@ -1340,6 +1340,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_posted_videos: { Args: never; Returns: number }
       chat_open_dm: { Args: { _other: string }; Returns: string }
       chat_unread: {
         Args: never
